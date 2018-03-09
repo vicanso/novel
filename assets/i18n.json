@@ -1,0 +1,230 @@
+[
+  {
+    "category": "basic",
+    "name": "loginFirst",
+    "en": "Please login first",
+    "zh": "请先登录"
+  },
+  {
+    "category": "basic",
+    "name": "userManagement",
+    "en": "User Management",
+    "zh": "用户管理"
+  },
+  {
+    "category": "basic",
+    "name": "systemSetting",
+    "en": "System Setting",
+    "zh": "系统配置"
+  },
+  {
+    "category": "basic",
+    "name": "testSetting",
+    "en": "Test Setting",
+    "zh": "测试配置"
+  },
+  {
+    "category": "basic",
+    "name": "user",
+    "en": "User",
+    "zh": "用户"
+  },
+  {
+    "category": "basic",
+    "name": "i18n",
+    "en": "I18N",
+    "zh": "多语言"
+  },
+  {
+    "category": "basic",
+    "name": "mock",
+    "en": "mock",
+    "zh": "mock"
+  },
+  {
+    "category": "basic",
+    "name": "setting",
+    "en": "setting",
+    "zh": "配置"
+  },
+  {
+    "category": "basic",
+    "name": "name",
+    "en": "name",
+    "zh": "名称"
+  },
+  {
+    "category": "basic",
+    "name": "english",
+    "en": "english",
+    "zh": "英文"
+  },
+  {
+    "category": "basic",
+    "name": "chinese",
+    "en": "chinese",
+    "zh": "中文"
+  },
+  {
+    "category": "basic",
+    "name": "category",
+    "en": "category",
+    "zh": "类别"
+  },
+  {
+    "category": "basic",
+    "name": "operation",
+    "en": "operation",
+    "zh": "操作"
+  },
+  {
+    "category": "basic",
+    "name": "update",
+    "en": "update",
+    "zh": "更新"
+  },
+  {
+    "category": "basic",
+    "name": "edit",
+    "en": "edit",
+    "zh": "编辑"
+  },
+  {
+    "category": "basic",
+    "name": "cancel",
+    "en": "cancel",
+    "zh": "取消"
+  },
+  {
+    "category": "basic",
+    "name": "save",
+    "en": "save",
+    "zh": "保存"
+  },
+  {
+    "category": "basic",
+    "name": "add",
+    "en": "add",
+    "zh": "新增"
+  },
+  {
+    "category": "basic",
+    "name": "url",
+    "en": "url",
+    "zh": "地址"
+  },
+  {
+    "category": "basic",
+    "name": "status",
+    "en": "status",
+    "zh": "状态码"
+  },
+  {
+    "category": "basic",
+    "name": "response",
+    "en": "response",
+    "zh": "响应数据"
+  },
+  {
+    "category": "basic",
+    "name": "description",
+    "en": "description",
+    "zh": "描述"
+  },
+  {
+    "category": "basic",
+    "name": "disabled",
+    "en": "disabled",
+    "zh": "禁用"
+  },
+  {
+    "category": "basic",
+    "name": "yes",
+    "en": "yes",
+    "zh": "是"
+  },
+  {
+    "category": "basic",
+    "name": "no",
+    "en": "no",
+    "zh": "否"
+  },
+  {
+    "category": "user",
+    "name": "loginTitle",
+    "en": "Please Login Your Account",
+    "zh": "请登录您的账号"
+  },
+  {
+    "category": "user",
+    "name": "notAllowAcess",
+    "en": "This feature does not allow the current user to use",
+    "zh": "此功能不允许当前用户使用"
+  },
+  {
+    "category": "user",
+    "name": "account",
+    "en": "account",
+    "zh": "账号"
+  },
+  {
+    "category": "user",
+    "name": "password",
+    "en": "password",
+    "zh": "密码"
+  },
+  {
+    "category": "user",
+    "name": "email",
+    "en": "email",
+    "zh": "邮箱"
+  },
+  {
+    "category": "user",
+    "name": "roles",
+    "en": "roles",
+    "zh": "角色"
+  },
+  {
+    "category": "user",
+    "name": "login",
+    "en": "login",
+    "zh": "登录"
+  },
+  {
+    "category": "user",
+    "name": "accountEmpty",
+    "en": "Account can't be empty",
+    "zh": "账号不能为空"
+  },
+  {
+    "category": "user",
+    "name": "emailEmpty",
+    "en": "Email address can't be empty",
+    "zh": "邮箱地址不能为空"
+  },
+  {
+    "category": "user",
+    "name": "passwordEmpty",
+    "en": "Password can not be empty",
+    "zh": "密码不能为空"
+  },
+  {
+    "category": "user",
+    "name": "registerTitle",
+    "en": "Register Your Account",
+    "zh": "用户注册"
+  },
+  {
+    "category": "user",
+    "name": "register",
+    "en": "register",
+    "zh": "注册"
+  },
+  {
+    "category": "user",
+    "name": "lastLoginedAt",
+    "en": "last login",
+    "zh": "最近登录时间"
+  }
+]

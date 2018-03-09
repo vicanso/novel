@@ -1,0 +1,86 @@
+{
+  "name": "novel",
+  "description": "novel backend",
+  "version": "1.0.0",
+  "author": "Tree Xie <vicansocanbico@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vicanso/novel"
+  },
+  "bugs": {
+    "url": "https://github.com/vicanso/novel/issues",
+    "email": "vicansocanbico@gmail.com"
+  },
+  "main": "./app",
+  "keywords": [
+    "koa",
+    "novel"
+  ],
+  "engines": {
+    "node": ">=9.0.0"
+  },
+  "jest": {
+    "transform": {}
+  },
+  "readmeFilename": "README.md",
+  "scripts": {
+    "commitmsg": "validate-commit-msg",
+    "build": "node node_modules/.bin/babel src -d dist",
+    "dev": "nodemon --experimental-modules src/app.mjs",
+    "docs": "node --experimental-modules build/api.mjs",
+    "format": "node node_modules/.bin/prettier --write *.mjs */*.mjs */**/*.mjs",
+    "lint": "node ./node_modules/.bin/eslint *.mjs */*.mjs */**/*.mjs",
+    "jest": "node node_modules/.bin/jest dist/*.test.js dist/*/*.test.js",
+    "precommit": "npm run format && npm run lint",
+    "start": "node --experimental-modules app",
+    "test": "npm run lint && npm run build && NODE_ENV=test INFLUX=http://127.0.0.1:8086/novel npm run jest",
+    "gen-version": "node --experimental-modules build/gen-version",
+    "update": "node --experimental-modules build/update.mjs"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "async-local-storage": "^1.2.0",
+    "bluebird": "^3.5.1",
+    "debug": "^3.1.0",
+    "http-errors": "^1.6.2",
+    "influxdb-nodejs": "^2.7.6",
+    "ioredis": "^3.2.2",
+    "joi": "^13.1.2",
+    "koa": "^2.4.1",
+    "koa-bodyparser": "^4.2.0",
+    "koa-connection-limit": "^2.1.0",
+    "koa-etag": "^3.0.0",
+    "koa-http-stats": "^2.2.1",
+    "koa-log": "^2.1.0",
+    "koa-methodoverride": "^2.0.0",
+    "koa-rest-version": "^1.1.2",
+    "koa-router-parser": "^3.1.1",
+    "koa-session": "^5.8.1",
+    "lodash": "^4.17.5",
+    "moment": "^2.20.1",
+    "mongoose": "^5.0.3",
+    "ms": "^2.1.1",
+    "novel-spider": "2.0.1",
+    "performance-nodejs": "^1.1.3",
+    "shortid": "^2.2.8",
+    "simple-stringify": "^1.2.1",
+    "superagent": "^3.8.2",
+    "superlimiter": "^1.0.1",
+    "supertiming": "^1.3.2",
+    "timtam-logger": "^2.1.2"
+  },
+  "devDependencies": {
+    "babel-cli": "7.0.0-beta.3",
+    "babel-preset-env": "7.0.0-beta.3",
+    "babel-preset-es2015": "7.0.0-beta.3",
+    "eslint": "^4.17.0",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-config-prettier": "^2.9.0",
+    "eslint-plugin-import": "^2.8.0",
+    "husky": "^0.14.3",
+    "jest": "^22.4.2",
+    "prettier": "^1.10.2",
+    "swagger-jsdoc": "^1.9.7",
+    "validate-commit-msg": "^2.14.0"
+  }
+}

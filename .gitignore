@@ -1,0 +1,5 @@
+node_modules
+coverage
+assets/api.json
+dist
+yarn-error.log
