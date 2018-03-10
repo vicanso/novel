@@ -4,34 +4,28 @@ import {isDevelopment} from '../helpers/utils';
 
 const {Schema} = mongoose;
 
-const name = 'Book';
+const name = 'Chapter';
 
 const schema = {
+  book: {
+    type: Number,
+    required: true,
+  },
   no: {
     type: Number,
-    unique: true,
-  },
-  name: {
-    type: String,
     required: true,
-  },
-  author: {
-    type: String,
-    required: true,
-  },
-  latestChapter: {
-    title: String,
-    updatedAt: Date,
-    wordCount: Number,
-    no: Number,
-  },
-  chapterCount: {
-    type: Number,
-    default: 0,
   },
   wordCount: {
     type: Number,
-    default: 0,
+    required: true,
+  },
+  title: {
+    type: String,
+    required: true,
+  },
+  data: {
+    type: Buffer,
+    required: true,
   },
 };
 
@@ -42,8 +36,16 @@ export default function init(client) {
   });
   s.index(
     {
-      name: 1,
-      author: 1,
+      book: 1,
+    },
+    {
+      background: true,
+    },
+  );
+  s.index(
+    {
+      book: 1,
+      no: 1,
     },
     {
       background: true,

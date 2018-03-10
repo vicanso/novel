@@ -7,6 +7,7 @@ import origin from './origin';
 import book from './book';
 import inc from './inc';
 import cover from './cover';
+import chapter from './chapter';
 
 export default {
   setting,
@@ -18,4 +19,5 @@ export default {
   book,
   inc,
   cover,
+  chapter,
 };

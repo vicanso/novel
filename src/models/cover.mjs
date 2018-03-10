@@ -7,7 +7,7 @@ const {Schema} = mongoose;
 const name = 'Cover';
 
 const schema = {
-  id: {
+  book: {
     type: Number,
     unique: true,
   },
