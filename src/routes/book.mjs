@@ -1,0 +1,18 @@
+export default [
+  // 增加书籍来源
+  [
+    'POST',
+    '/books/sources',
+    ['m.admin', 'm.tracker("addSource")', 'c.book.addSource'],
+  ],
+  // 书籍列表
+  ['GET', '/books', 'c.book.list'],
+  // 增加书籍
+  ['POST', '/books', 'c.book.add'],
+  // 获取书籍信息
+  ['GET', '/books/:no', 'c.book.get'],
+  // 获取章节
+  ['GET', '/books/:no/chapters', 'c.book.listChapter'],
+  // 获取封面
+  ['GET', '/books/:no/cover', 'c.book.cover'],
+];

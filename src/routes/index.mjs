@@ -6,5 +6,6 @@ import user from './user';
 import mock from './mock';
 import setting from './setting';
 import stats from './stats';
+import book from './book';
 
-export default _.flatten([sys, i18n, user, mock, setting, stats]);
+export default _.flatten([sys, i18n, user, mock, setting, stats, book]);

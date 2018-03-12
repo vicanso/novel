@@ -33,6 +33,11 @@ const schema = {
     type: Number,
     default: 0,
   },
+  // 是否完结
+  end: {
+    type: Boolean,
+    default: false,
+  },
 };
 
 export default function init(client) {

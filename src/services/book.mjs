@@ -10,6 +10,7 @@ import originService from './origin';
 import converService from './cover';
 import chapterService from './chapter';
 import {getBookNo} from './inc';
+import redis from '../helpers/redis';
 
 const bookService = genService('Book');
 const gzip = util.promisify(zlib.gzip);
@@ -30,7 +31,7 @@ async function getSpider(author, name) {
 export default bookService;
 
 // 添加一本新书，如果已有，则返回
-export async function add(author, name) {
+export async function addBook(author, name) {
   let doc = await bookService.findOne({
     author,
     name,
@@ -123,4 +124,32 @@ export async function updateInfos(author, name) {
   doc.wordCount = wordCount;
   doc.chapterCount = docs.length;
   await doc.save();
+}
+
+// 更新所有书籍
+export async function updateAll() {
+  const docs = await bookService
+    .find({
+      end: false,
+    })
+    .select('author name no')
+    .lean();
+  let count = 0;
+  const ttl = 300;
+  await Promise.mapSeries(docs, async doc => {
+    const key = `update-all-${doc.no}`;
+    const result = await redis
+      .multi()
+      .setnx(key, true)
+      .expire(key, ttl)
+      .exec();
+    const err = result[0][0] || result[1][0];
+    // 如果出错或者setnx不成功（有其它实例已在更新）
+    if (err || result[0][1] !== 1) {
+      return;
+    }
+    count += 1;
+    console.info(`the book(${doc.no}) will be updated`);
+  });
+  console.info(`update ${count} books is finished`);
 }
