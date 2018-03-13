@@ -7,7 +7,7 @@ RUN cd /app \
   && yarn cache clean \
   && npm run gen-version
 
-CMD ["node", "--experimental-modules", "/app/app"]
+CMD ["node", "--experimental-modules", "/app/src/app"]
 
 HEALTHCHECK --interval=30s --timeout=3s \
   CMD node --experimental-modules /app/build/check.mjs || exit 1
