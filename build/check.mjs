@@ -1,6 +1,6 @@
 import request from 'superagent';
 
-import {port} from '../config';
+import {port} from '../src/config';
 
 request
   .get(`http://127.0.0.1:${port}/ping`)
