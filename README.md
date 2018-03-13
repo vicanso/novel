@@ -27,6 +27,6 @@
 
 docker run \
   -d --restart=always \
-  -e MONGO=mongodb://192.168.31.176/spt?connectTimeoutMS=300000 \
+  -e MONGO=mongodb://192.168.31.176/novel?connectTimeoutMS=300000 \
   -e REDIS=redis://192.168.31.176/ \
-  vicanso/spt
+  vicanso/novel
