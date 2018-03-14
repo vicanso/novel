@@ -4,11 +4,13 @@ import als from 'async-local-storage';
 
 import commonErrors from './common';
 import userErrors from './user';
+import bookErrors from './book';
 import {app} from '../config';
 
 const errors = {
   common: commonErrors,
   user: userErrors,
+  book: bookErrors,
 };
 
 // 根据key生成自定义error

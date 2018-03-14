@@ -19,6 +19,7 @@ const schema = {
     type: String,
     required: true,
   },
+  brief: String,
   latestChapter: {
     title: String,
     updatedAt: Date,

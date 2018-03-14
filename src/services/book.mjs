@@ -7,10 +7,11 @@ import _ from 'lodash';
 
 import genService from './gen';
 import originService from './origin';
-import converService from './cover';
+import coverService from './cover';
 import chapterService from './chapter';
 import {getBookNo} from './inc';
 import redis from '../helpers/redis';
+import errors from '../errors';
 
 const bookService = genService('Book');
 const gzip = util.promisify(zlib.gzip);
@@ -39,9 +40,9 @@ export async function addBook(author, name) {
   if (doc) {
     return doc;
   }
-  const novel = getSpider(author, name);
+  const novel = await getSpider(author, name);
   if (!novel) {
-    return null;
+    throw errors.get('book.sourceNotFound');
   }
   const info = await novel.getInfos();
   if (!info || info.name !== name || info.author !== author) {
@@ -55,11 +56,16 @@ export async function addBook(author, name) {
     brief: info.brief,
   };
   doc = await bookService.add(data);
-  const res = await request.get(info.img);
-  await converService.add({
+  const count = await coverService.count({
     book: no,
-    data: res.body,
   });
+  if (count === 0) {
+    const res = await request.get(info.img);
+    await coverService.add({
+      book: no,
+      data: res.body,
+    });
+  }
   return doc;
 }
 
@@ -148,6 +154,9 @@ export async function updateAll() {
     if (err || result[0][1] !== 1) {
       return;
     }
+    const {author, name} = doc;
+    await updateChapters(author, name);
+    await updateInfos(author, name);
     count += 1;
     console.info(`the book(${doc.no}) will be updated`);
   });

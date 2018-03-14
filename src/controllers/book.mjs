@@ -14,12 +14,15 @@ const gunzip = util.promisify(zlib.gunzip);
 export async function addSource(ctx) {
   const {name, author, source, id} = Joi.validate(ctx.request.body, {
     name: Joi.string()
+      .trim()
       .max(30)
       .required(),
     author: Joi.string()
+      .trim()
       .max(20)
       .required(),
     source: Joi.string()
+      .trim()
       .valid(['biquge'])
       .required(),
     id: Joi.string()
@@ -69,9 +72,11 @@ export async function list(ctx) {
 export async function add(ctx) {
   const {name, author} = Joi.validate(ctx.request.body, {
     name: Joi.string()
+      .trim()
       .max(30)
       .required(),
     author: Joi.string()
+      .trim()
       .max(20)
       .required(),
   });

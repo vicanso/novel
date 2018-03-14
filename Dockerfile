@@ -5,7 +5,8 @@ ADD ./ /app
 RUN cd /app \
   && yarn install --production \
   && yarn cache clean \
-  && npm run gen-version
+  && yarn gen-version \
+  && yarn autoclean --force
 
 CMD ["node", "--experimental-modules", "/app/src/app"]
 

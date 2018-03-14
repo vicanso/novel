@@ -6,7 +6,7 @@ import {updateAll} from '../services/book';
 
 performance(10 * 1000);
 
-schedule.scheduleJob('30 * * * *', () => {
+schedule.scheduleJob('00 * * * *', () => {
   if (isDevelopment()) {
     return;
   }

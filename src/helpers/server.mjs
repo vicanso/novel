@@ -25,7 +25,7 @@ export default function createServer() {
   // 初始化请求的相关参数
   app.use((ctx, next) => {
     const id = ctx.get('X-Request-Id') || shortid();
-    const lang = ctx.query.lang || 'en';
+    const lang = ctx.query.lang || 'zh';
     const timing = new Timing();
     delete ctx.query.lang;
     ctx.state.timing = timing;
