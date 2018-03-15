@@ -5,10 +5,15 @@ import {isDevelopment} from '../helpers/utils';
 import {updateAll} from '../services/book';
 
 performance(10 * 1000);
-
 schedule.scheduleJob('00 * * * *', () => {
   if (isDevelopment()) {
     return;
   }
-  updateAll();
+  updateAll()
+    .then(() => {
+      console.info('schedule update all completed');
+    })
+    .catch(err => {
+      console.error(`schedule update all fail, ${err.message}`);
+    });
 });
