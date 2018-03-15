@@ -5,7 +5,7 @@ import {isDevelopment} from '../helpers/utils';
 import {updateAll} from '../services/book';
 
 performance(10 * 1000);
-schedule.scheduleJob('00 * * * *', () => {
+schedule.scheduleJob('10 * * * *', () => {
   if (isDevelopment()) {
     return;
   }

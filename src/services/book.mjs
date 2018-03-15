@@ -10,7 +10,7 @@ import originService from './origin';
 import coverService from './cover';
 import chapterService from './chapter';
 import {getBookNo} from './inc';
-import redis from '../helpers/redis';
+import {lock} from '../helpers/redis';
 import errors from '../errors';
 
 const bookService = genService('Book');
@@ -144,7 +144,7 @@ export async function updateAll() {
   const ttl = 300;
   await Promise.mapSeries(docs, async doc => {
     const key = `update-all-books-${doc.no}`;
-    const locked = await redis.lock(key, ttl);
+    const locked = await lock(key, ttl);
     // 如果出错或者setnx不成功（有其它实例已在更新）
     if (!locked) {
       return;
