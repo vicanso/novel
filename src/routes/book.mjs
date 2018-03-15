@@ -21,7 +21,7 @@ export default [
   [
     'PATCH',
     '/books/:no/info',
-    ['m.admin', 'm.tracker("updateBookInfo")', 'c.book.updateInfo'],
+    ['m.admin', 'm.tracker("updateBookInfo")', 'c.book.updateBookInfo'],
   ],
   // 获取章节
   ['GET', '/books/:no/chapters', 'c.book.listChapter'],

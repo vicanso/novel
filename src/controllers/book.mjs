@@ -4,7 +4,11 @@ import zlib from 'zlib';
 import util from 'util';
 
 import orginService from '../services/origin';
-import bookService, {addBook} from '../services/book';
+import bookService, {
+  addBook,
+  updateChapters,
+  updateInfo,
+} from '../services/book';
 import chapterService from '../services/chapter';
 import coverService from '../services/cover';
 import {lock} from '../helpers/redis';
@@ -118,7 +122,7 @@ export async function get(ctx) {
 }
 
 // 更新书籍章节信息
-export async function updateInfo(ctx) {
+export async function updateBookInfo(ctx) {
   const no = Joi.attempt(
     ctx.params.no,
     Joi.number()
@@ -136,9 +140,8 @@ export async function updateInfo(ctx) {
     .lean();
   const {author, name} = doc;
   if (locked) {
-    bookService
-      .updateChapters(author, name)
-      .then(() => bookService.updateInfo(author, name))
+    updateChapters(author, name)
+      .then(() => updateInfo(author, name))
       .then(() => {
         console.info(`update book(${no}) success`);
       })
