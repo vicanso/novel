@@ -10,5 +10,5 @@ RUN cd /app \
 
 CMD ["node", "--experimental-modules", "/app/src/app"]
 
-HEALTHCHECK --interval=30s --timeout=3s \
+HEALTHCHECK --interval=10s --timeout=3s \
   CMD node --experimental-modules /app/build/check.mjs || exit 1
