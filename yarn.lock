@@ -3779,9 +3779,9 @@ normalize-path@^2.0.0, normalize-path@^2.0.1:
   dependencies:
     remove-trailing-separator "^1.0.1"
 
-novel-spider@^2.0.2:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/novel-spider/-/novel-spider-2.0.2.tgz#485da03ad6105847a5b08d5594e8c4505f9f067d"
+novel-spider@^2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/novel-spider/-/novel-spider-2.0.3.tgz#ac76f3b15032cbbadaf53e0b38624cd5353e3df7"
   dependencies:
     cheerio "^1.0.0-rc.2"
     iconv-lite "^0.4.19"
