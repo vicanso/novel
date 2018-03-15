@@ -102,7 +102,7 @@ export async function updateChapters(author, name) {
 }
 
 // 更新书相关信息（最近更新时间，字数，章节数等）
-export async function updateInfos(author, name) {
+export async function updateInfo(author, name) {
   const doc = await bookService.findOne({
     author,
     name,
@@ -143,20 +143,15 @@ export async function updateAll() {
   let count = 0;
   const ttl = 300;
   await Promise.mapSeries(docs, async doc => {
-    const key = `update-all-${doc.no}`;
-    const result = await redis
-      .multi()
-      .setnx(key, true)
-      .expire(key, ttl)
-      .exec();
-    const err = result[0][0] || result[1][0];
+    const key = `update-all-books-${doc.no}`;
+    const locked = await redis.lock(key, ttl);
     // 如果出错或者setnx不成功（有其它实例已在更新）
-    if (err || result[0][1] !== 1) {
+    if (!locked) {
       return;
     }
     const {author, name} = doc;
     await updateChapters(author, name);
-    await updateInfos(author, name);
+    await updateInfo(author, name);
     count += 1;
     console.info(`the book(${doc.no}) will be updated`);
   });

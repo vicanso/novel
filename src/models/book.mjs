@@ -19,7 +19,11 @@ const schema = {
     type: String,
     required: true,
   },
+  // 简介
   brief: String,
+  // 类别
+  category: [],
+  // 最新章节
   latestChapter: {
     title: String,
     updatedAt: Date,
@@ -54,6 +58,14 @@ export default function init(client) {
     {
       background: true,
       unique: true,
+    },
+  );
+  s.index(
+    {
+      category: 1,
+    },
+    {
+      background: true,
     },
   );
   client.model(name, s);

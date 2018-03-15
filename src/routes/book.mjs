@@ -11,6 +11,18 @@ export default [
   ['POST', '/books', 'c.book.add'],
   // 获取书籍信息
   ['GET', '/books/:no', 'c.book.get'],
+  // 更新书籍
+  [
+    'PATCH',
+    '/books/:no',
+    ['m.admin', 'm.tracker("updateBook")', 'c.book.update'],
+  ],
+  // 更新书籍信息
+  [
+    'PATCH',
+    '/books/:no/info',
+    ['m.admin', 'm.tracker("updateBookInfo")', 'c.book.updateInfo'],
+  ],
   // 获取章节
   ['GET', '/books/:no/chapters', 'c.book.listChapter'],
   // 获取封面

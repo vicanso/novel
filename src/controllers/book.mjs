@@ -7,6 +7,7 @@ import orginService from '../services/origin';
 import bookService, {addBook} from '../services/book';
 import chapterService from '../services/chapter';
 import coverService from '../services/cover';
+import {lock} from '../helpers/redis';
 
 const gunzip = util.promisify(zlib.gunzip);
 
@@ -41,7 +42,7 @@ export async function addSource(ctx) {
 
 // 获取书籍列表
 export async function list(ctx) {
-  const {skip, limit, count, fields} = Joi.validate(ctx.query, {
+  const {skip, limit, count, fields, keyword} = Joi.validate(ctx.query, {
     skip: Joi.number()
       .integer()
       .default(0),
@@ -50,10 +51,25 @@ export async function list(ctx) {
       .min(1)
       .max(20)
       .default(10),
-    fields: Joi.string().max(100),
+    fields: Joi.string()
+      .trim()
+      .max(100),
+    keyword: Joi.string()
+      .trim()
+      .max(30),
     count: Joi.boolean(),
   });
   const conditions = {};
+  if (keyword) {
+    conditions.$or = [
+      {
+        name: new RegExp(keyword),
+      },
+      {
+        author: new RegExp(keyword),
+      },
+    ];
+  }
   const data = {};
   if (count) {
     data.count = await bookService.count(conditions);
@@ -98,6 +114,68 @@ export async function get(ctx) {
   const doc = await bookService.findOne({
     no,
   });
+  ctx.body = doc;
+}
+
+// 更新书籍章节信息
+export async function updateInfo(ctx) {
+  const no = Joi.attempt(
+    ctx.params.no,
+    Joi.number()
+      .integer()
+      .min(0)
+      .max(10000)
+      .required(),
+  );
+  const locked = await lock(`updte-book-${no}`, 300);
+  const doc = await bookService
+    .findOne({
+      no,
+    })
+    .select('author name')
+    .lean();
+  const {author, name} = doc;
+  if (locked) {
+    bookService
+      .updateChapters(author, name)
+      .then(() => bookService.updateInfo(author, name))
+      .then(() => {
+        console.info(`update book(${no}) success`);
+      })
+      .catch(err => {
+        console.error(`update book(${no}) fail, ${err.message}`);
+      });
+  }
+  ctx.body = null;
+}
+
+export async function update(ctx) {
+  const no = Joi.attempt(
+    ctx.params.no,
+    Joi.number()
+      .integer()
+      .min(0)
+      .max(10000)
+      .required(),
+  );
+  const {brief, end, category} = Joi.validate(ctx.request.body, {
+    brief: Joi.string()
+      .trim()
+      .max(500),
+    end: Joi.boolean(),
+    category: Joi.array().items(Joi.string().trim()),
+  });
+  const doc = await bookService.findOne({
+    no,
+  });
+  if (brief) {
+    doc.brief = brief;
+  }
+  if (category) {
+    doc.category = category;
+  }
+  doc.end = end;
+  await doc.save();
   ctx.body = doc;
 }
 
