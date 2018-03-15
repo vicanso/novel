@@ -246,7 +246,7 @@ export async function cover(ctx) {
     ctx.body = null;
     return;
   }
-  ctx.setCache('24h', '5m');
+  ctx.setCache('1w', '5m');
   ctx.set('Content-Type', 'image/jpeg');
   ctx.body = doc.data.buffer;
 }

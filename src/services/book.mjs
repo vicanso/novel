@@ -149,11 +149,11 @@ export async function updateAll() {
     if (!locked) {
       return;
     }
+    console.info(`the book(${doc.no}) will be updated`);
     const {author, name} = doc;
     await updateChapters(author, name);
     await updateInfo(author, name);
     count += 1;
-    console.info(`the book(${doc.no}) will be updated`);
   });
   console.info(`update ${count} books is finished`);
 }
