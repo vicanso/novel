@@ -13,7 +13,7 @@ export const version = pkg.version;
 export const app = pkg.name;
 
 // eslint-disable-next-line
-export const httpLogFommat =
+export const httpLogFormat =
   ':account :request-id :method :url :status :length :response-time ms ":referrer"';
 
 export const trackCookie = 'jt';

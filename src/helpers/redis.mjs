@@ -48,17 +48,9 @@ export async function lock(key, ttl) {
   if (!key || !ttl) {
     throw new Error('key and ttl can not be null');
   }
-  const result = await client
-    .multi()
-    .setnx(key, true)
-    .expire(key, ttl)
-    .exec();
-  const err = result[0][0] || result[1][0];
-  if (err) {
-    throw err;
+  const result = await client.set(`${key}-lock`, 1, 'NX', 'EX', ttl);
+  if (result === 'OK') {
+    return true;
   }
-  if (result[0][1] !== 1) {
-    return false;
-  }
-  return true;
+  return false;
 }

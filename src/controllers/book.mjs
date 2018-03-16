@@ -8,6 +8,7 @@ import bookService, {
   addBook,
   updateChapters,
   updateInfo,
+  getCategories,
 } from '../services/book';
 import chapterService from '../services/chapter';
 import coverService from '../services/cover';
@@ -15,24 +16,41 @@ import {lock} from '../helpers/redis';
 
 const gunzip = util.promisify(zlib.gunzip);
 
+const schema = {
+  name: () =>
+    Joi.string()
+      .trim()
+      .max(30),
+  author: () =>
+    Joi.string()
+      .trim()
+      .max(20),
+  source: () =>
+    Joi.string()
+      .trim()
+      .valid(['biquge']),
+  id: () =>
+    Joi.string()
+      .trim()
+      .max(10),
+  no: () =>
+    Joi.number()
+      .integer()
+      .min(0)
+      .max(10000),
+  category: () =>
+    Joi.string()
+      .trim()
+      .max(10),
+};
+
 // 增加来源
 export async function addSource(ctx) {
   const {name, author, source, id} = Joi.validate(ctx.request.body, {
-    name: Joi.string()
-      .trim()
-      .max(30)
-      .required(),
-    author: Joi.string()
-      .trim()
-      .max(20)
-      .required(),
-    source: Joi.string()
-      .trim()
-      .valid(['biquge'])
-      .required(),
-    id: Joi.string()
-      .max(10)
-      .required(),
+    name: schema.name().required(),
+    author: schema.author().required(),
+    source: schema.source().required(),
+    id: schema.id().required(),
   });
   const doc = await orginService.add({
     name,
@@ -46,7 +64,7 @@ export async function addSource(ctx) {
 
 // 获取书籍列表
 export async function list(ctx) {
-  const {skip, limit, count, fields, keyword} = Joi.validate(ctx.query, {
+  const {skip, limit, count, fields, keyword, category} = Joi.validate(ctx.query, {
     skip: Joi.number()
       .integer()
       .default(0),
@@ -61,6 +79,7 @@ export async function list(ctx) {
     keyword: Joi.string()
       .trim()
       .max(30),
+    category: schema.category(),
     count: Joi.boolean(),
   });
   const conditions = {};
@@ -73,6 +92,9 @@ export async function list(ctx) {
         author: new RegExp(keyword),
       },
     ];
+  }
+  if (category) {
+    conditions.category = category;
   }
   const data = {};
   if (count) {
@@ -91,14 +113,8 @@ export async function list(ctx) {
 // 增加书籍
 export async function add(ctx) {
   const {name, author} = Joi.validate(ctx.request.body, {
-    name: Joi.string()
-      .trim()
-      .max(30)
-      .required(),
-    author: Joi.string()
-      .trim()
-      .max(20)
-      .required(),
+    name: schema.name().required(),
+    author: schema.author().required(),
   });
   const doc = await addBook(author, name);
   ctx.status = 201;
@@ -107,14 +123,7 @@ export async function add(ctx) {
 
 // 获取书籍信息
 export async function get(ctx) {
-  const no = Joi.attempt(
-    ctx.params.no,
-    Joi.number()
-      .integer()
-      .min(0)
-      .max(10000)
-      .required(),
-  );
+  const no = Joi.attempt(ctx.params.no, schema.no().required());
   const doc = await bookService.findOne({
     no,
   });
@@ -123,14 +132,7 @@ export async function get(ctx) {
 
 // 更新书籍章节信息
 export async function updateBookInfo(ctx) {
-  const no = Joi.attempt(
-    ctx.params.no,
-    Joi.number()
-      .integer()
-      .min(0)
-      .max(10000)
-      .required(),
-  );
+  const no = Joi.attempt(ctx.params.no, schema.no().required());
   const locked = await lock(`updte-book-${no}`, 300);
   const doc = await bookService
     .findOne({
@@ -152,15 +154,9 @@ export async function updateBookInfo(ctx) {
   ctx.body = null;
 }
 
+// 更新书籍信息
 export async function update(ctx) {
-  const no = Joi.attempt(
-    ctx.params.no,
-    Joi.number()
-      .integer()
-      .min(0)
-      .max(10000)
-      .required(),
-  );
+  const no = Joi.attempt(ctx.params.no, schema.no().required());
   const {brief, end, category} = Joi.validate(ctx.request.body, {
     brief: Joi.string()
       .trim()
@@ -184,14 +180,7 @@ export async function update(ctx) {
 
 // 列出章节信息
 export async function listChapter(ctx) {
-  const no = Joi.attempt(
-    ctx.params.no,
-    Joi.number()
-      .integer()
-      .min(0)
-      .max(10000)
-      .required(),
-  );
+  const no = Joi.attempt(ctx.params.no, schema.no().required());
   const {skip, limit, fields, sort} = Joi.validate(ctx.query, {
     skip: Joi.number()
       .integer()
@@ -227,15 +216,9 @@ export async function listChapter(ctx) {
   };
 }
 
-export async function cover(ctx) {
-  const no = Joi.attempt(
-    ctx.params.no,
-    Joi.number()
-      .integer()
-      .min(0)
-      .max(10000)
-      .required(),
-  );
+// 获取封面信息
+export async function getCover(ctx) {
+  const no = Joi.attempt(ctx.params.no, schema.no().required());
   const doc = await coverService
     .findOne({
       book: no,
@@ -249,4 +232,11 @@ export async function cover(ctx) {
   ctx.setCache('1w', '5m');
   ctx.set('Content-Type', 'image/jpeg');
   ctx.body = doc.data.buffer;
+}
+
+// 获取分类信息
+export async function categoriesList(ctx) {
+  const data = await getCategories();
+  ctx.setCache('5m');
+  ctx.body = data;
 }

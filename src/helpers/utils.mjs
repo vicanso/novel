@@ -75,16 +75,16 @@ export function setCache(ctx, ttl, sMaxAge) {
     seconds = _.ceil(ms(ttl) / 1000);
   }
   let cacheControl = `public, max-age=${seconds}`;
-  let sMaxAgeSeconds = 0;
-  const maxCacheAge = 60;
   const isDev = !isProduction();
+  let sMaxAgeSeconds = isDev ? seconds : 0;
+  const maxCacheAge = 60;
 
   if (sMaxAge) {
     sMaxAgeSeconds = sMaxAge;
     if (_.isString(sMaxAgeSeconds)) {
       sMaxAgeSeconds = _.ceil(ms(sMaxAgeSeconds) / 1000);
     }
-  }
+  } 
   // 对于测试环境，最长缓存时间不超过60秒
   if (sMaxAgeSeconds > maxCacheAge && isDev) {
     sMaxAgeSeconds = maxCacheAge;

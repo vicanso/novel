@@ -25,9 +25,13 @@ const schema = {
   category: [],
   // 最新章节
   latestChapter: {
+    // 章节标题
     title: String,
+    // 章节更新时间
     updatedAt: Date,
+    // 章节字数
     wordCount: Number,
+    // 章节序号
     no: Number,
   },
   chapterCount: {

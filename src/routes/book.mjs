@@ -5,6 +5,8 @@ export default [
     '/books/sources',
     ['m.admin', 'm.tracker("addSource")', 'c.book.addSource'],
   ],
+  // 获取分类
+  ['GET', '/books/categories', ['m.noQuery', 'c.book.categoriesList']],
   // 书籍列表
   ['GET', '/books', 'c.book.list'],
   // 增加书籍
@@ -26,5 +28,5 @@ export default [
   // 获取章节
   ['GET', '/books/:no/chapters', 'c.book.listChapter'],
   // 获取封面
-  ['GET', '/books/:no/cover', 'c.book.cover'],
+  ['GET', '/books/:no/cover', 'c.book.getCover'],
 ];

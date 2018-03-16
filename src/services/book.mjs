@@ -10,7 +10,7 @@ import originService from './origin';
 import coverService from './cover';
 import chapterService from './chapter';
 import {getBookNo} from './inc';
-import {lock} from '../helpers/redis';
+import redis, {lock} from '../helpers/redis';
 import errors from '../errors';
 
 const bookService = genService('Book');
@@ -111,7 +111,9 @@ export async function updateInfo(author, name) {
     return;
   }
   const docs = await chapterService
-    .find({})
+    .find({
+      book: doc.no,
+    })
     .select('wordCount no title updatedAt')
     .lean();
   if (docs.length === 0 || doc.chapterCount === docs.length) {
@@ -156,4 +158,57 @@ export async function updateAll() {
     count += 1;
   });
   console.info(`update ${count} books is finished`);
+}
+
+export async function getCategories() {
+  const key = 'book-categories';
+  const data = await redis.get(key);
+  setImmediate(async () => {
+    // 控制最多每10分钟更新一次
+    const locked = await lock('update-categories', 60 * 10);
+    if (!locked) {
+      return;
+    }
+    const cursor = bookService
+      .find({})
+      .select('category')
+      .lean()
+      .cursor();
+    const result = {};
+    cursor.on('data', doc => {
+      _.forEach(doc.category, category => {
+        if (!result[category]) {
+          result[category] = 0;
+        }
+        result[category] += 1;
+      });
+    });
+    cursor.on('end', async () => {
+      try {
+        const list = [];
+        _.forEach(result, (v, k) => {
+          list.push({
+            name: k,
+            count: v,
+          });
+        });
+        await redis.set(
+          key,
+          JSON.stringify({
+            createdAt: new Date().toISOString(),
+            list: _.sortBy(list, item => -item.count),
+          }),
+        );
+      } catch (err) {
+        console.error(`save categories to redis fail, ${err.message}`);
+      }
+    });
+    cursor.on('error', err => {
+      console.error(`get all book categories fail, ${err.message}`);
+    });
+  });
+  if (!data) {
+    return null;
+  }
+  return JSON.parse(data);
 }
