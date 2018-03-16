@@ -31,7 +31,7 @@
     "format": "node node_modules/.bin/prettier --write *.mjs */*.mjs */**/*.mjs",
     "lint": "node ./node_modules/.bin/eslint *.mjs */*.mjs */**/*.mjs",
     "jest": "node node_modules/.bin/jest dist/*.test.js dist/*/*.test.js",
-    "precommit": "npm run format && npm run lint",
+    "precommit": "npm run lint",
     "start": "node --experimental-modules app",
     "test": "npm run lint && npm run build && NODE_ENV=test INFLUX=http://127.0.0.1:8086/novel npm run jest",
     "gen-version": "node --experimental-modules build/gen-version",

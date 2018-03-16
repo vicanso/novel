@@ -84,7 +84,7 @@ export function setCache(ctx, ttl, sMaxAge) {
     if (_.isString(sMaxAgeSeconds)) {
       sMaxAgeSeconds = _.ceil(ms(sMaxAgeSeconds) / 1000);
     }
-  } 
+  }
   // 对于测试环境，最长缓存时间不超过60秒
   if (sMaxAgeSeconds > maxCacheAge && isDev) {
     sMaxAgeSeconds = maxCacheAge;

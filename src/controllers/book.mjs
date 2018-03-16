@@ -64,24 +64,27 @@ export async function addSource(ctx) {
 
 // 获取书籍列表
 export async function list(ctx) {
-  const {skip, limit, count, fields, keyword, category} = Joi.validate(ctx.query, {
-    skip: Joi.number()
-      .integer()
-      .default(0),
-    limit: Joi.number()
-      .integer()
-      .min(1)
-      .max(20)
-      .default(10),
-    fields: Joi.string()
-      .trim()
-      .max(100),
-    keyword: Joi.string()
-      .trim()
-      .max(30),
-    category: schema.category(),
-    count: Joi.boolean(),
-  });
+  const {skip, limit, count, fields, keyword, category} = Joi.validate(
+    ctx.query,
+    {
+      skip: Joi.number()
+        .integer()
+        .default(0),
+      limit: Joi.number()
+        .integer()
+        .min(1)
+        .max(20)
+        .default(10),
+      fields: Joi.string()
+        .trim()
+        .max(100),
+      keyword: Joi.string()
+        .trim()
+        .max(30),
+      category: schema.category(),
+      count: Joi.boolean(),
+    },
+  );
   const conditions = {};
   if (keyword) {
     conditions.$or = [
