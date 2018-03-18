@@ -130,6 +130,7 @@ export async function get(ctx) {
   const doc = await bookService.findOne({
     no,
   });
+  ctx.setCache('5m');
   ctx.body = doc;
 }
 
