@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 
-import {isDevelopment} from '../helpers/utils';
+import {isDevelopment, getPinYin} from '../helpers/utils';
 
 const {Schema} = mongoose;
 
-const name = 'Book';
+const schemaName = 'Book';
 
 const schema = {
   no: {
@@ -47,12 +47,26 @@ const schema = {
     type: Boolean,
     default: false,
   },
+  // 关键字
+  keyword: String,
 };
 
 export default function init(client) {
   const s = new Schema(schema, {
     timestamps: true,
     autoIndex: isDevelopment(),
+  });
+  s.pre('save', function preSave(next) {
+    const {name, author} = this;
+    if (name && author) {
+      const keywords = [name, author];
+      keywords.push(getPinYin(name));
+      keywords.push(getPinYin(name, true));
+      keywords.push(getPinYin(author));
+      keywords.push(getPinYin(author, true));
+      this.keyword = keywords.join(' ');
+    }
+    next();
   });
   s.index(
     {
@@ -72,9 +86,9 @@ export default function init(client) {
       background: true,
     },
   );
-  client.model(name, s);
+  client.model(schemaName, s);
   return {
-    name,
+    name: schemaName,
     schema: s,
   };
 }

@@ -63,6 +63,7 @@
     "node-schedule": "^1.3.0",
     "novel-spider": "^2.0.3",
     "performance-nodejs": "^1.1.3",
+    "pinyin": "^2.8.3",
     "shortid": "^2.2.8",
     "simple-stringify": "^1.2.1",
     "superagent": "^3.8.2",

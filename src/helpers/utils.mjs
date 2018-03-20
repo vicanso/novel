@@ -3,6 +3,7 @@ import Koa from 'koa';
 import Stream from 'stream';
 import _ from 'lodash';
 import ms from 'ms';
+import pinyin from 'pinyin';
 
 import * as config from '../config';
 
@@ -116,4 +117,13 @@ export function createContext(requestUrl) {
     setCache(ctx, ttl, sMaxAge);
   };
   return ctx;
+}
+
+// 获取拼音
+export function getPinYin(str, firstLetter = false) {
+  const style = firstLetter ? pinyin.STYLE_FIRST_LETTER : pinyin.STYLE_NORMAL;
+  const result = pinyin(str, {
+    style,
+  });
+  return _.flatten(result).join('');
 }

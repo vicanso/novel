@@ -42,6 +42,10 @@ const schema = {
     Joi.string()
       .trim()
       .max(10),
+  sort: () =>
+    Joi.string()
+      .trim()
+      .max(30),
 };
 
 // 增加来源
@@ -58,13 +62,14 @@ export async function addSource(ctx) {
     source,
     sourceId: id,
   });
+  await addBook(author, name);
   ctx.status = 201;
   ctx.body = doc;
 }
 
 // 获取书籍列表
 export async function list(ctx) {
-  const {skip, limit, count, fields, keyword, category} = Joi.validate(
+  const {skip, limit, count, fields, keyword, category, sort} = Joi.validate(
     ctx.query,
     {
       skip: Joi.number()
@@ -82,19 +87,13 @@ export async function list(ctx) {
         .trim()
         .max(30),
       category: schema.category(),
+      sort: schema.sort(),
       count: Joi.boolean(),
     },
   );
   const conditions = {};
   if (keyword) {
-    conditions.$or = [
-      {
-        name: new RegExp(keyword),
-      },
-      {
-        author: new RegExp(keyword),
-      },
-    ];
+    conditions.keyword = new RegExp(keyword);
   }
   if (category) {
     conditions.category = category;
@@ -107,6 +106,7 @@ export async function list(ctx) {
     .find(conditions)
     .skip(skip)
     .limit(limit)
+    .sort(sort)
     .select(fields)
     .lean();
   ctx.setCache(60);
