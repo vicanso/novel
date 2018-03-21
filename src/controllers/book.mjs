@@ -109,7 +109,7 @@ export async function list(ctx) {
     .sort(sort)
     .select(fields)
     .lean();
-  ctx.setCache(60);
+  ctx.setCache('1m');
   ctx.body = data;
 }
 
@@ -215,6 +215,7 @@ export async function listChapter(ctx) {
       item.data = content.toString();
     }
   });
+  ctx.setCache('5m');
   ctx.body = {
     list: docs,
   };
