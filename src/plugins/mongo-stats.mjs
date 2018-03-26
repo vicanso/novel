@@ -38,7 +38,7 @@ export default function stats(schema, model) {
     const result = {
       op: this.op,
       model,
-      options: stringify(this.options).replace(/"/g, '\\"'),
+      options: stringify(this.options),
       use,
       size,
     };

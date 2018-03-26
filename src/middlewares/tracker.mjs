@@ -34,7 +34,7 @@ export default category =>
     }
     const params = _.extend({}, ctx.query, ctx.request.body, ctx.params);
     if (!_.isEmpty(params)) {
-      data.params = stringify(params).replace(/"/g, '\\"');
+      data.params = stringify(params);
     }
     const start = Date.now();
     const resultLog = (use, result) => {

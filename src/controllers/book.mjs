@@ -110,7 +110,7 @@ export async function list(ctx) {
   }
   if (no) {
     conditions.no = {
-      $in: _.map(no.split(','), (v) => Number.parseInt(v, 10)),
+      $in: _.map(no.split(','), v => Number.parseInt(v, 10)),
     };
   }
   const data = {};
