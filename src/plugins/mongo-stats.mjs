@@ -1,6 +1,6 @@
 import _ from 'lodash';
-import stringify from 'simple-stringify';
 
+import stringify from '../helpers/stringify';
 import influx from '../helpers/influx';
 
 function writeStats(data) {
@@ -38,7 +38,7 @@ export default function stats(schema, model) {
     const result = {
       op: this.op,
       model,
-      options: stringify.json(this.options).replace(/"/g, '\\"'),
+      options: stringify(this.options).replace(/"/g, '\\"'),
       use,
       size,
     };

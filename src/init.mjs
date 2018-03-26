@@ -1,7 +1,7 @@
 import als from 'async-local-storage';
-import stringify from 'simple-stringify';
 import bluebird from 'bluebird';
 
+import {addReplacer} from './helpers/stringify';
 import './helpers/joi-extend';
 import './helpers/logger';
 
@@ -9,15 +9,12 @@ import './helpers/logger';
 global.Promise = bluebird;
 
 // set stringify mask
-stringify.isSecret = key => {
+addReplacer(key => {
   const reg = /password/gi;
-  return reg.test(key);
-};
-stringify.addFormat('_id', v => {
-  if (!v) {
-    return '';
+  if (reg.test(key)) {
+    return '***';
   }
-  return v.toString();
+  return null;
 });
 
 // 启用async local storage

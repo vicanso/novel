@@ -3,11 +3,11 @@
  */
 
 import _ from 'lodash';
-import stringify from 'simple-stringify';
 import url from 'url';
 
 import {env} from '../config';
 import influx from '../helpers/influx';
+import stringify from '../helpers/stringify';
 
 /**
  * HTTP请求出错中间件处理，根据出错的Error对象，记录出错的url,code,userToken,
@@ -64,7 +64,7 @@ export default () => (ctx, next) =>
       );
     }
 
-    logList.push(stringify.json(data));
+    logList.push(stringify(data));
 
     console.error(logList.join(' '));
 

@@ -1,5 +1,6 @@
 import _ from 'lodash';
-import stringify from 'simple-stringify';
+
+import stringify from '../helpers/stringify';
 
 /**
  * HTTP Request stats
@@ -13,9 +14,9 @@ export default function httpStats(req) {
     stats.use = Date.now() - stats.startedAt;
     delete stats.startedAt;
     if (stats.error) {
-      console.error(stringify.json(stats));
+      console.error(stringify(stats));
     } else {
-      console.info(stringify.json(stats));
+      console.info(stringify(stats));
     }
     req.emit('stats', stats);
   });
@@ -33,7 +34,7 @@ export default function httpStats(req) {
       Object.assign(stats, _.pick(backendServer, ['ip', 'port']));
     }
     if (sendData && !_.isEmpty(sendData)) {
-      stats.data = stringify.json(sendData);
+      stats.data = stringify(sendData);
     }
   });
   req.once('error', err => {

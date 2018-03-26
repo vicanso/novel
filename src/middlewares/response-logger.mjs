@@ -4,12 +4,12 @@
  */
 
 import _ from 'lodash';
-import stringify from 'simple-stringify';
 
-export default (level = 2) => async (ctx, next) => {
+import stringify from '../helpers/stringify';
+
+export default () => async (ctx, next) => {
   await next();
   if (ctx.state.logResponse && ctx.body && _.isObject(ctx.body)) {
-    const logLevel = _.get(ctx, 'state.logResponseLevel', level);
-    console.info(`response: ${stringify.json(ctx.body, logLevel)}`);
+    console.info(`response: ${stringify(ctx.body)}`);
   }
 };
