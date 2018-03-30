@@ -11,6 +11,6 @@ export default [
   [
     'POST',
     '/users/login',
-    ['m.anonymous', 'm.tracker("login")', 'm.delayUntil(500)', 'c.user.login'],
+    ['m.anonymous', 'm.tracker("login")', 'c.user.login'],
   ],
 ];
