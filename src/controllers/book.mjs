@@ -117,7 +117,7 @@ export async function list(ctx) {
   if (count) {
     data.count = await bookService.count(conditions);
   }
-  data.list = await bookService
+  data.books = await bookService
     .find(conditions)
     .skip(skip)
     .limit(limit)
@@ -232,7 +232,7 @@ export async function listChapter(ctx) {
   });
   ctx.setCache('5m');
   ctx.body = {
-    list: docs,
+    chapters: docs,
   };
 }
 
