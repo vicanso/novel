@@ -2,7 +2,10 @@ FROM node:alpine
 
 ADD ./ /app
 
-RUN cd /app \
+RUN cd /app/admin \
+  && yarn install && yarn build \
+  && rm -rf node_modules/ \
+  && cd .. \
   && yarn install --production \
   && yarn cache clean \
   && yarn gen-version \
