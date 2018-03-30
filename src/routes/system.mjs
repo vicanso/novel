@@ -11,4 +11,5 @@ export default [
   ['GET', '/sys/status', 'm.noQuery & c.system.status'],
   ['GET', '/sys/stats', 'm.noQuery & c.system.stats'],
   ['GET', '/sys/apis', 'm.noQuery & c.system.apis'],
+  ['GET', '/admin/', 'm.noQuery & c.system.adminIndex'],
 ];

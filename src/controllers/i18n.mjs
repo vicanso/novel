@@ -34,20 +34,24 @@ const readFile = util.promisify(fs.readFile);
  *    type: string
  *    in: formData
  */
-const getDefaultSchema = () => ({
-  name: Joi.string()
-    .trim()
-    .max(100),
-  category: Joi.string()
-    .trim()
-    .max(20),
-  en: Joi.string()
-    .trim()
-    .max(200),
-  zh: Joi.string()
-    .trim()
-    .max(100),
-});
+const schema = {
+  name: () =>
+    Joi.string()
+      .trim()
+      .max(100),
+  category: () =>
+    Joi.string()
+      .trim()
+      .max(20),
+  en: () =>
+    Joi.string()
+      .trim()
+      .max(200),
+  zh: () =>
+    Joi.string()
+      .trim()
+      .max(100),
+};
 
 /**
  * @swagger
@@ -107,10 +111,12 @@ const getDefaultSchema = () => ({
  *          $ref: '#/definitions/I18n'
  */
 export async function add(ctx) {
-  const schema = getDefaultSchema();
-  schema.name.required();
-  schema.category.required();
-  const data = Joi.validate(ctx.request.body, schema);
+  const data = Joi.validate(ctx.request.body, {
+    name: schema.name().required(),
+    category: schema.category().required(),
+    en: schema.en(),
+    zh: schema.zh(),
+  });
   data.creator = ctx.session.user.account;
   const doc = await i18nService.add(data);
   ctx.status = 201;
@@ -137,7 +143,12 @@ export async function add(ctx) {
  *        description: 更新成功
  */
 export async function update(ctx) {
-  const data = Joi.validate(ctx.request.body, getDefaultSchema());
+  const data = Joi.validate(ctx.request.body, {
+    name: schema.name(),
+    category: schema.category(),
+    en: schema.en(),
+    zh: schema.zh(),
+  });
   const id = Joi.attempt(ctx.params.id, Joi.objectId());
   await i18nService.findByIdAndUpdate(id, data);
   ctx.body = null;
@@ -177,11 +188,10 @@ export async function update(ctx) {
  *              example: 100
  */
 export async function list(ctx) {
-  const schema = getDefaultSchema();
   const {category, count} = Joi.validate(ctx.query, {
     category: Joi.alternatives().try(
-      schema.category,
-      Joi.array().items(schema.category),
+      schema.category(),
+      Joi.array().items(schema.category()),
     ),
     count: Joi.boolean(),
   });
@@ -264,10 +274,9 @@ export async function listCategory(ctx) {
  *        description: 成功返回该类型该语言的配置
  */
 export async function listCategoryByLang(ctx) {
-  const schema = getDefaultSchema();
   const {category} = Joi.validate(ctx.query, {
     category: Joi.alternatives()
-      .try(schema.category, Joi.array().items(schema.category))
+      .try(schema.category(), Joi.array().items(schema.category()))
       .required(),
   });
   let cats = category;

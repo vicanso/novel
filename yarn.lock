@@ -1791,7 +1791,7 @@ esutils@^2.0.2:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/esutils/-/esutils-2.0.2.tgz#0abf4f1caa5bcb1f7a9d8acc6dea4faaa04bac9b"
 
-etag@^1.3.0:
+etag@^1.3.0, etag@^1.7.0:
   version "1.8.1"
   resolved "https://registry.yarnpkg.com/etag/-/etag-1.8.1.tgz#41ae2eeb65efa62268aebfea83ac7d79299b0887"
 
@@ -3324,6 +3324,14 @@ koa-session@^5.8.1:
     pedding "^1.1.0"
     uid-safe "^2.1.3"
 
+koa-static-serve@^2.1.3:
+  version "2.1.3"
+  resolved "https://registry.yarnpkg.com/koa-static-serve/-/koa-static-serve-2.1.3.tgz#bbac6b9c7089df947846c6c10602dbc782ea357a"
+  dependencies:
+    debug "^2.2.0"
+    etag "^1.7.0"
+    mime "^1.3.4"
+
 koa@^2.4.1:
   version "2.5.0"
   resolved "https://registry.yarnpkg.com/koa/-/koa-2.5.0.tgz#b0fbe1e195e43b27588a04fd0be0ddaeca2c154c"
@@ -3591,7 +3599,7 @@ mime-types@^2.0.7, mime-types@^2.1.12, mime-types@~2.1.17, mime-types@~2.1.18, m
   dependencies:
     mime-db "~1.33.0"
 
-mime@^1.4.1:
+mime@^1.3.4, mime@^1.4.1:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/mime/-/mime-1.6.0.tgz#32cd9e5c64553bd58d19a568af452acff04981b1"
 
@@ -4884,9 +4892,9 @@ superlimiter@^1.0.1:
     bluebird "^3.5.0"
     lodash "^4.17.4"
 
-supertiming@^1.3.2:
-  version "1.3.2"
-  resolved "https://registry.yarnpkg.com/supertiming/-/supertiming-1.3.2.tgz#0bef310369d0f54e260c4bfc606d64a588bdcacc"
+supertiming@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/supertiming/-/supertiming-2.0.0.tgz#57c1def8732834c00311c84a027efc9cef26a9a4"
   dependencies:
     nano-seconds "^1.2.0"
 

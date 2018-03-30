@@ -27,12 +27,14 @@ export default function createServer() {
     const id = ctx.get('X-Request-Id') || shortid();
     const lang = ctx.query.lang || 'zh';
     const timing = new Timing();
+    const trackId = ctx.cookies.get(config.trackCookie);
     delete ctx.query.lang;
     ctx.state.timing = timing;
     ctx.state.lang = lang;
     ctx.set('X-Response-Id', id);
     // als设置的参数
     als.set('timing', timing, true);
+    als.set('trackId', trackId, true);
     als.set('id', id, true);
     als.set('lang', lang, true);
     return next();
@@ -66,6 +68,8 @@ export default function createServer() {
     koaLog.morgan.token('account', ctx => ctx.state.account || 'anonymous');
     app.use(koaLog(config.httpLogFormat));
   }
+
+  app.use(middlewares.admin('/admin'));
 
   // http stats
   app.use(middlewares.httpStats());

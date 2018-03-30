@@ -83,4 +83,10 @@ export default {
     zh: '认证的令牌不合法',
     status: 403,
   },
+  influxNotInit: {
+    code: 15,
+    en: "the influx isn't inited",
+    ch: 'influx未初始化',
+    status: 500,
+  },
 };

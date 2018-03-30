@@ -11,6 +11,7 @@ import responseLogger from './response-logger';
 import * as session from './session';
 import timeout from './timeout';
 import tracker from './tracker';
+import admin from './admin';
 
 export default {
   auth,
@@ -26,4 +27,5 @@ export default {
   session,
   timeout,
   tracker,
+  admin,
 };

@@ -37,18 +37,23 @@ import mockService from '../services/mock';
  *    type: boolean
  *    in: formData
  */
-const getDefaultSchema = () => ({
-  account: Joi.string()
-    .trim()
-    .max(100),
-  url: Joi.string()
-    .trim()
-    .max(200),
-  status: Joi.number().integer(),
-  response: Joi.object(),
-  description: Joi.string(),
-  disabled: Joi.boolean(),
-});
+const schema = {
+  account: () =>
+    Joi.string()
+      .trim()
+      .max(100),
+  url: () =>
+    Joi.string()
+      .trim()
+      .max(200),
+  status: () => Joi.number().integer(),
+  response: () => Joi.object(),
+  description: () =>
+    Joi.string()
+      .trim()
+      .max(300),
+  disabled: () => Joi.boolean(),
+};
 
 /**
  * @swagger
@@ -108,7 +113,14 @@ const getDefaultSchema = () => ({
  *          $ref: '#/definitions/Mock'
  */
 export async function add(ctx) {
-  const data = Joi.validate(ctx.request.body, getDefaultSchema());
+  const data = Joi.validate(ctx.request.body, {
+    account: schema.account(),
+    url: schema.url().required(),
+    status: schema.status(),
+    response: schema.response(),
+    description: schema.description(),
+    disabled: schema.disabled(),
+  });
   data.creator = ctx.session.user.account;
   const doc = await mockService.add(data);
   ctx.status = 201;
@@ -186,7 +198,14 @@ export async function get(ctx) {
  *        description: 更新成功
  */
 export async function update(ctx) {
-  const data = Joi.validate(ctx.request.body, getDefaultSchema());
+  const data = Joi.validate(ctx.request.body, {
+    account: schema.account(),
+    url: schema.url(),
+    status: schema.status(),
+    response: schema.response(),
+    description: schema.description(),
+    disabled: schema.disabled(),
+  });
   const id = Joi.attempt(ctx.params.id, Joi.objectId());
   await mockService.findByIdAndUpdate(id, data);
   ctx.body = null;

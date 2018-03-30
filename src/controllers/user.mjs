@@ -32,20 +32,24 @@ import {getLoginFailCount, incLoginFailCount} from '../services/limiter';
  *      type: string
  *    in: formData
  */
-const getDefaultSchema = () => ({
-  account: Joi.string()
-    .trim()
-    .min(4)
-    .max(32),
-  password: Joi.string()
-    .trim()
-    .max(256),
-  email: Joi.string()
-    .trim()
-    .email()
-    .max(64),
-  roles: Joi.array().items(Joi.string().valid(['admin', 'tester'])),
-});
+
+const schema = {
+  account: () =>
+    Joi.string()
+      .trim()
+      .min(4)
+      .max(32),
+  password: () =>
+    Joi.string()
+      .trim()
+      .max(256),
+  email: () =>
+    Joi.string()
+      .trim()
+      .email()
+      .max(64),
+  roles: () => Joi.array().items(Joi.string().valid(['admin', 'tester'])),
+};
 
 /**
  * @swagger
@@ -88,7 +92,7 @@ function pickUserInfo(userInfos) {
 
 /**
  * @swagger
- * /users/register:
+ * /users/me:
  *  post:
  *    description: 注册新账号。中间件：m.anonymous
  *    summary: 注册账号
@@ -109,12 +113,12 @@ function pickUserInfo(userInfos) {
  *
  */
 export async function register(ctx) {
-  const schema = getDefaultSchema();
-  schema.account.required();
-  schema.password.required();
-  schema.email.required();
-
-  const data = Joi.validate(ctx.request.body, schema);
+  const data = Joi.validate(ctx.request.body, {
+    account: schema.account().required(),
+    password: schema.password().required(),
+    email: schema.email.required(),
+    roles: schema.roles(),
+  });
   const doc = await userService.register(data);
   const user = pickUserInfo(doc);
   ctx.session.user = user;
@@ -130,7 +134,7 @@ export async function register(ctx) {
 
 /**
  * @swagger
- * /users/logout:
+ * /users/me:
  *  delete:
  *    description: 退出用户当前登录态。中间件：m.login
  *    summary: 注销登录
@@ -199,10 +203,10 @@ export async function login(ctx) {
   if (!token) {
     throw errors.get('user.tokenIsNull');
   }
-  const schema = getDefaultSchema();
-  schema.account.required();
-  schema.password.required();
-  const {account, password} = Joi.validate(ctx.request.body, schema);
+  const {account, password} = Joi.validate(ctx.request.body, {
+    account: schema.account().required(),
+    password: schema.password().required(),
+  });
   const failCount = await getLoginFailCount(account);
   if (failCount > 5) {
     throw errors.get('user.loginFailExceededLimit');

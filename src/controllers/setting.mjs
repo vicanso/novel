@@ -27,14 +27,18 @@ import settingService from '../services/setting';
  *      type: string
  *      in: formData
  */
-const getDefaultSchema = () => ({
-  name: Joi.string()
-    .trim()
-    .max(30),
-  data: Joi.object(),
-  disabled: Joi.boolean(),
-  description: Joi.string().trim(),
-});
+const schema = {
+  name: () =>
+    Joi.string()
+      .trim()
+      .max(30),
+  data: () => Joi.object(),
+  disabled: () => Joi.boolean(),
+  description: () =>
+    Joi.string()
+      .trim()
+      .max(100),
+};
 
 /**
  * @swagger
@@ -86,9 +90,12 @@ const getDefaultSchema = () => ({
  *          $ref: '#/definitions/Setting'
  */
 export async function add(ctx) {
-  const schema = getDefaultSchema();
-  schema.name.required();
-  const data = Joi.validate(ctx.request.body, schema);
+  const data = Joi.validate(ctx.request.body, {
+    name: schema.name().required(),
+    data: schema.data(),
+    disabled: schema.disabled(),
+    description: schema.description(),
+  });
   data.creator = ctx.session.user.account;
   const doc = await settingService.add(data);
   ctx.status = 201;
@@ -161,7 +168,12 @@ export async function get(ctx) {
  */
 export async function update(ctx) {
   const id = Joi.attempt(ctx.params.id, Joi.objectId());
-  const data = Joi.validate(ctx.request.body, getDefaultSchema());
+  const data = Joi.validate(ctx.request.body, {
+    name: schema.name(),
+    data: schema.data(),
+    disabled: schema.disabled(),
+    description: schema.description(),
+  });
   if (!_.isEmpty(data)) {
     await settingService.findByIdAndUpdate(id, data);
   }
