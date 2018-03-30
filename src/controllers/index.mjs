@@ -5,6 +5,7 @@ import * as mock from './mock';
 import * as setting from './setting';
 import * as stats from './stats';
 import * as book from './book';
+import * as influx from './influx';
 
 export default {
   system,
@@ -14,4 +15,5 @@ export default {
   setting,
   stats,
   book,
+  influx,
 };
