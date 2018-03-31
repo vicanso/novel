@@ -196,7 +196,7 @@ export async function getCategories() {
           key,
           JSON.stringify({
             createdAt: new Date().toISOString(),
-            list: _.sortBy(list, item => -item.count),
+            categories: _.sortBy(list, item => -item.count),
           }),
         );
       } catch (err) {
