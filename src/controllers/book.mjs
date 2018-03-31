@@ -47,6 +47,7 @@ const schema = {
     Joi.string()
       .trim()
       .max(30),
+  end: () => Joi.boolean(),
 };
 
 // 增加来源
@@ -79,6 +80,7 @@ export async function list(ctx) {
     category,
     sort,
     no,
+    end,
   } = Joi.validate(ctx.query, {
     skip: Joi.number()
       .integer()
@@ -99,6 +101,7 @@ export async function list(ctx) {
       .max(300),
     category: schema.category(),
     sort: schema.sort(),
+    end: schema.end(),
     count: Joi.boolean(),
   });
   const conditions = {};
@@ -112,6 +115,9 @@ export async function list(ctx) {
     conditions.no = {
       $in: _.map(no.split(','), v => Number.parseInt(v, 10)),
     };
+  }
+  if (!_.isUndefined(end)) {
+    conditions.end = end;
   }
   const data = {};
   if (count) {
