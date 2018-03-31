@@ -117,6 +117,13 @@ export async function list(ctx) {
     };
   }
   if (!_.isUndefined(end)) {
+    if (end) {
+      conditions.end = true;
+    } else {
+      conditions.end = {
+        $ne: true,
+      };
+    }
     conditions.end = end;
   }
   const data = {};
