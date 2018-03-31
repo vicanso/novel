@@ -124,7 +124,6 @@ export async function list(ctx) {
         $ne: true,
       };
     }
-    conditions.end = end;
   }
   const data = {};
   if (count) {
