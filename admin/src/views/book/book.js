@@ -17,6 +17,11 @@ export default {
       form: null,
       mode: -1,
       categoryOptions: ['玄幻', '都市', '仙侠', '科幻', '游戏', '历史'],
+      statusList: [
+        '所有',
+        '完结',
+        '未完结',
+      ],
       sourceOptions: [
         {
           label: '笔趣阁',
@@ -24,10 +29,15 @@ export default {
         },
       ],
       sourceForm: null,
+      searchForm: {},
     };
   },
   methods: {
     ...mapActions(['bookList', 'bookUpdate', 'bookUpdateInfo', 'bookAddSource']),
+    search() {
+      this.page = 0;
+      this.loadBooks();
+    },
     changePage(page) {
       this.page = page - 1;
       this.loadBooks();
@@ -99,7 +109,12 @@ export default {
       const {
         page,
         size,
+        searchForm,
       } = this;
+      const {
+        keyword,
+        status,
+      } = searchForm;
       const close = this.$loading();
       try {
         const query = {
@@ -109,6 +124,14 @@ export default {
         };
         if (page === 0) {
           query.count = true;
+        }
+        if (keyword) {
+          query.keyword = keyword;
+        }
+        if (status === '完结') {
+          query.end = true;
+        } else if (status === '未完结') {
+          query.end = false;
         }
         const data = await this.bookList(query);
         if (page === 0) {

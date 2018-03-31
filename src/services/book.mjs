@@ -129,6 +129,9 @@ export async function updateInfo(author, name) {
     'updatedAt',
     'no',
   ]);
+  if (!doc.end) {
+    doc.end = false;
+  }
   doc.wordCount = wordCount;
   doc.chapterCount = docs.length;
   await doc.save();

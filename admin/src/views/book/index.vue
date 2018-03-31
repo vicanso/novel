@@ -4,6 +4,40 @@
     div(
       v-else
     )
+      el-form.form.searchForm.clearfix(
+        v-model="searchForm"
+        label-width="60px"
+      )
+        el-form-item.pullLeft(
+          label="状态"
+          width="200"
+        )
+          el-select(
+            v-model="searchForm.status"
+            placeholder="请选择书籍状态"
+          )
+            el-option(
+              v-for="item in statusList"
+              :key="item"
+              :label="item"
+              :value="item"
+            )
+        el-form-item.pullLeft.mleft10(
+          label="关键字"
+        )
+          el-input(
+            v-model="searchForm.keyword"
+            placeholder="请输入关键字"
+            clearable
+          )
+        el-form-item.pullLeft(
+          label-width="30px"
+        )
+          el-button(
+            @click.native="search"
+            type="primary"
+          ) 查询
+        
       el-table(
         :data="books"
         stripe
@@ -68,7 +102,7 @@
       @click.native="addSource"
       type="primary"
     ) Add Source
-  el-form.form(
+  el-form.addForm.form(
     v-model="form"
     label-width="100px"
     v-else-if="mode === 1"
