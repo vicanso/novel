@@ -10,7 +10,7 @@ export default [
   // 书籍列表
   ['GET', '/books', 'c.book.list'],
   // 增加书籍
-  ['POST', '/books', 'c.book.add'],
+  ['POST', '/books', ['m.tracker("addBook")', 'm.admin', 'c.book.add']],
   // 获取书籍信息
   ['GET', '/books/:no', 'c.book.get'],
   // 更新书籍

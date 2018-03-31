@@ -41,6 +41,10 @@ export default {
           name: 'Tracker',
           route: 'tracker',
         },
+        {
+          name: 'Book',
+          route: 'book',
+        },
       ],
     };
   },

@@ -3,6 +3,7 @@ import Register from '../views/register';
 import Login from '../views/login';
 import Mock from '../views/mock';
 import Tracker from '../views/tracker';
+import Book from '../views/book';
 
 export default [
   {
@@ -29,5 +30,10 @@ export default [
     name: 'tracker',
     path: '/tracker',
     component: Tracker,
+  },
+  {
+    name: 'book',
+    path: '/book',
+    component: Book,
   },
 ];
