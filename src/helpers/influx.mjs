@@ -20,7 +20,7 @@ function flush() {
   }
   client
     .syncWrite()
-    .then(() => console.info(`influxdb write ${count} records sucess`))
+    .then(() => console.info(`influxdb write ${count} records success`))
     .catch(err => console.error(`influxdb write fail, ${err.message}`));
 }
 
