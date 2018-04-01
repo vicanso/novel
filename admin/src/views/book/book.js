@@ -43,7 +43,7 @@ export default {
       this.loadBooks();
     },
     edit(no) {
-      this.form = _.clone(_.find(this.books, item => item.no === no));
+      this.form = _.cloneDeep(_.find(this.books, item => item.no === no));
       this.mode = 1;
     },
     addSource() {
@@ -89,8 +89,13 @@ export default {
       const {
         no,
       } = form;
+      const keys = [
+        'end',
+        'category',
+        'brief'
+      ];
       const found =_.find(books, item => item.no === no)
-      const data = diff(found, form);
+      const data = diff(found, form, keys);
       const close = this.$loading();
       try {
         await this.bookUpdate({

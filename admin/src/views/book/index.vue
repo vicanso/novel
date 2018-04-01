@@ -113,12 +113,14 @@
       el-input(
         v-model="form.author"
         autofocus
+        :disabled="true"
       )
     el-form-item(
       label="Name"
     )
       el-input(
         v-model="form.name"
+        :disabled="true"
       )
     el-form-item(
       label="End"
@@ -139,7 +141,7 @@
           :value="item"
         )
     el-form-item(
-      label="brief"
+      label="Brief"
     )
       el-input(
         type="textarea"

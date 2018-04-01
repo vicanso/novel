@@ -24,7 +24,7 @@ export async function register(data) {
   if (await exists({email: data.email})) {
     throw errors.get('user.emailHasUsed');
   }
-  const userData = _.clone(data);
+  const userData = _.cloneDeep(data);
   return userService.add(userData);
 }
 

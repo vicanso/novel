@@ -20,7 +20,7 @@ export default {
   },
   methods: {
     edit(id) {
-      this.form = _.clone(_.find(this.settings, item => item.id === id));
+      this.form = _.cloneDeep(_.find(this.settings, item => item.id === id));
       this.mode = 1;
     },
     add() {
