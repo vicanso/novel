@@ -16,7 +16,7 @@ export default {
       books: null,
       form: null,
       mode: -1,
-      categoryOptions: ['玄幻', '都市', '仙侠', '科幻', '游戏', '历史'],
+      categoryOptions: ['玄幻', '都市', '仙侠', '科幻', '游戏', '历史', '灵异'],
       statusList: [
         '所有',
         '完结',
