@@ -204,7 +204,9 @@ export async function update(ctx) {
   if (category) {
     doc.category = category;
   }
-  doc.end = end;
+  if (!_.isUndefined(end)) {
+    doc.end = end;
+  }
   await doc.save();
   ctx.body = doc;
 }

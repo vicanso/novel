@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import jsonDiff from 'json-diff';
 
 import {sha256} from './crypto';
 import {app} from '../config';
@@ -58,13 +59,14 @@ export function waitFor(ttl, startedAt) {
 
 // 获取不一致的数据
 export function diff(original, current, keys) {
+  const changeKeys = jsonDiff.diff(original, current);
   const diffKeys = keys || _.keys(current);
   const result = {};
   _.forEach(diffKeys, key => {
-    const value = current[key];
-    if (original[key] !== value) {
-      result[key] = value;
+    if (!changeKeys[key]) {
+      return;
     }
+    result[key] = current[key];
   });
   return result;
 }
