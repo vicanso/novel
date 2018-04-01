@@ -141,7 +141,9 @@ export async function updateInfo(author, name) {
 export async function updateAll() {
   const docs = await bookService
     .find({
-      end: false,
+      end: {
+        $ne: true,
+      },
     })
     .select('author name no')
     .lean();
