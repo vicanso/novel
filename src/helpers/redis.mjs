@@ -44,6 +44,7 @@ export default client;
 
 export const sessionStore = new SessionStore(client);
 
+// 获取key并锁定ttl时长
 export async function lock(key, ttl) {
   if (!key || !ttl) {
     throw new Error('key and ttl can not be null');

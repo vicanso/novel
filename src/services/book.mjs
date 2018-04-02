@@ -165,6 +165,7 @@ export async function updateAll() {
   console.info(`update ${count} books is finished`);
 }
 
+// 获取书籍分类汇总
 export async function getCategories() {
   const key = 'book-categories';
   const data = await redis.get(key);
@@ -216,4 +217,20 @@ export async function getCategories() {
     return null;
   }
   return JSON.parse(data);
+}
+
+// 更新书籍分类
+export async function updateAllCategory() {
+  // 对已经完结的增加 完本 分类
+  const docs = await bookService
+    .find({
+      end: true,
+    })
+    .select('author name category');
+  await Promise.mapSeries(docs, async doc => {
+    if (!_.includes(doc.category, '完本')) {
+      doc.category.push('完本');
+      await doc.save();
+    }
+  });
 }
