@@ -244,7 +244,13 @@ export async function listChapter(ctx) {
       item.data = content.toString();
     }
   });
-  ctx.setCache('5m');
+  // 如果不等于，表示已到最后章节
+  // 因此缓存时间设置较短
+  if (limit === docs.length) {
+    ctx.setCache('30m', '5m');
+  } else {
+    ctx.setCache('5m');
+  }
   ctx.body = {
     chapters: docs,
   };
