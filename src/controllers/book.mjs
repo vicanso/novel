@@ -14,6 +14,7 @@ import bookService, {
 import chapterService from '../services/chapter';
 import coverService from '../services/cover';
 import {lock} from '../helpers/redis';
+import requestBookService from '../services/request-book';
 
 const gunzip = util.promisify(zlib.gunzip);
 
@@ -279,4 +280,17 @@ export async function categoriesList(ctx) {
   const data = await getCategories();
   ctx.setCache('5m');
   ctx.body = data;
+}
+
+// 请求增加书籍
+export async function requestBook(ctx) {
+  const data = Joi.validate(ctx.request.body, {
+    name: schema.name().required(),
+    author: schema.author().required(),
+  });
+  const doc = await requestBookService.findOne(data);
+  if (!doc) {
+    await requestBookService.add(data);
+  }
+  ctx.status = 201;
 }

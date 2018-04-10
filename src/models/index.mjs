@@ -8,6 +8,7 @@ import book from './book';
 import inc from './inc';
 import cover from './cover';
 import chapter from './chapter';
+import requestBook from './request-book';
 
 export default {
   setting,
@@ -20,4 +21,5 @@ export default {
   inc,
   cover,
   chapter,
+  requestBook,
 };

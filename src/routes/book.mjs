@@ -5,6 +5,8 @@ export default [
     '/books/sources',
     ['m.admin', 'm.tracker("addSource")', 'c.book.addSource'],
   ],
+  // 请求增加书籍
+  ['POST', '/books/request', 'c.book.requestBook'],
   // 获取分类
   ['GET', '/books/categories', ['m.noQuery', 'c.book.categoriesList']],
   // 书籍列表
