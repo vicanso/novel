@@ -73,8 +73,7 @@ export async function addSource(ctx) {
         author,
         source,
         sourceId: id,
-      })
-      .lean();
+      });
   }
   await addBook(author, name);
   ctx.status = 201;
