@@ -24,6 +24,10 @@ export default {
       ],
       sourceOptions: [
         {
+          label: '新笔趣阁',
+          value: 'xbiquge',
+        },
+        {
           label: '笔趣阁',
           value: 'biquge',
         },

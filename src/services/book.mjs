@@ -12,9 +12,17 @@ import chapterService from './chapter';
 import {getBookNo} from './inc';
 import redis, {lock} from '../helpers/redis';
 import errors from '../errors';
+import {delay} from '../helpers/utils';
 
 const bookService = genService('Book');
 const gzip = util.promisify(zlib.gzip);
+
+const biQuGe = 'biquge';
+const xBiQuGe = 'xbiquge';
+
+export function getSources() {
+  return [biQuGe, xBiQuGe];
+}
 
 // 获取对应的spider
 async function getSpider(author, name) {
@@ -22,11 +30,18 @@ async function getSpider(author, name) {
     name,
     author,
   });
-  if (!doc || doc.source !== 'biquge') {
+  if (!doc) {
     return null;
   }
   const id = doc.sourceId;
-  return new spider.BiQuGe(id);
+  switch (doc.source) {
+    case biQuGe:
+      return new spider.BiQuGe(id);
+    case xBiQuGe:
+      return new spider.XBiQuGe(id);
+    default:
+      return null;
+  }
 }
 
 export default bookService;
@@ -96,6 +111,7 @@ export async function updateChapters(author, name) {
       title,
       data: gzipContent,
     });
+    await delay(_.random(1000));
   };
   await Promise.mapSeries(chapters.slice(chapterCount), updateChapter);
   return chapters.length - chapterCount;

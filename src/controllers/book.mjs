@@ -10,6 +10,7 @@ import bookService, {
   updateChapters,
   updateInfo,
   getCategories,
+  getSources,
 } from '../services/book';
 import chapterService from '../services/chapter';
 import coverService from '../services/cover';
@@ -30,7 +31,7 @@ const schema = {
   source: () =>
     Joi.string()
       .trim()
-      .valid(['biquge']),
+      .valid(getSources()),
   id: () =>
     Joi.string()
       .trim()
@@ -59,12 +60,22 @@ export async function addSource(ctx) {
     source: schema.source().required(),
     id: schema.id().required(),
   });
-  const doc = await orginService.add({
-    name,
-    author,
-    source,
-    sourceId: id,
-  });
+  let doc = await orginService
+    .findOne({
+      name,
+      author,
+    })
+    .lean();
+  if (!doc) {
+    doc = await orginService
+      .add({
+        name,
+        author,
+        source,
+        sourceId: id,
+      })
+      .lean();
+  }
   await addBook(author, name);
   ctx.status = 201;
   ctx.body = doc;

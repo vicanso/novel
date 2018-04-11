@@ -1,3 +1,5 @@
+import dnscache from 'dnscache';
+
 import './init';
 
 import mongo from './helpers/mongo';
@@ -33,6 +35,12 @@ Promise.all([mongodbReady(), redisReady(), settingService.updateAppSettings()])
     dns();
     createServer();
     globals.start();
+    // 设置DNS缓存
+    dnscache({
+      enable: true,
+      ttl: 300,
+      cachesize: 1000,
+    });
   })
   .catch(err => {
     console.error(`the application isn't ready, ${err.message}`);

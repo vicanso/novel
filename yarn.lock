@@ -194,6 +194,10 @@ arrify@^1.0.0, arrify@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/arrify/-/arrify-1.0.1.tgz#898508da2226f380df904728456849c1501a4b0d"
 
+asap@~2.0.3:
+  version "2.0.6"
+  resolved "https://registry.yarnpkg.com/asap/-/asap-2.0.6.tgz#e50347611d7e690943208bbdafebcbc2fb866d46"
+
 asn1@~0.2.3:
   version "0.2.3"
   resolved "https://registry.yarnpkg.com/asn1/-/asn1-0.2.3.tgz#dac8787713c9966849fc8180777ebe9c1ddf3b86"
@@ -1529,6 +1533,13 @@ detect-newline@^2.1.0:
 diff@^3.2.0:
   version "3.5.0"
   resolved "https://registry.yarnpkg.com/diff/-/diff-3.5.0.tgz#800c0dd1e0a8bfbc95835c202ad220fe317e5a12"
+
+dnscache@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/dnscache/-/dnscache-1.0.1.tgz#42cb2b9bfb5e8fbdfa395aac74e127fc05074d31"
+  dependencies:
+    asap "~2.0.3"
+    lodash.clone "~4.3.2"
 
 doctrine@1.5.0:
   version "1.5.0"
@@ -3412,6 +3423,10 @@ locate-path@^2.0.0:
     p-locate "^2.0.0"
     path-exists "^3.0.0"
 
+lodash._baseclone@~4.5.0:
+  version "4.5.7"
+  resolved "https://registry.yarnpkg.com/lodash._baseclone/-/lodash._baseclone-4.5.7.tgz#ce42ade08384ef5d62fa77c30f61a46e686f8434"
+
 lodash.assign@^4.2.0:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/lodash.assign/-/lodash.assign-4.2.0.tgz#0d99f3ccd7a6d261d19bdaeb9245005d285808e7"
@@ -3423,6 +3438,12 @@ lodash.bind@^4.2.1:
 lodash.clone@^4.5.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash.clone/-/lodash.clone-4.5.0.tgz#195870450f5a13192478df4bc3d23d2dea1907b6"
+
+lodash.clone@~4.3.2:
+  version "4.3.2"
+  resolved "https://registry.yarnpkg.com/lodash.clone/-/lodash.clone-4.3.2.tgz#e56b176b6823a7dde38f7f2bf58de7d5971200e9"
+  dependencies:
+    lodash._baseclone "~4.5.0"
 
 lodash.clonedeep@^4.5.0:
   version "4.5.0"
@@ -3820,9 +3841,9 @@ normalize-path@^2.0.0, normalize-path@^2.0.1, normalize-path@^2.1.1:
   dependencies:
     remove-trailing-separator "^1.0.1"
 
-novel-spider@^2.0.3:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/novel-spider/-/novel-spider-2.0.3.tgz#ac76f3b15032cbbadaf53e0b38624cd5353e3df7"
+novel-spider@2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/novel-spider/-/novel-spider-2.1.1.tgz#ff0371eed21c745a5810594c6242678159f51e2f"
   dependencies:
     cheerio "^1.0.0-rc.2"
     iconv-lite "^0.4.19"
