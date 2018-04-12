@@ -288,8 +288,10 @@ export async function getCover(ctx) {
 // 更新封面
 export async function coverUpdate(ctx) {
   const no = Joi.attempt(ctx.params.no, schema.no().required());
-  await updateCover(no);
-  ctx.body = null;
+  const result = await updateCover(no);
+  ctx.body = {
+    success: result,
+  };
 }
 
 // 获取分类信息
