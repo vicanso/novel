@@ -98,9 +98,6 @@ export async function updateCover(no) {
   const doc = await coverService.findOne({
     book: no,
   });
-  if (!doc) {
-    return false;
-  }
   const {author, name} = book;
   const novel = await getSpider(author, name);
   const info = await novel.getInfos();
@@ -108,8 +105,15 @@ export async function updateCover(no) {
     return false;
   }
   const res = await request.get(info.img);
-  doc.data = res.body;
-  await doc.save();
+  if (doc) {
+    doc.data = res.body;
+    await doc.save();
+  } else {
+    await coverService.add({
+      book: no,
+      data: res.body,
+    });
+  }
   return true;
 }
 
