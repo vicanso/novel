@@ -37,7 +37,7 @@ export default {
     };
   },
   methods: {
-    ...mapActions(['bookList', 'bookUpdate', 'bookUpdateInfo', 'bookAddSource']),
+    ...mapActions(['bookList', 'bookUpdate', 'bookUpdateInfo', 'bookAddSource', 'bookUpdateCover']),
     search() {
       this.page = 0;
       this.loadBooks();
@@ -53,6 +53,16 @@ export default {
     addSource() {
       this.sourceForm = {};
       this.mode = 2;
+    },
+    async updateCover(no) {
+      const close = this.$loading();
+      try {
+        await this.bookUpdateCover(no);
+      } catch (err) {
+        this.$error(err);
+      } finally {
+        close();
+      }
     },
     async submitSource() {
       const {source, name, author, id} = this.sourceForm;

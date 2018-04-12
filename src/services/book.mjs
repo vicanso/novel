@@ -84,6 +84,35 @@ export async function addBook(author, name) {
   return doc;
 }
 
+export async function updateCover(no) {
+  const book = await bookService
+    .findOne({
+      no,
+    })
+    .select('author name')
+    .lean();
+  if (!book) {
+    return false;
+  }
+
+  const doc = await coverService.findOne({
+    book: no,
+  });
+  if (!doc) {
+    return false;
+  }
+  const {author, name} = book;
+  const novel = await getSpider(author, name);
+  const info = await novel.getInfos();
+  if (!info || info.name !== name || info.author !== author) {
+    return false;
+  }
+  const res = await request.get(info.img);
+  doc.data = res.body;
+  await doc.save();
+  return true;
+}
+
 // 更新书本最新章节
 export async function updateChapters(author, name) {
   const doc = await bookService.findOne(

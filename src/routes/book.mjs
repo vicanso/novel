@@ -31,4 +31,5 @@ export default [
   ['GET', '/books/:no/chapters', 'c.book.listChapter'],
   // 获取封面
   ['GET', '/books/:no/cover', 'c.book.getCover'],
+  ['PATCH', '/books/:no/cover', ['m.admin', 'c.book.coverUpdate']],
 ];

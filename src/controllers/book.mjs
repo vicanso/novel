@@ -11,6 +11,7 @@ import bookService, {
   updateInfo,
   getCategories,
   getSources,
+  updateCover,
 } from '../services/book';
 import chapterService from '../services/chapter';
 import coverService from '../services/cover';
@@ -67,13 +68,12 @@ export async function addSource(ctx) {
     })
     .lean();
   if (!doc) {
-    doc = await orginService
-      .add({
-        name,
-        author,
-        source,
-        sourceId: id,
-      });
+    doc = await orginService.add({
+      name,
+      author,
+      source,
+      sourceId: id,
+    });
   }
   await addBook(author, name);
   ctx.status = 201;
@@ -283,6 +283,13 @@ export async function getCover(ctx) {
   ctx.setCache('1w', '5m');
   ctx.set('Content-Type', 'image/jpeg');
   ctx.body = doc.data.buffer;
+}
+
+// 更新封面
+export async function coverUpdate(ctx) {
+  const no = Joi.attempt(ctx.params.no, schema.no().required());
+  await updateCover(no);
+  ctx.body = null;
 }
 
 // 获取分类信息

@@ -4,6 +4,7 @@ import {
   BOOKS_DETAIL,
   BOOKS_INFO,
   BOOKS_SOURCES,
+  BOOKS_COVER,
 } from '../../urls';
 
 const state = {};
@@ -40,11 +41,16 @@ const bookAddSource = async (tmp, {source, name, author, id}) => {
   });
 };
 
+const bookUpdateCover = async (tmp, no) => {
+  await request.patch(BOOKS_COVER.replace(':no', no));
+};
+
 export const actions = {
   bookList,
   bookUpdate,
   bookUpdateInfo,
   bookAddSource,
+  bookUpdateCover,
 };
 
 export default {

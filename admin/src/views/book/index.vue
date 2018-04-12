@@ -77,7 +77,7 @@
         )
         el-table-column(
           label="OP"
-          width="120"
+          width="220"
         )
           template(
             slot-scope="scope"
@@ -90,6 +90,10 @@
               type="text"
               @click.native="update(scope.row.no)"
             ) Update
+            el-button(
+              type="text"
+              @click.native="updateCover(scope.row.no)"
+            ) Update-Cover
       .clearfix.mtop10
         el-pagination.pullRight(
           background
