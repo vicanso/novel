@@ -75,7 +75,7 @@ const schema = {
  *        items:
  *          type: string
  */
-function pickUserInfo(userInfos) {
+function pickUserInfo(userInfos, track) {
   const keys = 'account roles'.split(' ');
   let anonymous = true;
   if (userInfos && userInfos.account) {
@@ -85,6 +85,7 @@ function pickUserInfo(userInfos) {
     {
       anonymous,
       date: new Date().toISOString(),
+      track,
     },
     _.pick(userInfos, keys),
   );
@@ -120,7 +121,8 @@ export async function register(ctx) {
     roles: schema.roles(),
   });
   const doc = await userService.register(data);
-  const user = pickUserInfo(doc);
+  const track = ctx.cookies.get(config.trackCookie);
+  const user = pickUserInfo(doc, track);
   ctx.session.user = user;
   ctx.status = 201;
   ctx.body = user;
@@ -128,7 +130,7 @@ export async function register(ctx) {
     account: user.account,
     userAgent: ctx.get('User-Agent'),
     ip: ctx.ip,
-    track: ctx.cookies.get(config.trackCookie),
+    track,
   });
 }
 
@@ -149,7 +151,8 @@ export async function register(ctx) {
  */
 export async function logout(ctx) {
   delete ctx.session.user;
-  ctx.body = pickUserInfo({});
+  const track = ctx.cookies.get(config.trackCookie);
+  ctx.body = pickUserInfo({}, track);
 }
 
 /**
@@ -223,12 +226,13 @@ export async function login(ctx) {
     throw err;
   }
   ctx.session.user = user;
-  ctx.body = pickUserInfo(user);
+  const track = ctx.cookies.get(config.trackCookie);
+  ctx.body = pickUserInfo(user, track);
   userService.addLoginRecord({
     account: user.account,
     userAgent: ctx.get('User-Agent'),
     ip: ctx.ip,
-    track: ctx.cookies.get(config.trackCookie),
+    track,
   });
 }
 
@@ -256,7 +260,6 @@ export async function login(ctx) {
  *        description: 刷新session成功
  */
 export function me(ctx) {
-  ctx.body = pickUserInfo(ctx.session.user || {});
   const {trackCookie} = config;
   if (!ctx.cookies.get(trackCookie)) {
     ctx.cookies.set(trackCookie, shortid(), {
@@ -264,7 +267,10 @@ export function me(ctx) {
       signed: true,
     });
   }
+  const track = ctx.cookies.get(config.trackCookie);
+  ctx.body = pickUserInfo(ctx.session.user || {}, track);
 }
+
 export function refresh(ctx) {
   ctx.session.updatedAt = new Date().toISOString();
   ctx.body = null;
