@@ -369,5 +369,7 @@ export async function getRecommendations(ctx) {
     });
   }
   ctx.setCache('10m');
-  ctx.body = result;
+  ctx.body = {
+    recommendations: result,
+  };
 }
