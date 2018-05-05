@@ -50,7 +50,29 @@ const schema = {
     Joi.string()
       .trim()
       .max(30),
+  brief: () =>
+    Joi.string()
+      .trim()
+      .max(500),
   end: () => Joi.boolean(),
+  skip: () =>
+    Joi.number()
+      .integer()
+      .default(0),
+  limit: () =>
+    Joi.number()
+      .integer()
+      .min(1)
+      .max(100)
+      .default(10),
+  fields: () =>
+    Joi.string()
+      .trim()
+      .max(100),
+  keyword: () =>
+    Joi.string()
+      .trim()
+      .max(30),
 };
 
 // 增加来源
@@ -93,23 +115,11 @@ export async function list(ctx) {
     no,
     end,
   } = Joi.validate(ctx.query, {
-    skip: Joi.number()
-      .integer()
-      .default(0),
-    limit: Joi.number()
-      .integer()
-      .min(1)
-      .max(20)
-      .default(10),
-    fields: Joi.string()
-      .trim()
-      .max(100),
-    keyword: Joi.string()
-      .trim()
-      .max(30),
-    no: Joi.string()
-      .trim()
-      .max(300),
+    skip: schema.skip(),
+    limit: schema.limit(),
+    fields: schema.fields(),
+    keyword: schema.keyword(),
+    no: schema.no(),
     category: schema.category(),
     sort: schema.sort(),
     end: schema.end(),
@@ -200,9 +210,7 @@ export async function updateBookInfo(ctx) {
 export async function update(ctx) {
   const no = Joi.attempt(ctx.params.no, schema.no().required());
   const {brief, end, category} = Joi.validate(ctx.request.body, {
-    brief: Joi.string()
-      .trim()
-      .max(500),
+    brief: schema.brief(),
     end: Joi.boolean(),
     category: Joi.array().items(Joi.string().trim()),
   });
@@ -226,18 +234,10 @@ export async function update(ctx) {
 export async function listChapter(ctx) {
   const no = Joi.attempt(ctx.params.no, schema.no().required());
   const {skip, limit, fields, sort} = Joi.validate(ctx.query, {
-    skip: Joi.number()
-      .integer()
-      .default(0),
-    limit: Joi.number()
-      .integer()
-      .min(1)
-      .max(100)
-      .default(10),
-    fields: Joi.string().max(100),
-    sort: Joi.string()
-      .max(30)
-      .default('updatedAt'),
+    skip: schema.skip(),
+    limit: schema.limit(),
+    fields: schema.fields(),
+    sort: schema.sort().default('updatedAt'),
   });
   const docs = await chapterService
     .find({
@@ -312,4 +312,62 @@ export async function requestBook(ctx) {
     await requestBookService.add(data);
   }
   ctx.status = 201;
+}
+
+// 获取推荐书籍
+export async function getRecommendations(ctx) {
+  const max = 4;
+  const no = Joi.attempt(ctx.params.no, schema.no().required());
+  const fields = 'name no author';
+  const doc = await bookService
+    .findOne({
+      no,
+    })
+    .select('author category')
+    .lean();
+  // 选择作者相同小说
+  let docs = await bookService
+    .find({
+      author: doc.author,
+      no: {
+        $ne: no,
+      },
+    })
+    .select(fields)
+    .limit(max)
+    .lean();
+  const result = [];
+  _.forEach(docs, item => {
+    if (_.random(0, 10) < 5) {
+      result.push(item);
+    }
+  });
+
+  const addMore = async conditions => {
+    docs = await bookService
+      .find(conditions)
+      .select(fields)
+      .limit(max)
+      .lean();
+    docs = _.shuffle(docs);
+    result.push(...docs.slice(0, max - result.length));
+  };
+
+  // 增加同类型小说
+  addMore({
+    no: {
+      $ne: no,
+    },
+    category: _.sample(doc.category),
+  });
+  // 如果同类型的还不足够，随机选择
+  if (result.length < max) {
+    addMore({
+      no: {
+        $ne: no,
+      },
+    });
+  }
+  ctx.setCache('10m');
+  ctx.body = result;
 }
