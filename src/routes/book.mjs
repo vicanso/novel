@@ -16,11 +16,7 @@ export default [
   // 获取书籍信息
   ['GET', '/books/:no', 'c.book.get'],
   // 获取书籍相关推荐
-  [
-    'GET',
-    '/books/recommendations/:no',
-    ['m.noQuery', 'c.book.getRecommendations'],
-  ],
+  ['GET', '/books/recommendations/:no', 'c.book.getRecommendations'],
   // 更新书籍
   [
     'PATCH',

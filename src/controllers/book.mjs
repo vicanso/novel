@@ -316,7 +316,9 @@ export async function requestBook(ctx) {
 
 // 获取推荐书籍
 export async function getRecommendations(ctx) {
-  const max = 4;
+  const {limit} = Joi.validate(ctx.query, {
+    limit: schema.limit().default(3),
+  });
   const no = Joi.attempt(ctx.params.no, schema.no().required());
   const fields = 'name no author';
   const doc = await bookService
@@ -334,7 +336,7 @@ export async function getRecommendations(ctx) {
       },
     })
     .select(fields)
-    .limit(max)
+    .limit(limit)
     .lean();
   const result = [];
   _.forEach(docs, item => {
@@ -347,10 +349,10 @@ export async function getRecommendations(ctx) {
     docs = await bookService
       .find(conditions)
       .select(fields)
-      .limit(max)
+      .limit(limit)
       .lean();
     docs = _.shuffle(docs);
-    result.push(...docs.slice(0, max - result.length));
+    result.push(...docs.slice(0, limit - result.length));
   };
 
   // 增加同类型小说
@@ -361,7 +363,7 @@ export async function getRecommendations(ctx) {
     category: _.sample(doc.category),
   });
   // 如果同类型的还不足够，随机选择
-  if (result.length < max) {
+  if (result.length < limit) {
     addMore({
       no: {
         $ne: no,
