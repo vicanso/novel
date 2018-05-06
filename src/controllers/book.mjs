@@ -119,7 +119,9 @@ export async function list(ctx) {
     limit: schema.limit(),
     fields: schema.fields(),
     keyword: schema.keyword(),
-    no: schema.no(),
+    no: Joi.string()
+      .trim()
+      .max(300),
     category: schema.category(),
     sort: schema.sort(),
     end: schema.end(),
