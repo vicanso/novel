@@ -159,7 +159,7 @@ export async function list(ctx) {
     .sort(sort)
     .select(fields)
     .lean();
-  ctx.setCache('1m');
+  ctx.setCache('10s');
   ctx.body = data;
 }
 

@@ -117,7 +117,7 @@ export async function register(ctx) {
   const data = Joi.validate(ctx.request.body, {
     account: schema.account().required(),
     password: schema.password().required(),
-    email: schema.email.required(),
+    email: schema.email().required(),
     roles: schema.roles(),
   });
   const doc = await userService.register(data);

@@ -160,7 +160,7 @@
       el-button(
         @click.native="mode = 0"
       ) Back
-  el-form.form(
+  el-form.addForm.form(
     v-model="sourceForm"
     label-width="100px"
     v-else-if="mode === 2"
