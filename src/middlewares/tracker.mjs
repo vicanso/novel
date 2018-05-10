@@ -32,16 +32,32 @@ export default category =>
     if (account) {
       data.account = account;
     }
-    const params = _.extend({}, ctx.query, ctx.request.body, ctx.params);
-    if (!_.isEmpty(params)) {
-      data.params = stringify(params);
+    if (!_.isEmpty(ctx.params)) {
+      data.params = stringify(ctx.params);
     }
+    if (!_.isEmpty(ctx.query)) {
+      data.query = stringify(ctx.query)
+    }
+    if (!_.isEmpty(ctx.request.body)) {
+      data.form = stringify(ctx.request.body);
+    }
+
     const start = Date.now();
     const resultLog = (use, result) => {
       if (!data.account) {
         const currentAccount = _.get(ctx, 'session.user.account');
         if (currentAccount) {
           data.account = currentAccount;
+        }
+      }
+      const {
+        body
+      } = ctx;
+      if (body) {
+        if (_.isObject(body)) {
+          data.body = stringify(body);
+        } else if (_.isString(body)) {
+          data.body = body;
         }
       }
       data.result = result;

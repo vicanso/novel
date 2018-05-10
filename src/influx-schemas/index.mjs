@@ -98,6 +98,9 @@ export default {
       ip: 's',
       account: 's',
       params: 's',
+      query: 's',
+      form: 's',
+      body: 's',
       use: 'i',
       message: 's',
     },
@@ -120,15 +123,8 @@ export default {
     },
     tags: {
       spdy: '01234'.split(''),
-      model: '*',
-      op: [
-        'find',
-        'findOne',
-        'findOneAndUpdate',
-        'findOneAndRemove',
-        'save',
-        'count',
-      ],
+      collection: '*',
+      op: '*',
     },
   },
   http: {
