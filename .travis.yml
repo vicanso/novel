@@ -1,0 +1,17 @@
+sudo: false
+language: node_js
+node_js:
+  - "9"
+
+services:
+  - docker
+
+script:
+  - yarn lint
+
+after_script:
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker build -t novel .
+  - docker images
+  - docker tag novel $DOCKER_USERNAME/novel
+  - docker push $DOCKER_USERNAME/novel
