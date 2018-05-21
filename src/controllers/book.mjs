@@ -358,7 +358,7 @@ export async function getRecommendations(ctx) {
   };
 
   // 增加同类型小说
-  addMore({
+  await addMore({
     no: {
       $ne: no,
     },
@@ -366,7 +366,7 @@ export async function getRecommendations(ctx) {
   });
   // 如果同类型的还不足够，随机选择
   if (result.length < limit) {
-    addMore({
+    await addMore({
       no: {
         $ne: no,
       },

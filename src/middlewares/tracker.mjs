@@ -36,7 +36,7 @@ export default category =>
       data.params = stringify(ctx.params);
     }
     if (!_.isEmpty(ctx.query)) {
-      data.query = stringify(ctx.query)
+      data.query = stringify(ctx.query);
     }
     if (!_.isEmpty(ctx.request.body)) {
       data.form = stringify(ctx.request.body);
@@ -50,9 +50,7 @@ export default category =>
           data.account = currentAccount;
         }
       }
-      const {
-        body
-      } = ctx;
+      const {body} = ctx;
       if (body) {
         if (_.isObject(body)) {
           data.body = stringify(body);

@@ -19,6 +19,9 @@ const gzip = util.promisify(zlib.gzip);
 
 const biQuGe = 'biquge';
 const xBiQuGe = 'xbiquge';
+const updateAllCategoryLock = 'update-all-category-lock';
+const updateCategoriesLock = 'update-categories';
+const updateAllBookPrefixLock = 'update-all-books-';
 
 export function getSources() {
   return [biQuGe, xBiQuGe];
@@ -199,7 +202,7 @@ export async function updateAll() {
   let count = 0;
   const ttl = 300;
   await Promise.mapSeries(docs, async doc => {
-    const key = `update-all-books-${doc.no}`;
+    const key = updateAllBookPrefixLock + doc.no;
     const locked = await lock(key, ttl);
     // 如果出错或者setnx不成功（有其它实例已在更新）
     if (!locked) {
@@ -220,7 +223,7 @@ export async function getCategories() {
   const data = await redis.get(key);
   setImmediate(async () => {
     // 控制最多每10分钟更新一次
-    const locked = await lock('update-categories', 60 * 10);
+    const locked = await lock(updateCategoriesLock, 60 * 10);
     if (!locked) {
       return;
     }
@@ -270,16 +273,24 @@ export async function getCategories() {
 
 // 更新书籍分类
 export async function updateAllCategory() {
-  // 对已经完结的增加 完本 分类
-  const docs = await bookService
-    .find({
-      end: true,
-    })
-    .select('author name category');
-  await Promise.mapSeries(docs, async doc => {
-    if (!_.includes(doc.category, '完本')) {
-      doc.category.push('完本');
+  const locked = await lock(updateAllCategoryLock, 60);
+  if (!locked) {
+    return;
+  }
+  await new Promise((resolve, reject) => {
+    const cursor = bookService
+      .find({})
+      .select('category end')
+      .cursor();
+    cursor.on('data', async doc => {
+      if (doc.end) {
+        doc.category.push('完本');
+      }
+      // eslint-disable-next-line
+      doc.category = _.uniq(doc.category);
       await doc.save();
-    }
+    });
+    cursor.on('end', resolve);
+    cursor.on('error', reject);
   });
 }
