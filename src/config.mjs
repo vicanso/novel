@@ -46,3 +46,5 @@ export const connectLimitOptions = {
   high: 500,
   interval: 5000,
 };
+
+export const tiny = process.env.TINY || '127.0.0.1:3016';

@@ -17,6 +17,7 @@ import chapterService from '../services/chapter';
 import coverService from '../services/cover';
 import {lock} from '../helpers/redis';
 import requestBookService from '../services/request-book';
+import * as tinyService from '../services/tiny';
 
 const gunzip = util.promisify(zlib.gunzip);
 
@@ -73,6 +74,10 @@ const schema = {
     Joi.string()
       .trim()
       .max(30),
+  imageType: () =>
+    Joi.string()
+      .valid(['webp', 'jpeg'])
+      .default('jpeg'),
 };
 
 // 增加来源
@@ -271,6 +276,9 @@ export async function listChapter(ctx) {
 
 // 获取封面信息
 export async function getCover(ctx) {
+  const {type} = Joi.validate(ctx.query, {
+    type: schema.imageType(),
+  });
   const no = Joi.attempt(ctx.params.no, schema.no().required());
   const doc = await coverService
     .findOne({
@@ -282,9 +290,20 @@ export async function getCover(ctx) {
     ctx.body = null;
     return;
   }
+  let buf = doc.data.buffer;
+  try {
+    let fn = tinyService.toJpeg;
+    if (type === 'webp') {
+      fn = tinyService.toWebp;
+    }
+    const res = await fn(buf);
+    buf = res.data;
+  } catch (err) {
+    console.error(`conver cover to ${type} fail, ${err.message}`);
+  }
   ctx.setCache('1w', '5m');
-  ctx.set('Content-Type', 'image/jpeg');
-  ctx.body = doc.data.buffer;
+  ctx.set('Content-Type', `image/${type}`);
+  ctx.body = buf;
 }
 
 // 更新封面
