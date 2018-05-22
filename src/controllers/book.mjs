@@ -276,7 +276,7 @@ export async function listChapter(ctx) {
 
 // 获取封面信息
 export async function getCover(ctx) {
-  const {type} = Joi.validate(ctx.query, {
+  let {type} = Joi.validate(ctx.query, {
     type: schema.imageType(),
   });
   const no = Joi.attempt(ctx.params.no, schema.no().required());
@@ -299,6 +299,7 @@ export async function getCover(ctx) {
     const res = await fn(buf);
     buf = res.data;
   } catch (err) {
+    type = 'jpeg';
     console.error(`conver cover to ${type} fail, ${err.message}`);
   }
   ctx.setCache('1w', '5m');
