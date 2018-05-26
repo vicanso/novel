@@ -78,6 +78,12 @@ const schema = {
     Joi.string()
       .valid(['webp', 'jpeg'])
       .default('jpeg'),
+  imageQuality: () =>
+    Joi.number()
+      .integer()
+      .min(70)
+      .max(100)
+      .default(75),
 };
 
 // 增加来源
@@ -276,8 +282,9 @@ export async function listChapter(ctx) {
 
 // 获取封面信息
 export async function getCover(ctx) {
-  let {type} = Joi.validate(ctx.query, {
+  const {type, quality} = Joi.validate(ctx.query, {
     type: schema.imageType(),
+    quality: schema.imageQuality(),
   });
   const no = Joi.attempt(ctx.params.no, schema.no().required());
   const doc = await coverService
@@ -291,19 +298,20 @@ export async function getCover(ctx) {
     return;
   }
   let buf = doc.data.buffer;
+  let contentType = type;
   try {
     let fn = tinyService.toJpeg;
     if (type === 'webp') {
       fn = tinyService.toWebp;
     }
-    const res = await fn(buf);
+    const res = await fn(buf, quality);
     buf = res.data;
   } catch (err) {
-    type = 'jpeg';
+    contentType = 'jpeg';
     console.error(`conver cover to ${type} fail, ${err.message}`);
   }
   ctx.setCache('1w', '5m');
-  ctx.set('Content-Type', `image/${type}`);
+  ctx.set('Content-Type', `image/${contentType}`);
   ctx.body = buf;
 }
 

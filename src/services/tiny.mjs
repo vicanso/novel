@@ -32,14 +32,14 @@ function convert(buf, type, quality) {
  * 转换为webp
  * @param buf
  */
-export function toWebp(buf) {
-  return convert(buf, WEBP, 75);
+export function toWebp(buf, quality) {
+  return convert(buf, WEBP, quality);
 }
 
 /**
  * 转换为jpeg
  * @param buf
  */
-export function toJpeg(buf) {
-  return convert(buf, JPEG, 80);
+export function toJpeg(buf, quality) {
+  return convert(buf, JPEG, quality);
 }
