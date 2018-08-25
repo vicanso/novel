@@ -1,0 +1,18 @@
+listen: ":8080"
+redis: 127.0.0.1:6379
+track: jt
+session:
+  # 默认为以下值，可不配置
+  # cookie:
+  #   name: jt
+  #   maxAge: 24h
+  #   path: /
+  expires: 24h
+  keys:
+    - cuttlefish
+    - tree.xie
+locationByIP: http://ip.taobao.com/service/getIpInfo.php
+nsq:
+  lookup:
+    address:
+      - 127.0.0.1:4161

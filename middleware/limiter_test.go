@@ -1,0 +1,51 @@
+package middleware
+
+import (
+	"net/http"
+	"testing"
+	"time"
+
+	"github.com/kataras/iris"
+
+	"github.com/vicanso/novel/global"
+	"github.com/vicanso/novel/utils"
+)
+
+func TestNewLimiter(t *testing.T) {
+	t.Run("limit pass", func(t *testing.T) {
+		fn := NewLimiter(LimiterConfig{
+			Max: 1,
+		})
+		ctx := utils.NewContext(nil, nil)
+		fn(ctx)
+	})
+
+	t.Run("over limit", func(t *testing.T) {
+		global.StartApplication()
+		fn := NewLimiter(LimiterConfig{
+			Max: 0,
+		})
+		ctx := utils.NewResContext()
+		fn(ctx)
+		if global.IsApplicationRunning() {
+			t.Fatalf("the application should be paused after over limit")
+		}
+		errData := utils.GetBody(ctx).(iris.Map)
+		if ctx.GetStatusCode() != http.StatusTooManyRequests ||
+			errData["message"].(string) != "too many request" {
+			t.Fatalf("the respons error should be too many request")
+		}
+	})
+}
+
+func TestResetApplication(t *testing.T) {
+	global.PauseApplication()
+	if global.IsApplicationRunning() {
+		t.Fatalf("application should be pause")
+	}
+	resetApplicationStatus(time.Millisecond)
+	time.Sleep(5 * time.Millisecond)
+	if !global.IsApplicationRunning() {
+		t.Fatalf("application should resume to running")
+	}
+}

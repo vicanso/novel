@@ -1,0 +1,18 @@
+language: go
+sudo: required
+
+go:
+  - 1.x
+
+services:
+  - docker
+
+before_install:
+  - docker run -d -p 6379:6379 redis:alpine
+
+install:
+  - go get -u github.com/golang/dep/cmd/dep
+
+script:
+  - dep ensure
+  - make test
