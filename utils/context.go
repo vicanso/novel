@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
@@ -10,9 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/asaskevich/govalidator"
 	"github.com/kataras/iris"
-	"github.com/vicanso/novel/config"
+	"github.com/vicanso/forest/config"
 	"github.com/vicanso/session"
 )
 
@@ -38,10 +36,6 @@ const (
 var (
 	stackReg = regexp.MustCompile(`\((0x[\s\S]+)\)`)
 )
-
-func init() {
-	govalidator.SetFieldsRequiredByDefault(true)
-}
 
 // Res 响应数据
 func Res(ctx iris.Context, data interface{}) {
@@ -75,11 +69,14 @@ func ResPNG(ctx iris.Context, data []byte) {
 // ResErr 出错处理
 func ResErr(ctx iris.Context, err error) {
 	data := iris.Map{
-		"message": err.Error(),
+		"message":  err.Error(),
+		"expected": false,
 	}
 	status := http.StatusInternalServerError
 	// 根据error类型生成各类的状态码与出错信息
 	if he, ok := err.(*HTTPError); ok {
+		// HTTPError的异常为已处理
+		data["expected"] = true
 		status = he.StatusCode
 		if status == 0 {
 			status = http.StatusInternalServerError
@@ -172,52 +169,25 @@ func GetRequestQuery(ctx iris.Context) map[string]string {
 	return m
 }
 
-// Validate 校验数据
-func Validate(s interface{}, data interface{}) (err error) {
-	// TODO 了解自定义的校验方式
-	if data != nil {
-		switch data.(type) {
-		case []byte:
-			err = json.Unmarshal(data.([]byte), s)
-			if err != nil {
-				fmt.Println(err)
-				err = NewJSONParseError(err)
-				return
-			}
-		default:
-			buf, e := json.Marshal(data)
-			if e != nil {
-				err = NewJSONParseError(e)
-				return
-			}
-			e = json.Unmarshal(buf, s)
-			if e != nil {
-				err = NewJSONParseError(e)
-				return
-			}
-		}
-	}
-	_, err = govalidator.ValidateStruct(s)
-	if err != nil {
-		err = NewValidateError(err)
-	}
-	return
-}
-
 // GetStack 获取调用信息
 func GetStack(size int) []string {
 	stack := make([]byte, size)
 	runtime.Stack(stack, true)
 	arr := strings.Split(string(stack), "\n")
+	// goroutine与此函数的stack无需展示，因此index从3开始
+	arr = arr[3:]
 	max := len(arr)
 	result := []string{}
-	// goroutine与此函数的stack无需展示，因此index从3开始
-	for index := 3; index < max; index += 2 {
+	for index := 0; index < max; index += 2 {
 		if index+1 >= max {
 			break
 		}
 		tmpArr := strings.Split(arr[index], "/")
 		fn := stackReg.ReplaceAllString(tmpArr[len(tmpArr)-1], "")
+		// 如果是utils.ResErr的处理也可以忽略
+		if fn == "utils.ResErr" {
+			continue
+		}
 		str := fn + ": " + strings.Replace(arr[index+1], "\t", "", 1)
 		result = append(result, str)
 	}

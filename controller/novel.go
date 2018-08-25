@@ -10,7 +10,7 @@ type (
 	novelCtrl       struct{}
 	addSourceParams struct {
 		Category string `json:"category,omitempty" valid:"in(xBiQuGe|biQuGe)"`
-		ID       int    `json:"id,omitempty" valid:"-"`
+		ID       int    `json:"id,omitempty" valid:"xIntRange(1|100000)"`
 	}
 )
 
