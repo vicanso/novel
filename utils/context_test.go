@@ -187,53 +187,6 @@ func TestGetRequestQuery(t *testing.T) {
 	}
 }
 
-func TestValidate(t *testing.T) {
-	t.Run("validate fail", func(t *testing.T) {
-		p := &params{}
-		buf := []byte(`{"account":"abd"}`)
-		err := Validate(p, buf)
-		if err == nil {
-			t.Fatalf("validate should be fail")
-		}
-	})
-	t.Run("validate fail with not json buffer", func(t *testing.T) {
-		p := &params{}
-		buf := []byte(`{"account":"vicanso}`)
-		err := Validate(p, buf)
-		he := err.(*HTTPError)
-		if he.Category != ErrCategoryJSON {
-			t.Fatalf("validate should be json fail")
-		}
-	})
-
-	t.Run("validate success", func(t *testing.T) {
-		p := &params{}
-		account := "vicanso"
-		buf := []byte(`{"account":"vicanso"}`)
-		err := Validate(p, buf)
-		if err != nil || p.Account != account {
-			t.Fatalf("validate fail, %v", err)
-		}
-		tmp := &params{}
-		err = Validate(tmp, p)
-		if err != nil || tmp.Account != account {
-			t.Fatalf("validate fail, %v", err)
-		}
-	})
-}
-
-// func TestLogger(t *testing.T) {
-// 	ctx := NewContext(nil, nil)
-// 	if GetContextLogger(ctx) != nil {
-// 		t.Fatalf("get logger should be nil before set")
-// 	}
-// 	logger := &log.Entry{}
-// 	SetContextLogger(ctx, logger)
-// 	if GetContextLogger(ctx) != logger {
-// 		t.Fatalf("get/set logger fail")
-// 	}
-// }
-
 func TestGetStack(t *testing.T) {
 	stack := GetStack(1024)
 	if len(stack) == 0 {

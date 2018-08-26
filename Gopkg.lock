@@ -166,8 +166,7 @@
   revision = "0fb14efe8c47ae851c0034ed7a448854d3d34cf3"
 
 [[projects]]
-  branch = "master"
-  digest = "1:a361611b8c8c75a1091f00027767f7779b29cb37c456a71b8f2604c88057ab40"
+  digest = "1:c0d19ab64b32ce9fe5cf4ddceba78d5bc9807f0016db6b1183599da3dcc24d10"
   name = "github.com/hashicorp/hcl"
   packages = [
     ".",
@@ -182,7 +181,8 @@
     "json/token",
   ]
   pruneopts = "UT"
-  revision = "ef8a98b0bbce4a65b5aa4c368430a80ddc533168"
+  revision = "8cb6e5b959231cc1119e43259c4a608f9c51a241"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -199,6 +199,25 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "36e9d2ebbde5e3f13ab2e25625fd453271d6522e"
+
+[[projects]]
+  digest = "1:6895fbe5a10c5aebd1965cac6f6905dcdb21bee01e08912d3ba6a805c2485f6a"
+  name = "github.com/jinzhu/gorm"
+  packages = [
+    ".",
+    "dialects/postgres",
+  ]
+  pruneopts = "UT"
+  revision = "6ed508ec6a4ecb3531899a69cbc746ccf65a4166"
+  version = "v1.9.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:fd97437fbb6b7dce04132cf06775bd258cce305c44add58eb55ca86c6c325160"
+  name = "github.com/jinzhu/inflection"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "04140366298a54a039076d798123ffa108fff46c"
 
 [[projects]]
   digest = "1:3e551bbb3a7c0ab2a2bf4660e7fcad16db089fdcfbb44b0199e62838038623ea"
@@ -300,6 +319,18 @@
   pruneopts = "UT"
   revision = "ae7887de9fa5d2db4eaa8174a7eff2c1ac00f2da"
   version = "v1.1"
+
+[[projects]]
+  digest = "1:b18ffc558326ebaed3b4a175617f1e12ed4e3f53d6ebfe5ba372a3de16d22278"
+  name = "github.com/lib/pq"
+  packages = [
+    ".",
+    "hstore",
+    "oid",
+  ]
+  pruneopts = "UT"
+  revision = "4ded0e9383f75c197b3a2aaa6d590ac52df6fd79"
+  version = "v1.0.0"
 
 [[projects]]
   digest = "1:c568d7727aa262c32bdf8a3f7db83614f7af0ed661474b24588de635c20024c7"
@@ -465,6 +496,14 @@
   version = "0.0.2"
 
 [[projects]]
+  branch = "master"
+  digest = "1:35a0f409210aac7023cd70020fbb78e652c425b26f478073db2399ccef5d7364"
+  name = "github.com/vicanso/forest"
+  packages = ["config"]
+  pruneopts = "UT"
+  revision = "ac9eadf8ec5fd40dd573e5a2bf00f6b51958e9e7"
+
+[[projects]]
   digest = "1:e759bd83c7fc27e37dea6c0840012506bda8192ae33415ad4011c53ecb76d1a2"
   name = "github.com/vicanso/keygrip"
   packages = ["."]
@@ -474,14 +513,14 @@
 
 [[projects]]
   branch = "go"
-  digest = "1:acbf02e8dc385a56daea6a6f1d563c3dcf08ea27fb596f41ef5f161af8d19893"
+  digest = "1:dbef875333281e7150d66bd3a70054ff2e9cbe4f1b83a1babfbd16d0e581f3cd"
   name = "github.com/vicanso/novel-spider"
   packages = [
     "mq",
     "novel",
   ]
   pruneopts = "UT"
-  revision = "c308d4ce915a799dd18d79a8a2eb338d1801d5a8"
+  revision = "59b651ab4b2ad1ab6f32794482b0d13be334cb21"
 
 [[projects]]
   digest = "1:62ddfbc260ff6f61cfd7d229d76123654028ae4366d3ee58d9a6fe76f8acc668"
@@ -535,7 +574,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:4fdab02afe136160563fc2a5405b1ca0bdbe6724445ad36afaea7155c7290610"
+  digest = "1:bfa27aae4a267dd620556ad865ce934c17ef38e11c72e8b8a723218bef672ec3"
   name = "golang.org/x/net"
   packages = [
     "html",
@@ -546,7 +585,7 @@
     "publicsuffix",
   ]
   pruneopts = "UT"
-  revision = "4bcd98cce591d8c7061bf313d7a3cbad05b58549"
+  revision = "8a410e7b638dca158bf9e766925842f6651ff828"
 
 [[projects]]
   branch = "master"
@@ -603,12 +642,16 @@
     "github.com/coredns/coredns/plugin/pkg/log",
     "github.com/go-redis/redis",
     "github.com/h2non/gock",
+    "github.com/jinzhu/gorm",
+    "github.com/jinzhu/gorm/dialects/postgres",
     "github.com/json-iterator/go",
     "github.com/kataras/iris",
+    "github.com/lib/pq",
     "github.com/mozillazg/request",
     "github.com/oklog/ulid",
     "github.com/spf13/viper",
     "github.com/vicanso/cookies",
+    "github.com/vicanso/forest/config",
     "github.com/vicanso/novel-spider/mq",
     "github.com/vicanso/novel-spider/novel",
     "github.com/vicanso/session",

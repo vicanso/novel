@@ -6,6 +6,7 @@ import (
 	_ "github.com/vicanso/novel/controller"
 	"github.com/vicanso/novel/global"
 	"github.com/vicanso/novel/middleware"
+	_ "github.com/vicanso/novel/model"
 	"github.com/vicanso/novel/router"
 	"github.com/vicanso/novel/utils"
 	"go.uber.org/zap"
@@ -35,7 +36,6 @@ func main() {
 	}))
 
 	app.Use(middleware.NewJSONParser(middleware.JSONParserConfig{}))
-
 	// method 不建议使用 any all
 	for i, r := range router.List() {
 		// 对路由检测，判断是否有相同路由
@@ -54,5 +54,8 @@ func main() {
 	}
 
 	global.StartApplication()
-	app.Run(iris.Addr(config.GetString("listen")))
+	listen := config.GetString("listen")
+	logger.Info("start to listen " + listen)
+
+	app.Run(iris.Addr(listen))
 }
