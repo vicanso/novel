@@ -15,7 +15,7 @@ locationByIP: http://ip.taobao.com/service/getIpInfo.php
 nsq:
   lookup:
     address:
-      - 127.0.0.1:4161
+      - 192.168.31.3:4161
 db:
-  uri: postgres://tree:mypwd@127.0.0.1:5532/novel?connect_timeout=5&sslmode=disable
+  uri: postgres://tree:IDtyvSmWPD@192.168.31.3:5532/novel?connect_timeout=5&sslmode=disable
   poolSize: 100

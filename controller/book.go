@@ -17,7 +17,7 @@ type (
 	batchAddSourceParams struct {
 		Category string `json:"category,omitempty" valid:"in(xBiQuGe|biQuGe)"`
 		Start    int    `json:"start,omitempty" valid:"xIntRange(1|100000)"`
-		Limit    int    `json:"limit,omitempty" valid:"xIntRange(1|1000)"`
+		Limit    int    `json:"limit,omitempty" valid:"xIntRange(1|10000)"`
 	}
 )
 
