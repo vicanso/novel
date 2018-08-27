@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"net/url"
 	"sync/atomic"
 	"time"
 
@@ -39,9 +40,13 @@ func NewStats(conf StatsConfig) iris.Handler {
 		consuming := int(time.Now().UnixNano()-startedAt) / int(time.Millisecond)
 		route := ctx.GetCurrentRoute()
 		statusCode := ctx.GetStatusCode()
-
+		req := ctx.Request()
+		uri, _ := url.QueryUnescape(req.RequestURI)
+		if uri == "" {
+			uri = req.RequestURI
+		}
 		info := &StatsInfo{
-			URI:        ctx.Request().RequestURI,
+			URI:        uri,
 			StatusCode: statusCode,
 			Consuming:  consuming,
 			Type:       statusCode / 100,

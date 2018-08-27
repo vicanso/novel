@@ -2,6 +2,8 @@ package model
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -12,7 +14,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-var db *gorm.DB
+var (
+	db          *gorm.DB
+	matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
+)
 
 const (
 	defaultPoolSize = 100
@@ -27,6 +32,11 @@ const (
 	StatusPassed
 )
 
+const (
+	// LikePrefix like query prefix
+	LikePrefix = '~'
+)
+
 type (
 	// BaseModel 基础的model定义
 	BaseModel struct {
@@ -39,7 +49,35 @@ type (
 		// 删除时间
 		DeletedAt *time.Time `json:"deletedAt,omitempty" sql:"index"`
 	}
+	// QueryOptions query options
+	QueryOptions struct {
+		Limit  int
+		Offset int
+		Field  string
+		Order  string
+	}
 )
+
+// toSnakeCase convert string to snake case
+func toSnakeCase(str string) string {
+	snake := matchAllCap.ReplaceAllString(str, "${1}_${2}")
+	return strings.ToLower(snake)
+}
+
+// convertOrder convert the order string
+func convertOrder(str string) string {
+	arr := strings.Split(str, ",")
+	result := make([]string, len(arr))
+	for i, v := range arr {
+		sort := "asc"
+		if v[0] == '-' {
+			sort = "desc"
+			v = v[1:]
+		}
+		result[i] = toSnakeCase(v) + " " + sort
+	}
+	return strings.Join(result, ",")
+}
 
 func initModels() {
 	db.AutoMigrate(&Book{})
@@ -64,4 +102,61 @@ func init() {
 // GetClient 获取db client
 func GetClient() *gorm.DB {
 	return db
+}
+
+func getClientByOptions(options *QueryOptions, client *gorm.DB) *gorm.DB {
+	if client == nil {
+		client = GetClient()
+	}
+	if options == nil {
+		return client
+	}
+	if options.Field != "" {
+		client = client.Select(toSnakeCase(options.Field))
+	}
+	if options.Order != "" {
+		client = client.Order(convertOrder(options.Order))
+	}
+	if options.Limit > 0 {
+		client = client.Limit(options.Limit)
+	}
+	if options.Offset > 0 {
+		client = client.Offset(options.Offset)
+	}
+	return client
+}
+
+// enhanceWhere 增强的enhance where查询
+func enhanceWhere(client *gorm.DB, key, value string) *gorm.DB {
+	if key == "" || value == "" {
+		return client
+	}
+	if value[0] == LikePrefix {
+		like := key + " LIKE ?"
+		value = "%" + value[1:] + "%"
+		client = client.Where(like, value)
+	} else {
+		client = client.Where(key+" = ?", value)
+	}
+	return client
+}
+
+// enhanceRangeWhere 增强的区间查询
+func enhanceRangeWhere(client *gorm.DB, key, value string) *gorm.DB {
+	if key == "" || value == "" {
+		return client
+	}
+	arr := strings.Split(value, "|")
+	start := arr[0]
+	end := ""
+	if len(arr) > 1 {
+		end = arr[1]
+	}
+	if start != "" {
+		client = client.Where(key+" >= ?", start)
+	}
+	if end != "" {
+		client = client.Where(key+" <= ?", end)
+	}
+	return client
 }
