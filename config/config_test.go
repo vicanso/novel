@@ -117,7 +117,7 @@ func TestGetValue(t *testing.T) {
 }
 
 func TestLoadFile(t *testing.T) {
-	err := viperInit("../asset")
+	err := viperInit("../configs")
 	if err != nil {
 		t.Fatalf("init from file fail, %v", err)
 	}

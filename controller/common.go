@@ -4,14 +4,13 @@ import (
 	"github.com/kataras/iris"
 	"github.com/vicanso/novel/router"
 	"github.com/vicanso/novel/service"
-	"github.com/vicanso/novel/utils"
+	"github.com/vicanso/novel/util"
 )
 
 type (
 	// LocationByIPParams params of location by ip
 	LocationByIPParams struct {
-		IP   string `valid:"ipv4"`
-		Type string `valid:"int,in(1|2)"`
+		IP string `valid:"ipv4"`
 	}
 	// commonCtrl common controller
 	commonCtrl struct {
@@ -26,7 +25,7 @@ func init() {
 
 // getLocationByIP get location by ip
 func (c *commonCtrl) getLocationByIP(ctx iris.Context) {
-	query := utils.GetRequestQuery(ctx)
+	query := util.GetRequestQuery(ctx)
 	params := &LocationByIPParams{}
 	err := validate(params, query)
 	if err != nil {

@@ -1,8 +1,10 @@
-.PHONY: default test test-cover
+.PHONY: default test test-cover dev
+
+defalt: dev
 
 # for dev
-default: export CONFIG=./asset
-default:
+dev: export CONFIG=./configs
+dev:
 	fresh
 
 # for test

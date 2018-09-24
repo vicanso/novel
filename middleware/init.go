@@ -2,11 +2,12 @@ package middleware
 
 import (
 	jsoniter "github.com/json-iterator/go"
-	"github.com/vicanso/novel/utils"
+	"github.com/vicanso/novel/util"
 )
 
 var (
 	json       = jsoniter.ConfigCompatibleWithStandardLibrary
-	getTrackID = utils.GetTrackID
-	getAccount = utils.GetAccount
+	getTrackID = util.GetTrackID
+	getAccount = util.GetAccount
+	resErr     = util.ResErr
 )

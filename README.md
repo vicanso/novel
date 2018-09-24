@@ -1,5 +1,13 @@
-# novel
+# forest
 web framework by iris
+
+## static
+
+Create static asset's packr
+
+```bash
+packr
+```
 
 ## test
 

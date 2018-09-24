@@ -8,7 +8,7 @@ import (
 
 	"github.com/kataras/iris"
 
-	"github.com/vicanso/novel/utils"
+	"github.com/vicanso/novel/util"
 )
 
 type (
@@ -23,7 +23,7 @@ func TestNewRecover(t *testing.T) {
 	t.Run("panic error", func(t *testing.T) {
 		fn := NewRecover()
 		w := httptest.NewRecorder()
-		ctx := utils.NewContext(w, nil)
+		ctx := util.NewContext(w, nil)
 		message := "abcd"
 		ctx.AddHandler(func(ctx iris.Context) {
 			ctx.Next()
@@ -47,7 +47,7 @@ func TestNewRecover(t *testing.T) {
 	t.Run("panic nil", func(t *testing.T) {
 		fn := NewRecover()
 		w := httptest.NewRecorder()
-		ctx := utils.NewContext(w, nil)
+		ctx := util.NewContext(w, nil)
 		ctx.AddHandler(func(ctx iris.Context) {
 			ctx.Next()
 		}, fn, func(ctx iris.Context) {
@@ -57,7 +57,7 @@ func TestNewRecover(t *testing.T) {
 		if ctx.GetStatusCode() != http.StatusOK {
 			t.Fatalf("status should be 200")
 		}
-		if utils.GetBody(ctx) != nil {
+		if util.GetBody(ctx) != nil {
 			t.Fatalf("body should be nil")
 		}
 	})
@@ -65,7 +65,7 @@ func TestNewRecover(t *testing.T) {
 	t.Run("is stop", func(t *testing.T) {
 		fn := NewRecover()
 		w := httptest.NewRecorder()
-		ctx := utils.NewContext(w, nil)
+		ctx := util.NewContext(w, nil)
 		message := "abcd"
 		ctx.AddHandler(func(ctx iris.Context) {
 			ctx.Next()
@@ -77,7 +77,7 @@ func TestNewRecover(t *testing.T) {
 		if ctx.GetStatusCode() != http.StatusOK {
 			t.Fatalf("status should be 200")
 		}
-		if utils.GetBody(ctx) != nil {
+		if util.GetBody(ctx) != nil {
 			t.Fatalf("body should be nil")
 		}
 	})
@@ -85,7 +85,7 @@ func TestNewRecover(t *testing.T) {
 	t.Run("panic not error", func(t *testing.T) {
 		fn := NewRecover()
 		w := httptest.NewRecorder()
-		ctx := utils.NewContext(w, nil)
+		ctx := util.NewContext(w, nil)
 		ctx.AddHandler(func(ctx iris.Context) {
 			ctx.Next()
 		}, fn, func(ctx iris.Context) {

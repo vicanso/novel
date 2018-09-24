@@ -1,7 +1,11 @@
 package service
 
-import jsoniter "github.com/json-iterator/go"
+import (
+	jsoniter "github.com/json-iterator/go"
+	"github.com/vicanso/novel/util"
+)
 
 var (
-	json = jsoniter.ConfigCompatibleWithStandardLibrary
+	json      = jsoniter.ConfigCompatibleWithStandardLibrary
+	getLogger = util.GetLogger
 )

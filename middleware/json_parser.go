@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/vicanso/novel/utils"
+	"github.com/vicanso/novel/util"
 
 	"github.com/kataras/iris"
 )
@@ -44,14 +44,14 @@ func NewJSONParser(conf JSONParserConfig) iris.Handler {
 		}
 		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {
-			utils.ResErr(ctx, err)
+			resErr(ctx, err)
 			return
 		}
 		if limit != 0 && len(body) > limit {
-			utils.ResErr(ctx, utils.ErrRequestJSONTooLarge)
+			resErr(ctx, util.ErrRequestJSONTooLarge)
 			return
 		}
-		utils.SetRequestBody(ctx, body)
+		util.SetRequestBody(ctx, body)
 		ctx.Next()
 	}
 }

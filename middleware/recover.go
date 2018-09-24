@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/kataras/iris"
-	"github.com/vicanso/novel/utils"
+	"github.com/vicanso/novel/util"
 )
 
 // NewRecover 创建异常恢复中间件
@@ -23,14 +23,14 @@ func NewRecover() iris.Handler {
 			if !ok {
 				err = fmt.Errorf("%v", r)
 			}
-			utils.SetNoCache(ctx)
+			util.SetNoCache(ctx)
 			ctx.StatusCode(http.StatusInternalServerError)
 			data := iris.Map{
 				"message":   err.Error(),
 				"exception": true,
 			}
-			if !utils.IsProduction() {
-				data["stack"] = utils.GetStack(2 << 10)
+			if !util.IsProduction() {
+				data["stack"] = util.GetStack(2 << 10)
 			}
 			ctx.JSON(data)
 		}()

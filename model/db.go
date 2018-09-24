@@ -6,8 +6,10 @@ import (
 	"strings"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/jinzhu/gorm"
-	"github.com/vicanso/novel/utils"
+	"github.com/vicanso/novel/util"
 
 	// for postgres
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -21,20 +23,8 @@ var (
 
 const (
 	defaultPoolSize = 100
-)
-
-const (
-	// StatusPadding 待审核
-	StatusPadding = iota + 1
-	// StatusRejected 拒绝
-	StatusRejected
-	// StatusPassed 已通过
-	StatusPassed
-)
-
-const (
-	// LikePrefix like query prefix
-	LikePrefix = '~'
+	// likePrefix like query prefix
+	likePrefix = '~'
 )
 
 type (
@@ -80,12 +70,16 @@ func convertOrder(str string) string {
 }
 
 func initModels() {
-	db.AutoMigrate(&Book{})
+	db.AutoMigrate(&User{}).
+		AutoMigrate(&UserLogin{}).
+		AutoMigrate(&Book{}).
+		AutoMigrate(&Chapter{})
 }
 
 // Init 初始化
 func init() {
-	client, err := gorm.Open("postgres", viper.GetString("db.uri"))
+	uri := viper.GetString("db.uri")
+	client, err := gorm.Open("postgres", uri)
 	if err != nil {
 		panic(fmt.Errorf("Fatal open postgres: %s", err))
 	}
@@ -96,10 +90,15 @@ func init() {
 	client.DB().SetMaxOpenConns(poolSize)
 	db = client
 	initModels()
-	utils.GetLogger().Info("connect to postgres success")
+
+	mask := regexp.MustCompile(`postgres://(\S+):(\S+)\@`)
+	str := mask.ReplaceAllString(uri, "postgres://***:***@")
+	util.GetLogger().Info("connect to postgres success",
+		zap.String("uri", str),
+	)
 }
 
-// GetClient 获取db client
+// GetClient get db client
 func GetClient() *gorm.DB {
 	return db
 }
@@ -131,7 +130,7 @@ func enhanceWhere(client *gorm.DB, key, value string) *gorm.DB {
 	if key == "" || value == "" {
 		return client
 	}
-	if value[0] == LikePrefix {
+	if value[0] == likePrefix {
 		like := key + " LIKE ?"
 		value = "%" + value[1:] + "%"
 		client = client.Where(like, value)

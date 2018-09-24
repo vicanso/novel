@@ -1,26 +1,35 @@
 package middleware
 
 import (
+	"strconv"
+
 	"github.com/kataras/iris"
-	"github.com/vicanso/novel/utils"
+	"github.com/vicanso/novel/cs"
+	"github.com/vicanso/novel/util"
 	"go.uber.org/zap"
 )
 
 // NewRespond 新建响应处理
 func NewRespond() iris.Handler {
-	logger := utils.GetLogger()
+	logger := util.GetLogger()
 	return func(ctx iris.Context) {
 		ctx.Next()
-		body := utils.GetBody(ctx)
+		body := util.GetBody(ctx)
 		if body == nil {
 			return
 		}
 		var err error
+		contentType := ctx.GetContentType()
 		switch body.(type) {
 		case string:
 			_, err = ctx.WriteString(body.(string))
 		case []byte:
-			_, err = ctx.Binary(body.([]byte))
+			if contentType == "" {
+				ctx.ContentType(cs.ContentBinaryHeaderValue)
+			}
+			buf := body.([]byte)
+			util.SetHeader(ctx, cs.HeaderContentLength, strconv.Itoa(len(buf)))
+			_, err = ctx.Write(buf)
 		default:
 			_, err = ctx.JSON(body)
 		}

@@ -1,4 +1,4 @@
-package utils
+package util
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/vicanso/novel/config"
+	"github.com/vicanso/novel/cs"
 	"github.com/vicanso/session"
 
 	"github.com/kataras/iris"
@@ -205,10 +206,25 @@ func TestSetHeader(t *testing.T) {
 	}
 }
 
+func TestRemoveHeader(t *testing.T) {
+	ctx := NewResContext()
+	key := "X-Custom-Header"
+	SetHeader(ctx, key, "a")
+	value := ctx.ResponseWriter().Header()[key]
+	if len(value) != 1 {
+		t.Fatalf("set header fail")
+	}
+	RemoveHeader(ctx, key)
+	value = ctx.ResponseWriter().Header()[key]
+	if len(value) != 0 {
+		t.Fatalf("remove header fail")
+	}
+}
+
 func TestSetNoCache(t *testing.T) {
 	ctx := NewResContext()
 	SetNoCache(ctx)
-	value := ctx.ResponseWriter().Header()[HeaderCacheControl][0]
+	value := ctx.ResponseWriter().Header()[cs.HeaderCacheControl][0]
 	if value != "no-cache, max-age=0" {
 		t.Fatalf("set no cache fail")
 	}
@@ -217,7 +233,7 @@ func TestSetNoCache(t *testing.T) {
 func TestSetNoStore(t *testing.T) {
 	ctx := NewResContext()
 	SetNoStore(ctx)
-	value := ctx.ResponseWriter().Header()[HeaderCacheControl][0]
+	value := ctx.ResponseWriter().Header()[cs.HeaderCacheControl][0]
 	if value != "no-store" {
 		t.Fatalf("set no store fail")
 	}
@@ -229,8 +245,23 @@ func TestSetCache(t *testing.T) {
 		t.Fatalf("set cache with no duration should return error")
 	}
 	SetCache(ctx, "10s")
-	value := ctx.ResponseWriter().Header()[HeaderCacheControl][0]
+	value := ctx.ResponseWriter().Header()[cs.HeaderCacheControl][0]
 	if value != "public, max-age=10" {
 		t.Fatalf("set cache fail")
+	}
+}
+
+func TestSetCacheWithSMaxAge(t *testing.T) {
+	ctx := NewResContext()
+	if err := SetCacheWithSMaxAge(ctx, "abc", "10s"); err == nil {
+		t.Fatalf("set s-maxage cache with no duration should return error")
+	}
+	if err := SetCacheWithSMaxAge(ctx, "1h", "abc"); err == nil {
+		t.Fatalf("set s-maxage cache with no duration should return error")
+	}
+	SetCacheWithSMaxAge(ctx, "1h", "1m")
+	value := ctx.ResponseWriter().Header()[cs.HeaderCacheControl][0]
+	if value != "public, max-age=3600, s-maxage=60" {
+		t.Fatalf("set s-maxage cache fail")
 	}
 }

@@ -4,9 +4,10 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/coredns/coredns/plugin/pkg/log"
+	"go.uber.org/zap"
+
 	"github.com/kataras/iris"
-	"github.com/vicanso/novel/utils"
+	"github.com/vicanso/novel/util"
 )
 
 const (
@@ -17,10 +18,20 @@ const (
 )
 
 var (
+	trackerLogger = util.CreateTrackerLogger()
 	// defaultMaskFields 需要替换为***的字段
 	defaultMaskFields = regexp.MustCompile(`password`)
 	defaultOnTrack    = func(info *TrackerInfo) {
-		log.Info(*info)
+		trackerLogger.Info("",
+			zap.String("tracker", info.Category),
+			zap.String("trackId", info.TrackID),
+			zap.String("account", info.Account),
+			zap.Any("result", info.Result),
+			zap.Any("query", info.Query),
+			zap.Any("params", info.Params),
+			zap.Any("form", info.Form),
+			zap.Any("body", info.Body),
+		)
 	}
 )
 
@@ -51,7 +62,7 @@ type (
 
 // converQuery convert query to json string
 func converQuery(ctx iris.Context, reg *regexp.Regexp) map[string]string {
-	query := utils.GetRequestQuery(ctx)
+	query := util.GetRequestQuery(ctx)
 	m := make(map[string]string)
 	for k, v := range query {
 		if reg != nil && reg.MatchString(k) {
@@ -66,7 +77,7 @@ func converQuery(ctx iris.Context, reg *regexp.Regexp) map[string]string {
 // convertRequestBody convert post body to string
 func convertRequestBody(ctx iris.Context, reg *regexp.Regexp) iris.Map {
 	m := iris.Map{}
-	json.Unmarshal(utils.GetRequestBody(ctx), &m)
+	json.Unmarshal(util.GetRequestBody(ctx), &m)
 	for k := range m {
 		if reg != nil && reg.MatchString(k) {
 			m[k] = "***"
@@ -110,7 +121,7 @@ func NewTracker(category string, conf TrackerConfig) iris.Handler {
 		info.Account = getAccount(ctx)
 		status := ctx.GetStatusCode()
 		if conf.Response {
-			info.Body = utils.GetBody(ctx)
+			info.Body = util.GetBody(ctx)
 		}
 		if status < http.StatusOK || status >= http.StatusBadRequest {
 			info.Result = HandleFail

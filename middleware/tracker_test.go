@@ -11,7 +11,7 @@ import (
 
 	"github.com/kataras/iris"
 	"github.com/vicanso/novel/config"
-	"github.com/vicanso/novel/utils"
+	"github.com/vicanso/novel/util"
 )
 
 func TestNewTracker(t *testing.T) {
@@ -22,7 +22,7 @@ func TestNewTracker(t *testing.T) {
 			Limit: 10 * 1024,
 		})
 		category := "user-login"
-		trackeID := utils.RandomString(8)
+		trackeID := util.RandomString(8)
 		fn := NewTracker(category, TrackerConfig{
 			Query:    true,
 			Params:   true,
@@ -48,12 +48,12 @@ func TestNewTracker(t *testing.T) {
 			Name:  config.GetTrackKey(),
 			Value: trackeID,
 		})
-		ctx := utils.NewContext(w, r)
+		ctx := util.NewContext(w, r)
 		ctx.AddHandler(func(ctx iris.Context) {
 			ctx.Next()
 		}, jsonParser, fn, func(ctx iris.Context) {
 			time.Sleep(time.Millisecond * 100)
-			utils.Res(ctx, iris.Map{
+			util.Res(ctx, iris.Map{
 				"account": "vicanso",
 			})
 		})
@@ -67,7 +67,7 @@ func TestNewTracker(t *testing.T) {
 		done := false
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodPost, "http://aslant.site/users/v1/me?type=1&password=mypwd", nil)
-		ctx := utils.NewContext(w, r)
+		ctx := util.NewContext(w, r)
 		onTrack := func(info *TrackerInfo) {
 			done = true
 			if info.Result != HandleFail {
@@ -79,7 +79,7 @@ func TestNewTracker(t *testing.T) {
 		ctx.AddHandler(func(ctx iris.Context) {
 			ctx.Next()
 		}, fn, func(ctx iris.Context) {
-			utils.ResErr(ctx, errors.New("abcd"))
+			resErr(ctx, errors.New("abcd"))
 		})
 		ctx.Next()
 		if !done {

@@ -1,3 +1,5 @@
+app: novel
+# urlPrefix: /api
 listen: ":8080"
 redis: 127.0.0.1:6379
 track: jt
@@ -12,10 +14,14 @@ session:
     - cuttlefish
     - tree.xie
 locationByIP: http://ip.taobao.com/service/getIpInfo.php
+db:
+  uri: postgres://tree:mypwd@127.0.0.1:5432/novel?connect_timeout=5&sslmode=disable
+  poolSize: 100
+tiny:
+  host: http://lamer
+  upload: /api/files/v1/token
+  token: abcd
 nsq:
   lookup:
     address:
-      - 192.168.31.3:4161
-db:
-  uri: postgres://tree:IDtyvSmWPD@192.168.31.3:5532/novel?connect_timeout=5&sslmode=disable
-  poolSize: 100
+      - lamer:4161

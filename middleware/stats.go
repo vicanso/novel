@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/kataras/iris"
+	"github.com/vicanso/novel/global"
 )
 
 type (
@@ -21,7 +22,7 @@ type (
 		TrackID    string
 		Account    string
 		Method     string
-		Path       string
+		Route      string
 		URI        string
 		StatusCode int
 		Consuming  int
@@ -36,28 +37,33 @@ func NewStats(conf StatsConfig) iris.Handler {
 	return func(ctx iris.Context) {
 		atomic.AddUint32(&connectingCount, 1)
 		startedAt := time.Now().UnixNano()
-		ctx.Next()
-		consuming := int(time.Now().UnixNano()-startedAt) / int(time.Millisecond)
-		route := ctx.GetCurrentRoute()
-		statusCode := ctx.GetStatusCode()
 		req := ctx.Request()
 		uri, _ := url.QueryUnescape(req.RequestURI)
 		if uri == "" {
 			uri = req.RequestURI
 		}
+		ip := ctx.RemoteAddr()
+		trackID := getTrackID(ctx)
+		route := ctx.GetCurrentRoute()
+
+		ctx.Next()
+		consuming := int(time.Now().UnixNano()-startedAt) / int(time.Millisecond)
+		statusCode := ctx.GetStatusCode()
+
 		info := &StatsInfo{
 			URI:        uri,
 			StatusCode: statusCode,
 			Consuming:  consuming,
 			Type:       statusCode / 100,
 			Connecting: connectingCount,
-			IP:         ctx.RemoteAddr(),
-			TrackID:    getTrackID(ctx),
+			IP:         ip,
+			TrackID:    trackID,
 			Account:    getAccount(ctx),
 		}
 		if route != nil {
 			info.Method = route.Method()
-			info.Path = route.Path()
+			info.Route = route.Path()
+			global.AddRouteCount(info.Method, info.Route)
 		}
 		if conf.OnStats != nil {
 			conf.OnStats(info)

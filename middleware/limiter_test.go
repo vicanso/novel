@@ -8,7 +8,7 @@ import (
 	"github.com/kataras/iris"
 
 	"github.com/vicanso/novel/global"
-	"github.com/vicanso/novel/utils"
+	"github.com/vicanso/novel/util"
 )
 
 func TestNewLimiter(t *testing.T) {
@@ -16,7 +16,7 @@ func TestNewLimiter(t *testing.T) {
 		fn := NewLimiter(LimiterConfig{
 			Max: 1,
 		})
-		ctx := utils.NewContext(nil, nil)
+		ctx := util.NewContext(nil, nil)
 		fn(ctx)
 	})
 
@@ -25,12 +25,12 @@ func TestNewLimiter(t *testing.T) {
 		fn := NewLimiter(LimiterConfig{
 			Max: 0,
 		})
-		ctx := utils.NewResContext()
+		ctx := util.NewResContext()
 		fn(ctx)
 		if global.IsApplicationRunning() {
 			t.Fatalf("the application should be paused after over limit")
 		}
-		errData := utils.GetBody(ctx).(iris.Map)
+		errData := util.GetBody(ctx).(iris.Map)
 		if ctx.GetStatusCode() != http.StatusTooManyRequests ||
 			errData["message"].(string) != "too many request" {
 			t.Fatalf("the respons error should be too many request")

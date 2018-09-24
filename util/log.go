@@ -1,4 +1,4 @@
-package utils
+package util
 
 import (
 	"github.com/kataras/iris"
@@ -37,8 +37,8 @@ func GetLogger() *zap.Logger {
 }
 
 // CreateAccessLogger 创建access logger
-func CreateAccessLogger() *zap.SugaredLogger {
-	return defaultLogger.With(zap.String(LogCategory, LogAccess)).Sugar()
+func CreateAccessLogger() *zap.Logger {
+	return defaultLogger.With(zap.String(LogCategory, LogAccess))
 }
 
 // CreateTrackerLogger 创建tracker logger

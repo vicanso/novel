@@ -1,4 +1,4 @@
-package utils
+package util
 
 import (
 	"io"
@@ -28,7 +28,7 @@ const (
 	// ErrCategoryRequset request出错类别
 	ErrCategoryRequset = "request"
 	// ErrCategoryLogic 逻辑相关校验出错
-	ErrCategoryLogic = "user"
+	ErrCategoryLogic = "logic"
 	// ErrCategorySession session出错
 	ErrCategorySession = "session"
 )
@@ -49,17 +49,35 @@ var (
 		StatusCode: http.StatusServiceUnavailable,
 		Message:    "service unavailable",
 	}
+	// ErrQueryShouldBeNil query should be nil
+	ErrQueryShouldBeNil = &HTTPError{
+		StatusCode: http.StatusBadRequest,
+		Category:   ErrCategoryLogic,
+		Message:    "query should be nil",
+	}
+	ErrSubmitTooFrequently = &HTTPError{
+		StatusCode: http.StatusBadRequest,
+		Category:   ErrCategoryLogic,
+		Message:    "submit too frequently",
+	}
 	// ErrNoTrackKey no track key
 	ErrNoTrackKey = &HTTPError{
 		StatusCode: http.StatusBadRequest,
+		Category:   ErrCategoryLogic,
 		Message:    "track key is not found",
+	}
+	// ErrSessionIsNotReady session is not ready
+	ErrSessionIsNotReady = &HTTPError{
+		StatusCode: http.StatusBadRequest,
+		Category:   ErrCategorySession,
+		Message:    "session is not ready",
 	}
 	// ErrLoginedAlready logined already
 	ErrLoginedAlready = &HTTPError{
 		StatusCode: http.StatusBadRequest,
 		Category:   ErrCategoryLogic,
 		Code:       ErrCodeUser,
-		Message:    "account is logined, please logout first",
+		Message:    "user is logined, please logout first",
 	}
 	// ErrNeedLogined login first
 	ErrNeedLogined = &HTTPError{
@@ -67,6 +85,34 @@ var (
 		Category:   ErrCategoryLogic,
 		Code:       ErrCodeUser,
 		Message:    "please login first",
+	}
+	// ErrAccountOrPasswordWrong account or password is wrong
+	ErrAccountOrPasswordWrong = &HTTPError{
+		StatusCode: http.StatusBadRequest,
+		Category:   ErrCategoryLogic,
+		Code:       ErrCodeUser,
+		Message:    "account or password is wrong",
+	}
+	// ErrLoginTokenNil login token can not be nil
+	ErrLoginTokenNil = &HTTPError{
+		StatusCode: http.StatusBadRequest,
+		Category:   ErrCategoryLogic,
+		Code:       ErrCodeUser,
+		Message:    "login token can not be nil",
+	}
+	// ErrUserForbidden forbidden the function
+	ErrUserForbidden = &HTTPError{
+		StatusCode: http.StatusForbidden,
+		Category:   ErrCategoryLogic,
+		Code:       ErrCodeUser,
+		Message:    "this function is forbidden",
+	}
+	// ErrFileNameIsNil file name can not be nil
+	ErrFileNameIsNil = &HTTPError{
+		StatusCode: http.StatusBadRequest,
+		Category:   ErrCategoryLogic,
+		Code:       ErrCodeValidate,
+		Message:    "file name can not be nil",
 	}
 )
 

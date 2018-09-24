@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/vicanso/novel/utils"
+	"github.com/vicanso/novel/util"
 )
 
 func TestGetRedisClient(t *testing.T) {
@@ -14,7 +14,7 @@ func TestGetRedisClient(t *testing.T) {
 	}
 }
 func TestLock(t *testing.T) {
-	key := utils.RandomString(8)
+	key := util.RandomString(8)
 	ttl := time.Second
 	success, err := Lock(key, ttl)
 	if err != nil {
@@ -42,11 +42,65 @@ func TestLock(t *testing.T) {
 	}
 }
 
+func TestLockWithDone(t *testing.T) {
+	t.Run("call done", func(t *testing.T) {
+		key := util.RandomString(8)
+		ttl := time.Second
+		success, done, err := LockWithDone(key, ttl)
+		if err != nil {
+			t.Fatalf("redis lock with done fail, %v", err)
+		}
+		if !success {
+			t.Fatalf("redis lock fail with done, it should success")
+		}
+		success, err = Lock(key, ttl)
+		if err != nil {
+			t.Fatalf("redis lock fail(after lock with done success), %v", err)
+		}
+		// 第二次由锁失败
+		if success {
+			t.Fatalf("redis lock twice fail, it should fail")
+		}
+		err = done()
+		if err != nil {
+			t.Fatalf("done fail, %v", err)
+		}
+		success, _ = Lock(key, ttl)
+		if !success {
+			t.Fatalf("after done it should lock success")
+		}
+	})
+	t.Run("after expired", func(t *testing.T) {
+		key := util.RandomString(8)
+		ttl := time.Second
+		success, _, err := LockWithDone(key, ttl)
+		if err != nil {
+			t.Fatalf("redis lock with done fail, %v", err)
+		}
+		if !success {
+			t.Fatalf("redis lock fail with done, it should success")
+		}
+		success, err = Lock(key, ttl)
+		if err != nil {
+			t.Fatalf("redis lock fail(after lock with done success), %v", err)
+		}
+		// 第二次由锁失败
+		if success {
+			t.Fatalf("redis lock twice fail, it should fail")
+		}
+		time.Sleep(2 * ttl)
+		success, _ = Lock(key, ttl)
+		if !success {
+			t.Fatalf("after expired it should lock success")
+		}
+	})
+}
+
 func TestRedisGetSet(t *testing.T) {
 	m := map[string]string{
 		"a": "1",
 	}
-	key := utils.RandomString(8)
+	key := util.RandomString(8)
 	t.Run("set success", func(t *testing.T) {
 
 		ok, err := RedisSet(key, &m, time.Second)

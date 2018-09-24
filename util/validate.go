@@ -1,8 +1,8 @@
-package utils
+package util
 
 import (
-	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/asaskevich/govalidator"
 )
@@ -17,17 +17,25 @@ func init() {
 	AddRegexValidate("xIntRange", "^xIntRange\\((\\d+)\\|(\\d+)\\)$", func(value string, params ...string) bool {
 		return govalidator.InRangeInt(value, params[0], params[1])
 	})
+
+	AddRegexValidate("xIntIn", `^xIntIn\((.*)\)$`, func(value string, params ...string) bool {
+		if len(params) == 1 {
+			rawParams := params[0]
+			parsedParams := strings.Split(rawParams, "|")
+			return govalidator.IsIn(value, parsedParams...)
+		}
+		return false
+	})
+
 }
 
 // Validate 校验数据
 func Validate(s interface{}, data interface{}) (err error) {
-	// TODO 了解自定义的校验方式
 	if data != nil {
 		switch data.(type) {
 		case []byte:
 			err = json.Unmarshal(data.([]byte), s)
 			if err != nil {
-				fmt.Println(err)
 				err = NewJSONParseError(err)
 				return
 			}

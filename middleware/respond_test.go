@@ -7,14 +7,14 @@ import (
 	"testing"
 
 	"github.com/kataras/iris"
-	"github.com/vicanso/novel/utils"
+	"github.com/vicanso/novel/util"
 )
 
 func TestNewRespond(t *testing.T) {
 	fn := NewRespond()
 	t.Run("response no body", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		ctx := utils.NewContext(w, nil)
+		ctx := util.NewContext(w, nil)
 		fn(ctx)
 		if w.Code != http.StatusOK || len(w.Body.Bytes()) != 0 {
 			t.Fatalf("response no body fail")
@@ -24,8 +24,8 @@ func TestNewRespond(t *testing.T) {
 	t.Run("response string", func(t *testing.T) {
 		text := "abcd"
 		w := httptest.NewRecorder()
-		ctx := utils.NewContext(w, nil)
-		utils.Res(ctx, text)
+		ctx := util.NewContext(w, nil)
+		util.Res(ctx, text)
 		fn(ctx)
 		if w.Code != http.StatusOK || text != string(w.Body.Bytes()) {
 			t.Fatalf("response string fail")
@@ -35,12 +35,14 @@ func TestNewRespond(t *testing.T) {
 	t.Run("response bytes", func(t *testing.T) {
 		buf := []byte("abcd")
 		w := httptest.NewRecorder()
-		ctx := utils.NewContext(w, nil)
-		utils.Res(ctx, buf)
+		ctx := util.NewContext(w, nil)
+		util.Res(ctx, buf)
 		fn(ctx)
+		header := w.HeaderMap
 		if w.Code != http.StatusOK ||
 			!bytes.Equal(buf, w.Body.Bytes()) ||
-			w.Header()["Content-Type"][0] != "application/octet-stream" {
+			header["Content-Type"][0] != "application/octet-stream" ||
+			header["Content-Length"][0] != "4" {
 			t.Fatalf("response bytes fail")
 		}
 	})
@@ -53,8 +55,8 @@ func TestNewRespond(t *testing.T) {
 		}
 		w := httptest.NewRecorder()
 		buf := []byte(`{"account":"vicanso","age":18,"vip":true}`)
-		ctx := utils.NewContext(w, nil)
-		utils.Res(ctx, m)
+		ctx := util.NewContext(w, nil)
+		util.Res(ctx, m)
 		fn(ctx)
 		if w.Code != http.StatusOK ||
 			!bytes.Equal(buf, w.Body.Bytes()) ||
@@ -67,7 +69,7 @@ func TestNewRespond(t *testing.T) {
 		category := "custom-category"
 		message := "error-message"
 		code := "custom-code"
-		he := &utils.HTTPError{
+		he := &util.HTTPError{
 			StatusCode: http.StatusBadRequest,
 			Category:   category,
 			Message:    message,
@@ -78,10 +80,10 @@ func TestNewRespond(t *testing.T) {
 			},
 		}
 		w := httptest.NewRecorder()
-		ctx := utils.NewContext(w, nil)
-		utils.ResErr(ctx, he)
+		ctx := util.NewContext(w, nil)
+		resErr(ctx, he)
 		fn(ctx)
-		e := &utils.HTTPError{}
+		e := &util.HTTPError{}
 		err := json.Unmarshal(w.Body.Bytes(), e)
 		if err != nil {
 			t.Fatalf("response error fail, %v", err)

@@ -1,13 +1,12 @@
 package middleware
 
 import (
-	"fmt"
 	"sync/atomic"
 	"time"
 
 	"github.com/kataras/iris"
 	"github.com/vicanso/novel/global"
-	"github.com/vicanso/novel/utils"
+	"github.com/vicanso/novel/util"
 )
 
 type (
@@ -24,7 +23,8 @@ func resetApplicationStatus(d time.Duration) {
 		select {
 		case <-ticker.C:
 			// TODO 是否需要记录相关resume记录
-			fmt.Println("resume")
+			logger := util.GetLogger()
+			logger.Info("application resume")
 			global.StartApplication()
 		}
 	}()
@@ -39,7 +39,7 @@ func NewLimiter(conf LimiterConfig) iris.Handler {
 		}()
 		v := atomic.AddUint32(&count, 1)
 		if v > conf.Max {
-			utils.ResErr(ctx, utils.ErrTooManyRequest)
+			resErr(ctx, util.ErrTooManyRequest)
 			// 如果多并发，还是会导致多个reset，影响不大，忽略
 			if global.IsApplicationRunning() {
 				global.PauseApplication()

@@ -9,7 +9,7 @@ import (
 	"github.com/kataras/iris"
 	"github.com/vicanso/novel/config"
 	"github.com/vicanso/novel/service"
-	"github.com/vicanso/novel/utils"
+	"github.com/vicanso/novel/util"
 )
 
 func TestNewSession(t *testing.T) {
@@ -50,11 +50,11 @@ func TestNewSession(t *testing.T) {
 			Name:  "sess.sig",
 			Value: "rIQ8cMXGRLC22aZeQoU0nZb3BGQ",
 		})
-		ctx := utils.NewContext(w, r)
+		ctx := util.NewContext(w, r)
 		ctx.AddHandler(func(ctx iris.Context) {
 			ctx.Next()
 		}, fn, func(ctx iris.Context) {
-			sess := utils.GetSession(ctx)
+			sess := util.GetSession(ctx)
 			if sess.GetInt("a") != 1 || sess.GetString("b") != "c" {
 				t.Fatalf("get session data fail")
 			}
@@ -84,7 +84,7 @@ func TestNewSession(t *testing.T) {
 			Name:  "sess.sig",
 			Value: "rIQ8cMXGRLC22aZeQoU0nZb3BGQ",
 		})
-		ctx := utils.NewContext(w, r)
+		ctx := util.NewContext(w, r)
 		ctx.AddHandler(func(ctx iris.Context) {
 			ctx.Next()
 		}, fn)
@@ -92,8 +92,8 @@ func TestNewSession(t *testing.T) {
 		if ctx.GetStatusCode() != http.StatusInternalServerError {
 			t.Fatalf("fetch fail should be 500")
 		}
-		errData := utils.GetBody(ctx).(iris.Map)
-		if errData["category"].(string) != utils.ErrCategorySession {
+		errData := util.GetBody(ctx).(iris.Map)
+		if errData["category"].(string) != util.ErrCategorySession {
 			t.Fatalf("session error category is wrong")
 		}
 	})
@@ -120,19 +120,20 @@ func TestNewSession(t *testing.T) {
 			Name:  "sess.sig",
 			Value: "rIQ8cMXGRLC22aZeQoU0nZb3BGQ",
 		})
-		ctx := utils.NewContext(w, r)
+		ctx := util.NewContext(w, r)
 		ctx.AddHandler(func(ctx iris.Context) {
 			ctx.Next()
 		}, fn, func(ctx iris.Context) {
-			sess := utils.GetSession(ctx)
-			sess.Set("fn", func() {})
+			sess := util.GetSession(ctx)
+			sess.Set("a", 1)
+			client.Close()
 		})
 		ctx.Next()
 		if ctx.GetStatusCode() != http.StatusInternalServerError {
-			t.Fatalf("commit fail should be 500 but %d, %v", ctx.GetStatusCode(), utils.GetBody(ctx))
+			t.Fatalf("commit fail should be 500 but %d, %v", ctx.GetStatusCode(), util.GetBody(ctx))
 		}
-		errData := utils.GetBody(ctx).(iris.Map)
-		if errData["category"].(string) != utils.ErrCategorySession {
+		errData := util.GetBody(ctx).(iris.Map)
+		if errData["category"].(string) != util.ErrCategorySession {
 			t.Fatalf("session error category is wrong")
 		}
 	})

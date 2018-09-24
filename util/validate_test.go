@@ -1,4 +1,4 @@
-package utils
+package util
 
 import (
 	"testing"
@@ -10,9 +10,25 @@ type (
 	customValidate struct {
 		Age int `json:"age,omitempty" valid:"xMyValidate(0|10)"`
 	}
+	validateStruct struct {
+		Age  int `json:"age,omitempty" valid:"xIntRange(0|100)"`
+		Type int `json:"type,omitempty" valid:"xIntIn(1|5|10)"`
+	}
 )
 
 func TestValidate(t *testing.T) {
+	t.Run("default custom valid", func(t *testing.T) {
+		buf := []byte(`{
+			"age": 10,
+			"type": 1
+		}`)
+		s := &validateStruct{}
+		err := Validate(s, buf)
+		if err != nil {
+			t.Fatalf("default custom valid fail, %v", err)
+		}
+	})
+
 	t.Run("validate fail", func(t *testing.T) {
 		p := &params{}
 		buf := []byte(`{"account":"abd"}`)

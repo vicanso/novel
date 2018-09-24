@@ -1,13 +1,12 @@
 package router
 
 import (
-	"fmt"
 	"net/http"
 	"testing"
 
 	"github.com/kataras/iris"
 	"github.com/vicanso/novel/global"
-	"github.com/vicanso/novel/utils"
+	"github.com/vicanso/novel/util"
 )
 
 func TestPing(t *testing.T) {
@@ -16,15 +15,14 @@ func TestPing(t *testing.T) {
 		t.Fatalf("should add ping route for health check")
 	}
 	global.PauseApplication()
-	ctx := utils.NewResContext()
+	ctx := util.NewResContext()
 	r.Handlers[0](ctx)
 	if ctx.GetStatusCode() != http.StatusServiceUnavailable {
 		t.Fatalf("should return service unavailable")
 	}
 	global.StartApplication()
-	ctx = utils.NewResContext()
+	ctx = util.NewResContext()
 	r.Handlers[0](ctx)
-	fmt.Println(ctx.GetStatusCode())
 	if ctx.GetStatusCode() != http.StatusOK {
 		t.Fatalf("should be ok after application running")
 	}

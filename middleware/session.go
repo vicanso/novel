@@ -4,12 +4,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/vicanso/novel/utils"
+	"github.com/vicanso/novel/util"
 
 	"github.com/go-redis/redis"
 	"github.com/kataras/iris"
 	"github.com/vicanso/session"
 )
+
+const defaultMemoryStoreSize = 1024
 
 type (
 	// SessionConfig session's config
@@ -24,7 +26,12 @@ type (
 
 // NewSession 创建新的session中间件
 func NewSession(client *redis.Client, conf SessionConfig) iris.Handler {
-	store := session.NewRedisStore(client, nil)
+	var store session.Store
+	if client != nil {
+		store = session.NewRedisStore(client, nil)
+	} else {
+		store, _ = session.NewMemoryStore(defaultMemoryStoreSize)
+	}
 	opts := &session.Options{
 		Store:        store,
 		Key:          conf.Cookie,
@@ -34,28 +41,32 @@ func NewSession(client *redis.Client, conf SessionConfig) iris.Handler {
 		CookiePath:   conf.CookiePath,
 	}
 	return func(ctx iris.Context) {
+		if util.GetSession(ctx) != nil {
+			ctx.Next()
+			return
+		}
 		res := ctx.ResponseWriter()
 		req := ctx.Request()
 		sess := session.New(req, res, opts)
 		_, err := sess.Fetch()
 		if err != nil {
-			utils.ResErr(ctx, &utils.HTTPError{
+			resErr(ctx, &util.HTTPError{
 				StatusCode: http.StatusInternalServerError,
-				Category:   utils.ErrCategorySession,
+				Category:   util.ErrCategorySession,
 				Message:    err.Error(),
-				Code:       utils.ErrCodeSessionFetch,
+				Code:       util.ErrCodeSessionFetch,
 			})
 			return
 		}
-		utils.SetSession(ctx, sess)
+		util.SetSession(ctx, sess)
 		ctx.Next()
 		err = sess.Commit()
 		if err != nil {
-			utils.ResErr(ctx, &utils.HTTPError{
+			resErr(ctx, &util.HTTPError{
 				StatusCode: http.StatusInternalServerError,
-				Category:   utils.ErrCategorySession,
+				Category:   util.ErrCategorySession,
 				Message:    err.Error(),
-				Code:       utils.ErrCodeSessionCommit,
+				Code:       util.ErrCodeSessionCommit,
 			})
 			return
 		}

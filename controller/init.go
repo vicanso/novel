@@ -2,23 +2,29 @@ package controller
 
 import (
 	"github.com/vicanso/novel/middleware"
-	"github.com/vicanso/novel/utils"
+	"github.com/vicanso/novel/util"
 )
 
 var (
-	res             = utils.Res
-	resNoContent    = utils.ResNoContent
-	resCreated      = utils.ResCreated
-	resJPEG         = utils.ResJPEG
-	resPNG          = utils.ResPNG
-	resErr          = utils.ResErr
-	setCache        = utils.SetCache
-	setNoCache      = utils.SetNoCache
-	setNoStore      = utils.SetNoStore
-	validate        = utils.Validate
-	getRequestBody  = utils.GetRequestBody
-	getRequestQuery = utils.GetRequestQuery
+	res             = util.Res
+	resNoContent    = util.ResNoContent
+	resCreated      = util.ResCreated
+	resJPEG         = util.ResJPEG
+	resPNG          = util.ResPNG
+	resErr          = util.ResErr
+	setCache        = util.SetCache
+	setNoCache      = util.SetNoCache
+	setNoStore      = util.SetNoStore
+	validate        = util.Validate
+	getSession      = util.GetSession
+	getRequestBody  = util.GetRequestBody
+	getRequestQuery = util.GetRequestQuery
+	getUTCNow       = util.GetUTCNow
+	getNow          = util.GetNow
 
 	newDefaultTracker = middleware.NewDefaultTracker
 	newTracker        = middleware.NewTracker
+
+	getLogger     = util.GetLogger
+	getUserLogger = util.CreateUserLogger
 )

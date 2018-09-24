@@ -16,11 +16,13 @@ var viperInitTest = os.Getenv("VIPER_INIT_TEST")
 
 // 初始化配置
 func viperInit(path string) error {
+	configType := "yml"
+	defaultPath := "."
 	v := viper.New()
 	v.SetConfigName("default")
-	v.AddConfigPath(".")
+	v.AddConfigPath(defaultPath)
 	v.AddConfigPath(path)
-	v.SetConfigType("yml")
+	v.SetConfigType(configType)
 	err := v.ReadInConfig()
 	if err != nil {
 		return err
@@ -31,9 +33,9 @@ func viperInit(path string) error {
 	}
 	if env != "" {
 		viper.SetConfigName(env)
-		viper.AddConfigPath(".")
+		viper.AddConfigPath(defaultPath)
 		viper.AddConfigPath(path)
-		viper.SetConfigType("yml")
+		viper.SetConfigType(configType)
 		err := viper.ReadInConfig()
 		if err != nil {
 			return err
@@ -45,6 +47,8 @@ func viperInit(path string) error {
 func setDefaultForTest() {
 	viper.Set("locationByIP", "http://ip.taobao.com/service/getIpInfo.php")
 	viper.Set("redis", "127.0.0.1:6379")
+	viper.Set("db.uri", "postgres://tree:mypwd@127.0.0.1:5432/novel?connect_timeout=5&sslmode=disable")
+	viper.Set("app", "novel")
 }
 
 func init() {
@@ -54,7 +58,7 @@ func init() {
 	}
 	if configPath == "" {
 		runPath, _ := filepath.Abs(filepath.Dir(os.Args[0]))
-		configPath = runPath + "/asset"
+		configPath = runPath + "/configs"
 	}
 	err := viperInit(configPath)
 	if err != nil {

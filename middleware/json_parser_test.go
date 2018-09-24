@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/vicanso/novel/utils"
+	"github.com/vicanso/novel/util"
 )
 
 func TestNewJSONParser(t *testing.T) {
@@ -21,20 +21,20 @@ func TestNewJSONParser(t *testing.T) {
 		r := httptest.NewRequest(http.MethodPost, "http://aslant.site/", bytes.NewReader(body))
 		r.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
-		ctx := utils.NewContext(w, r)
+		ctx := util.NewContext(w, r)
 		fn(ctx)
-		data := utils.GetRequestBody(ctx)
+		data := util.GetRequestBody(ctx)
 		if !bytes.Equal(body, data) {
 			t.Fatalf("json parser fail")
 		}
 	})
 
 	t.Run("read post body fail", func(t *testing.T) {
-		reader := utils.NewErrorReadCloser(errors.New("read error"))
+		reader := util.NewErrorReadCloser(errors.New("read error"))
 		r := httptest.NewRequest(http.MethodPost, "http://aslant.site/", reader)
 		r.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
-		ctx := utils.NewContext(w, r)
+		ctx := util.NewContext(w, r)
 		fn(ctx)
 		if ctx.GetStatusCode() != http.StatusInternalServerError {
 			t.Fatalf("read error's status code should be 500")
@@ -45,9 +45,9 @@ func TestNewJSONParser(t *testing.T) {
 		r := httptest.NewRequest(http.MethodPost, "http://aslant.site/", nil)
 		r.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
-		ctx := utils.NewContext(w, r)
+		ctx := util.NewContext(w, r)
 		fn(ctx)
-		data := utils.GetRequestBody(ctx)
+		data := util.GetRequestBody(ctx)
 		if len(data) != 0 {
 			t.Fatalf("the request body should be empty")
 		}
@@ -62,7 +62,7 @@ func TestNewJSONParser(t *testing.T) {
 		r := httptest.NewRequest(http.MethodPost, "http://aslant.site/", bytes.NewReader(body))
 		r.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
-		ctx := utils.NewContext(w, r)
+		ctx := util.NewContext(w, r)
 		limitFn(ctx)
 		if ctx.GetStatusCode() != http.StatusRequestEntityTooLarge {
 			t.Fatalf("request post data should be too large")
@@ -73,18 +73,18 @@ func TestNewJSONParser(t *testing.T) {
 		body := []byte(`{"account": "vicanso"}`)
 		r := httptest.NewRequest(http.MethodPost, "http://aslant.site/", bytes.NewReader(body))
 		w := httptest.NewRecorder()
-		ctx := utils.NewContext(w, r)
+		ctx := util.NewContext(w, r)
 		fn(ctx)
-		if utils.GetRequestBody(ctx) != nil {
+		if util.GetRequestBody(ctx) != nil {
 			t.Fatalf("post data not json, json parser should be passed")
 		}
 	})
 
 	t.Run("get request should pass", func(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "http://aslant.site/users/v1/me", nil)
-		ctx := utils.NewContext(nil, r)
+		ctx := util.NewContext(nil, r)
 		fn(ctx)
-		if utils.GetRequestBody(ctx) != nil {
+		if util.GetRequestBody(ctx) != nil {
 			t.Fatalf("json parser should be passed")
 		}
 	})

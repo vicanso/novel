@@ -2,15 +2,15 @@ package middleware
 
 import (
 	"github.com/kataras/iris"
-	"github.com/vicanso/novel/utils"
+	"github.com/vicanso/novel/util"
 )
 
-// NewEntry 创建新的entry
+// NewEntry create a new entry
 func NewEntry() iris.Handler {
 	return func(ctx iris.Context) {
-		utils.SetNoCache(ctx)
-		logger := utils.CreateUserLogger(ctx)
-		utils.SetContextLogger(ctx, logger)
+		util.SetNoCache(ctx)
+		logger := util.CreateUserLogger(ctx)
+		util.SetContextLogger(ctx, logger)
 		ctx.Next()
 	}
 }

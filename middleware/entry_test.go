@@ -5,16 +5,16 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/vicanso/novel/utils"
+	"github.com/vicanso/novel/util"
 )
 
 func TestNewEntry(t *testing.T) {
 	r := httptest.NewRequest(http.MethodGet, "http://aslant.site/", nil)
 	w := httptest.NewRecorder()
 	fn := NewEntry()
-	ctx := utils.NewContext(w, r)
+	ctx := util.NewContext(w, r)
 	fn(ctx)
-	logger := utils.GetLogger()
+	logger := util.GetLogger()
 	if logger == nil {
 		t.Fatalf("entry middle should create a user logger")
 	}

@@ -10,19 +10,27 @@ import (
 var (
 	redisClient   *redis.Client
 	redisOkResult = "OK"
-)
-
-type (
-	userInfoResponse struct {
-		Anonymous bool   `json:"anonymous"`
-		Account   string `json:"account,omitempty"`
-		Date      string `json:"date"`
+	redisNoop     = func() error {
+		return nil
 	}
 )
 
+type (
+	// RedisDoneFn redis done function
+	RedisDoneFn func() error
+)
+
 func init() {
-	redisClient = redis.NewClient(&redis.Options{
-		Addr: config.GetString("redis"),
+	uri := config.GetString("redis")
+	if uri != "" {
+		redisClient = newRedisClient(uri)
+	}
+}
+
+// newRedisClient new client
+func newRedisClient(addr string) *redis.Client {
+	return redis.NewClient(&redis.Options{
+		Addr: addr,
 	})
 }
 
@@ -31,9 +39,23 @@ func GetRedisClient() *redis.Client {
 	return redisClient
 }
 
-// Lock lock the key fot ttl seconds
+// Lock lock the key for ttl seconds
 func Lock(key string, ttl time.Duration) (bool, error) {
 	return redisClient.SetNX(key, true, ttl).Result()
+}
+
+// LockWithDone lock the key for ttl, and with done function
+func LockWithDone(key string, ttl time.Duration) (bool, RedisDoneFn, error) {
+	success, err := Lock(key, ttl)
+	// 如果lock失败，则返回no op的done function
+	if err != nil || !success {
+		return false, redisNoop, err
+	}
+	done := func() error {
+		_, err := redisClient.Del(key).Result()
+		return err
+	}
+	return true, done, nil
 }
 
 // RedisSet the cache with ttl

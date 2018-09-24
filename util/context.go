@@ -1,6 +1,7 @@
-package utils
+package util
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
@@ -10,7 +11,8 @@ import (
 	"time"
 
 	"github.com/kataras/iris"
-	"github.com/vicanso/forest/config"
+	"github.com/vicanso/novel/config"
+	"github.com/vicanso/novel/cs"
 	"github.com/vicanso/session"
 )
 
@@ -25,12 +27,6 @@ const (
 	RequestQuery = "_requestQuery"
 	// Logger 记录track的logger
 	Logger = "_logger"
-
-	// AccountField session account field
-	AccountField = "account"
-
-	// HeaderCacheControl cache-control header
-	HeaderCacheControl = "Cache-Control"
 )
 
 var (
@@ -125,7 +121,7 @@ func GetAccount(ctx iris.Context) string {
 	if s == nil {
 		return ""
 	}
-	return s.GetString(AccountField)
+	return s.GetString(cs.SessionAccountField)
 }
 
 // GetTrackID get track id
@@ -176,7 +172,7 @@ func GetStack(size int) []string {
 	arr := strings.Split(string(stack), "\n")
 	// goroutine与此函数的stack无需展示，因此index从3开始
 	arr = arr[3:]
-	max := len(arr)
+	max := len(arr) - 1
 	result := []string{}
 	for index := 0; index < max; index += 2 {
 		if index+1 >= max {
@@ -184,8 +180,8 @@ func GetStack(size int) []string {
 		}
 		tmpArr := strings.Split(arr[index], "/")
 		fn := stackReg.ReplaceAllString(tmpArr[len(tmpArr)-1], "")
-		// 如果是utils.ResErr的处理也可以忽略
-		if fn == "utils.ResErr" {
+		// 如果是util.ResErr的处理也可以忽略
+		if fn == "util.ResErr" {
 			continue
 		}
 		str := fn + ": " + strings.Replace(arr[index+1], "\t", "", 1)
@@ -200,14 +196,20 @@ func SetHeader(ctx iris.Context, key, value string) {
 	header.Set(key, value)
 }
 
+// RemoveHeader remove the response header
+func RemoveHeader(ctx iris.Context, key string) {
+	header := ctx.ResponseWriter().Header()
+	delete(header, key)
+}
+
 // SetNoCache 设置无缓存
 func SetNoCache(ctx iris.Context) {
-	SetHeader(ctx, HeaderCacheControl, "no-cache, max-age=0")
+	SetHeader(ctx, cs.HeaderCacheControl, "no-cache, max-age=0")
 }
 
 // SetNoStore 设置不可保存
 func SetNoStore(ctx iris.Context) {
-	SetHeader(ctx, HeaderCacheControl, "no-store")
+	SetHeader(ctx, cs.HeaderCacheControl, "no-store")
 }
 
 // SetCache 设置缓存
@@ -217,7 +219,22 @@ func SetCache(ctx iris.Context, age string) error {
 		return err
 	}
 	cache := "public, max-age=" + strconv.Itoa(int(d.Seconds()))
-	SetHeader(ctx, HeaderCacheControl, cache)
+	SetHeader(ctx, cs.HeaderCacheControl, cache)
+	return nil
+}
+
+// SetCacheWithSMaxAge set the cache with s-maxage
+func SetCacheWithSMaxAge(ctx iris.Context, age, sMaxAge string) error {
+	dMaxAge, err := time.ParseDuration(age)
+	if err != nil {
+		return err
+	}
+	dSMaxAge, err := time.ParseDuration(sMaxAge)
+	if err != nil {
+		return err
+	}
+	cache := fmt.Sprintf("public, max-age=%d, s-maxage=%d", int(dMaxAge.Seconds()), int(dSMaxAge.Seconds()))
+	SetHeader(ctx, cs.HeaderCacheControl, cache)
 	return nil
 }
 
