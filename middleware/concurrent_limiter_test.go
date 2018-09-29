@@ -14,6 +14,7 @@ func TestConcurrentLimiter(t *testing.T) {
 		fn := NewConcurrentLimiter(ConcurrentLimiterConfig{
 			Category: "reset-true",
 			Keys: []string{
+				":ip",
 				"h:X-Token",
 				"q:id",
 				"account",

@@ -17,7 +17,7 @@ import (
 )
 
 func TestUserCtrl(t *testing.T) {
-	ctrl := userCtrl{}
+	ctrl := UserCtrl{}
 	cookies := []string{}
 	account := util.RandomString(10)
 	password := util.Sha1(config.GetString("app") + "123456")
@@ -30,7 +30,7 @@ func TestUserCtrl(t *testing.T) {
 		ctrl.getInfo(ctx)
 
 		cookies = ctx.ResponseWriter().Header()["Set-Cookie"]
-		userInfo := util.GetBody(ctx).(*userInfoRes)
+		userInfo := util.GetBody(ctx).(*UserInfoRes)
 		if !userInfo.Anonymous {
 			t.Fatalf("user info should be anonymous")
 		}
@@ -218,13 +218,13 @@ func TestUserCtrl(t *testing.T) {
 		}
 
 		ctrl.doLogin(ctx)
-		data := util.GetBody(ctx).(*userInfoRes)
+		data := util.GetBody(ctx).(*UserInfoRes)
 		if data.Account != account {
 			t.Fatalf("login fail")
 		}
 
 		ctrl.doLogout(ctx)
-		data = util.GetBody(ctx).(*userInfoRes)
+		data = util.GetBody(ctx).(*UserInfoRes)
 		if !data.Anonymous {
 			t.Fatalf("logout fail")
 		}

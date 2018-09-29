@@ -15,6 +15,7 @@ func TestNewRespond(t *testing.T) {
 	t.Run("response no body", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		ctx := util.NewContext(w, nil)
+		util.SetContextLogger(ctx, util.GetLogger())
 		fn(ctx)
 		if w.Code != http.StatusOK || len(w.Body.Bytes()) != 0 {
 			t.Fatalf("response no body fail")
@@ -25,6 +26,7 @@ func TestNewRespond(t *testing.T) {
 		text := "abcd"
 		w := httptest.NewRecorder()
 		ctx := util.NewContext(w, nil)
+		util.SetContextLogger(ctx, util.GetLogger())
 		util.Res(ctx, text)
 		fn(ctx)
 		if w.Code != http.StatusOK || text != string(w.Body.Bytes()) {
@@ -36,6 +38,7 @@ func TestNewRespond(t *testing.T) {
 		buf := []byte("abcd")
 		w := httptest.NewRecorder()
 		ctx := util.NewContext(w, nil)
+		util.SetContextLogger(ctx, util.GetLogger())
 		util.Res(ctx, buf)
 		fn(ctx)
 		header := w.HeaderMap
@@ -56,6 +59,7 @@ func TestNewRespond(t *testing.T) {
 		w := httptest.NewRecorder()
 		buf := []byte(`{"account":"vicanso","age":18,"vip":true}`)
 		ctx := util.NewContext(w, nil)
+		util.SetContextLogger(ctx, util.GetLogger())
 		util.Res(ctx, m)
 		fn(ctx)
 		if w.Code != http.StatusOK ||
@@ -80,7 +84,9 @@ func TestNewRespond(t *testing.T) {
 			},
 		}
 		w := httptest.NewRecorder()
-		ctx := util.NewContext(w, nil)
+		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/", nil)
+		ctx := util.NewContext(w, r)
+		util.SetContextLogger(ctx, util.GetLogger())
 		resErr(ctx, he)
 		fn(ctx)
 		e := &util.HTTPError{}

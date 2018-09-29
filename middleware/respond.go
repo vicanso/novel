@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"net/http"
 	"strconv"
 
 	"github.com/kataras/iris"
@@ -11,12 +12,19 @@ import (
 
 // NewRespond 新建响应处理
 func NewRespond() iris.Handler {
-	logger := util.GetLogger()
 	return func(ctx iris.Context) {
 		ctx.Next()
+		logger := util.GetContextLogger(ctx)
 		body := util.GetBody(ctx)
 		if body == nil {
 			return
+		}
+		// 对于>=400的错误记录出错数据
+		if ctx.GetStatusCode() >= http.StatusBadRequest {
+			logger.Error("request handle fail",
+				zap.String("uri", ctx.Request().RequestURI),
+				zap.Any("data", body),
+			)
 		}
 		var err error
 		contentType := ctx.GetContentType()

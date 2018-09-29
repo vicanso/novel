@@ -9,4 +9,9 @@ const (
 	ActionLogout = "logout"
 	// ActionUpdateRoles action update roles
 	ActionUpdateRoles = "update-roles"
+
+	// ActionBookBatchAdd book batch add
+	ActionBookBatchAdd = "book-batch-add"
+	// ActionBookUpdateChapters update chapters
+	ActionBookUpdateChapters = "book-update-chapters"
 )

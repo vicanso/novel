@@ -13,7 +13,7 @@ import (
 )
 
 func TestCommonCtrl(t *testing.T) {
-	ctrl := commonCtrl{}
+	ctrl := CommonCtrl{}
 	t.Run("getLocationByIP", func(t *testing.T) {
 		defer gock.Off()
 		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/v1/ip-location?ip=abcd", nil)

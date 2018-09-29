@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
+	"go.uber.org/zap"
 
 	"github.com/vicanso/cookies"
 
@@ -33,9 +34,10 @@ var (
 )
 
 type (
-	userCtrl struct {
-	}
-	userInfoRes struct {
+	// UserCtrl user controller
+	UserCtrl struct{}
+	// UserInfoRes the response of user info
+	UserInfoRes struct {
 		Anonymous bool     `json:"anonymous,omitempty"`
 		Account   string   `json:"account,omitempty"`
 		Date      string   `json:"date,omitempty"`
@@ -45,15 +47,18 @@ type (
 		LoginedAt string   `json:"loginedAt,omitempty"`
 		Roles     []string `json:"roles,omitempty"`
 	}
-	userLoginParams struct {
+	// UserLoginParams the params of user login
+	UserLoginParams struct {
 		Account  string `valid:"ascii,runelength(4|10)"`
 		Password string `valid:"runelength(6|64)"`
 	}
-	userRegisterParams struct {
+	// UserRegisterParams the params of user register
+	UserRegisterParams struct {
 		Account  string `valid:"ascii,runelength(4|10)"`
 		Password string `valid:"runelength(6|64)"`
 	}
-	userUpdateRolesParams struct {
+	// UserUpdateRolesParams the params of user update roles
+	UserUpdateRolesParams struct {
 		Role string `valid:"in(admin)"`
 		Type string `valid:"in(add|remove)"`
 	}
@@ -72,7 +77,7 @@ func init() {
 		// 限制3秒只能登录一次
 		TTL: 3 * time.Second,
 	})
-	ctrl := userCtrl{}
+	ctrl := UserCtrl{}
 	users.Add("GET", "/v1/me/avatar", ctrl.getAvatar)
 	users.Add("GET", "/v1/me", ctrl.getInfo)
 	users.Add("PATCH", "/v1/me", middleware.IsLogined, ctrl.refresh)
@@ -127,13 +132,19 @@ func addUserLoginRecord(account string, ctx iris.Context) {
 		TrackID:   util.GetTrackID(ctx),
 		SessionID: ctx.GetCookie(config.GetSessionCookie()),
 	}
-	ul.Save()
+	err := ul.Save()
+	if err != nil {
+		getContextLogger(ctx).Error("save user login record fail",
+			zap.String("account", ul.Account),
+			zap.Error(err),
+		)
+	}
 }
 
 // 从session中筛选用户信息
-func (c *userCtrl) pickUserInfo(ctx iris.Context) (userInfo *userInfoRes) {
+func (c *UserCtrl) pickUserInfo(ctx iris.Context) (userInfo *UserInfoRes) {
 	sess := getSession(ctx)
-	userInfo = &userInfoRes{
+	userInfo = &UserInfoRes{
 		Anonymous: true,
 		Date:      getNow(),
 		IP:        ctx.RemoteAddr(),
@@ -154,7 +165,7 @@ func (c *userCtrl) pickUserInfo(ctx iris.Context) (userInfo *userInfoRes) {
 }
 
 // getUserInfo 获取用户信息
-func (c *userCtrl) getInfo(ctx iris.Context) {
+func (c *UserCtrl) getInfo(ctx iris.Context) {
 	userInfo := c.pickUserInfo(ctx)
 	key := config.GetTrackKey()
 	ck := cookies.New(ctx.Request(), ctx.ResponseWriter(), cookieOptions)
@@ -166,15 +177,15 @@ func (c *userCtrl) getInfo(ctx iris.Context) {
 }
 
 // getAvatar 获取用户头像
-func (c *userCtrl) getAvatar(ctx iris.Context) {
+func (c *UserCtrl) getAvatar(ctx iris.Context) {
 	// 图像数据手工生成，不会出错，忽略出错处理
 	buf, _ := base64.StdEncoding.DecodeString(avatar)
 	resJPEG(ctx, buf)
 }
 
 // register 注册
-func (c *userCtrl) register(ctx iris.Context) {
-	params := &userRegisterParams{}
+func (c *UserCtrl) register(ctx iris.Context) {
+	params := &UserLoginParams{}
 	err := validate(params, getRequestBody(ctx))
 	if err != nil {
 		resErr(ctx, err)
@@ -193,7 +204,7 @@ func (c *userCtrl) register(ctx iris.Context) {
 }
 
 // getLoginToken 获取登录加密使用的token
-func (c *userCtrl) getLoginToken(ctx iris.Context) {
+func (c *UserCtrl) getLoginToken(ctx iris.Context) {
 	key := config.GetTrackKey()
 	ck := cookies.New(ctx.Request(), ctx.ResponseWriter(), cookieOptions)
 	// track cookie用于跟踪用户，必须保证是正确的才可以登录
@@ -211,9 +222,9 @@ func (c *userCtrl) getLoginToken(ctx iris.Context) {
 }
 
 // doLogin 登录
-func (c *userCtrl) doLogin(ctx iris.Context) {
+func (c *UserCtrl) doLogin(ctx iris.Context) {
 	body := getRequestBody(ctx)
-	params := &userLoginParams{}
+	params := &UserLoginParams{}
 	err := validate(params, body)
 	if err != nil {
 		resErr(ctx, err)
@@ -262,7 +273,7 @@ func (c *userCtrl) doLogin(ctx iris.Context) {
 }
 
 // doLogout 退出登录
-func (c *userCtrl) doLogout(ctx iris.Context) {
+func (c *UserCtrl) doLogout(ctx iris.Context) {
 	// 删除cookie会导致所有cookies清除(仅是此次ctx)
 	ctx.RemoveCookie(config.GetSessionCookie())
 	util.SetSession(ctx, nil)
@@ -271,16 +282,16 @@ func (c *userCtrl) doLogout(ctx iris.Context) {
 }
 
 // refresh 刷新
-func (c *userCtrl) refresh(ctx iris.Context) {
+func (c *UserCtrl) refresh(ctx iris.Context) {
 	sess := getSession(ctx)
 	sess.Refresh()
 	resNoContent(ctx)
 }
 
 // updateRoles update user's roles
-func (c *userCtrl) updateRoles(ctx iris.Context) {
+func (c *UserCtrl) updateRoles(ctx iris.Context) {
 	body := util.GetRequestBody(ctx)
-	params := &userUpdateRolesParams{}
+	params := &UserUpdateRolesParams{}
 	err := validate(params, body)
 	if err != nil {
 		resErr(ctx, err)

@@ -25,6 +25,7 @@ var (
 	newDefaultTracker = middleware.NewDefaultTracker
 	newTracker        = middleware.NewTracker
 
-	getLogger     = util.GetLogger
-	getUserLogger = util.CreateUserLogger
+	getLogger        = util.GetLogger
+	getUserLogger    = util.CreateUserLogger
+	getContextLogger = util.GetContextLogger
 )

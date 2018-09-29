@@ -521,14 +521,14 @@
 
 [[projects]]
   branch = "go"
-  digest = "1:c79a01987fa0b42a8d3031f69a3e02fec5d2be0fdfb2214bf4660c58b98208ff"
+  digest = "1:e92d5828f60464951c1b260b029a62654d1493ec2ec2485cdd198790dc1e8c94"
   name = "github.com/vicanso/novel-spider"
   packages = [
     "mq",
     "novel",
   ]
   pruneopts = "UT"
-  revision = "dd50948e2bf9e484c0f86d3ce4df69f1ae7c399d"
+  revision = "69ee425ead444f0248b469f48297c7ecffb703de"
 
 [[projects]]
   digest = "1:6fe30b099b0d34f0227ddc39d9eadf2bb03a448694454e56647c8589eb7c5bda"
@@ -582,7 +582,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:be50ed3ab48f47e980423cbe13eade99ab47982fc428a3910427de8b326d047e"
+  digest = "1:d76f0f2033c834027cfb8b4c58756dc8ea9d0f768f851eb813e20cde05b0f0af"
   name = "golang.org/x/net"
   packages = [
     "html",
@@ -593,15 +593,15 @@
     "publicsuffix",
   ]
   pruneopts = "UT"
-  revision = "2f5d2388922f370f4355f327fcf4cfe9f5583908"
+  revision = "f04abc6bdfa7a0171a8a0c9fd2ada9391044d056"
 
 [[projects]]
   branch = "master"
-  digest = "1:6c54cefa33de85c47075aae30f1d1a333967c405272010bb76aa943467e4cbae"
+  digest = "1:94952e2a064741ba4fb43b58794268a6798461f533c0c884f3c771a281357ee4"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "d47a0f3392421c5624713c9a19fe781f651f8a50"
+  revision = "b09afc3d579e346c4a7e4705953acaf6f9e551bd"
 
 [[projects]]
   digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"

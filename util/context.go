@@ -4,16 +4,14 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"regexp"
-	"runtime"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/kataras/iris"
 	"github.com/vicanso/novel/config"
 	"github.com/vicanso/novel/cs"
 	"github.com/vicanso/session"
+	"go.uber.org/zap"
 )
 
 const (
@@ -29,13 +27,19 @@ const (
 	Logger = "_logger"
 )
 
-var (
-	stackReg = regexp.MustCompile(`\((0x[\s\S]+)\)`)
-)
-
 // Res 响应数据
 func Res(ctx iris.Context, data interface{}) {
-	ctx.Values().Set(Body, data)
+	m := ctx.Values()
+	if m.Get(Body) != nil {
+		// TODO 此处应该增加告警
+		logger := GetContextLogger(ctx)
+		if logger != nil {
+			logger.Error("duplicate set body",
+				zap.String("uri", ctx.Request().RequestURI),
+			)
+		}
+	}
+	m.Set(Body, data)
 }
 
 // ResNoContent 返回无内容(204)
@@ -88,7 +92,7 @@ func ResErr(ctx iris.Context, err error) {
 		}
 	}
 	if !IsProduction() {
-		data["stack"] = GetStack(2 << 10)
+		data["stack"] = GetStack(2, 7)
 	}
 	SetNoCache(ctx)
 	ctx.StatusCode(status)
@@ -163,31 +167,6 @@ func GetRequestQuery(ctx iris.Context) map[string]string {
 	}
 	ctx.Values().Set(RequestQuery, m)
 	return m
-}
-
-// GetStack 获取调用信息
-func GetStack(size int) []string {
-	stack := make([]byte, size)
-	runtime.Stack(stack, true)
-	arr := strings.Split(string(stack), "\n")
-	// goroutine与此函数的stack无需展示，因此index从3开始
-	arr = arr[3:]
-	max := len(arr) - 1
-	result := []string{}
-	for index := 0; index < max; index += 2 {
-		if index+1 >= max {
-			break
-		}
-		tmpArr := strings.Split(arr[index], "/")
-		fn := stackReg.ReplaceAllString(tmpArr[len(tmpArr)-1], "")
-		// 如果是util.ResErr的处理也可以忽略
-		if fn == "util.ResErr" {
-			continue
-		}
-		str := fn + ": " + strings.Replace(arr[index+1], "\t", "", 1)
-		result = append(result, str)
-	}
-	return result
 }
 
 // SetHeader 设置Header（覆盖非添加）

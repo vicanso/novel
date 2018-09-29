@@ -87,25 +87,24 @@ func uploadCover(url string) (file string, err error) {
 }
 
 func initReceiveBasicInfoEvent(c *mq.MQ) (err error) {
+	logger := getLogger()
 	cb := func(info *novel.BasicInfo) {
 		if info == nil {
 			return
 		}
-		cover, _ := uploadCover(info.Cover)
 		b := model.Book{
 			Name:   info.Name,
 			Author: info.Author,
 			Brief:  info.Brief,
-			Cover:  cover,
 			Category: []string{
 				info.Category,
 			},
 			Source:   info.Source,
 			SourceID: info.SourceID,
 		}
-		err := model.AddBook(&b)
+		err = model.AddBook(&b)
 		if err != nil {
-			getLogger().Error("add book fail",
+			logger.Error("add book fail",
 				zap.String("name", info.Name),
 				zap.String("author", info.Author),
 				zap.Error(err),
@@ -148,10 +147,79 @@ func AddBook(category string, id int) (err error) {
 }
 
 // AddBookChapter add chapter
-func AddBookChapter(category string, id, chapterIndex int) (err error) {
+func AddBookChapter(category string, id, latestChapter int) (err error) {
 	return mqClient.Pub(mq.TopicUpdateChapter, &novel.Source{
-		Category:     category,
-		ID:           id,
-		ChapterIndex: chapterIndex,
+		Category:      category,
+		ID:            id,
+		LatestChapter: latestChapter,
 	})
+}
+
+// UpdateBookChapter update chapter
+func UpdateBookChapter(author, name string, limit int) (err error) {
+	b, err := model.FindOneBook(&model.Book{
+		Name:   name,
+		Author: author,
+	}, &model.QueryOptions{
+		Field: "sourceId,source,id",
+	})
+	if err != nil {
+		return
+	}
+	chapters, err := model.FindBookChapters(&model.Chapter{
+		BookID: b.ID,
+	}, &model.QueryOptions{
+		Field: "index,id",
+		Order: "-id",
+		Limit: limit,
+	})
+	if err != nil {
+		return
+	}
+	start := 0
+
+	if len(chapters) != 0 {
+		for i, j := 0, len(chapters)-1; i < j; i, j = i+1, j-1 {
+			chapters[i], chapters[j] = chapters[j], chapters[i]
+		}
+		for _, chapter := range chapters {
+			if start == 0 {
+				start = chapter.Index
+				continue
+			}
+			// 如果下一章也存在，最新章节修改为下一章
+			if chapter.Index-start == 1 {
+				start = chapter.Index
+			}
+		}
+		// 需要更新的章节为下一章
+		start++
+	}
+	AddBookChapter(b.Source, b.SourceID, start)
+	return
+}
+
+// ListBook list book
+func ListBook(conditions interface{}, opts *model.QueryOptions) (books []*model.Book, err error) {
+	return model.FindBook(conditions, opts)
+}
+
+// ListBookByKeyword list book by keyword
+func ListBookByKeyword(keyword string, opts *model.QueryOptions) (books []*model.Book, err error) {
+	return model.FindBookByKeyword(keyword, opts)
+}
+
+// CountBook get the count of book
+func CountBook(conditions interface{}) (count int, err error) {
+	return model.CountBook(conditions)
+}
+
+// CountBookChapter get the count of book's chapter
+func CountBookChapter(bookID uint) (count int, err error) {
+	return model.CountBookChapter(bookID)
+}
+
+// ListBookChapters list the chapters
+func ListBookChapters(conditions interface{}, opts *model.QueryOptions) (chapters []*model.Chapter, err error) {
+	return model.FindBookChapters(conditions, opts)
 }

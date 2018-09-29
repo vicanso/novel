@@ -12,19 +12,19 @@ type (
 	LocationByIPParams struct {
 		IP string `valid:"ipv4"`
 	}
-	// commonCtrl common controller
-	commonCtrl struct {
+	// CommonCtrl common controller
+	CommonCtrl struct {
 	}
 )
 
 func init() {
-	ctrl := commonCtrl{}
+	ctrl := CommonCtrl{}
 	common := router.NewGroup("/common")
 	common.Add("GET", "/v1/ip-location", ctrl.getLocationByIP)
 }
 
 // getLocationByIP get location by ip
-func (c *commonCtrl) getLocationByIP(ctx iris.Context) {
+func (c *CommonCtrl) getLocationByIP(ctx iris.Context) {
 	query := util.GetRequestQuery(ctx)
 	params := &LocationByIPParams{}
 	err := validate(params, query)
@@ -37,6 +37,6 @@ func (c *commonCtrl) getLocationByIP(ctx iris.Context) {
 		resErr(ctx, err)
 		return
 	}
-	setCache(ctx, "10m")
+	setCache(ctx, "1m")
 	res(ctx, info)
 }

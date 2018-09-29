@@ -22,8 +22,10 @@ type (
 func TestNewRecover(t *testing.T) {
 	t.Run("panic error", func(t *testing.T) {
 		fn := NewRecover()
+		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/", nil)
 		w := httptest.NewRecorder()
-		ctx := util.NewContext(w, nil)
+		ctx := util.NewContext(w, r)
+		util.SetContextLogger(ctx, util.GetLogger())
 		message := "abcd"
 		ctx.AddHandler(func(ctx iris.Context) {
 			ctx.Next()
@@ -47,7 +49,9 @@ func TestNewRecover(t *testing.T) {
 	t.Run("panic nil", func(t *testing.T) {
 		fn := NewRecover()
 		w := httptest.NewRecorder()
-		ctx := util.NewContext(w, nil)
+		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/", nil)
+		ctx := util.NewContext(w, r)
+		util.SetContextLogger(ctx, util.GetLogger())
 		ctx.AddHandler(func(ctx iris.Context) {
 			ctx.Next()
 		}, fn, func(ctx iris.Context) {
@@ -65,7 +69,9 @@ func TestNewRecover(t *testing.T) {
 	t.Run("is stop", func(t *testing.T) {
 		fn := NewRecover()
 		w := httptest.NewRecorder()
-		ctx := util.NewContext(w, nil)
+		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/", nil)
+		ctx := util.NewContext(w, r)
+		util.SetContextLogger(ctx, util.GetLogger())
 		message := "abcd"
 		ctx.AddHandler(func(ctx iris.Context) {
 			ctx.Next()
@@ -85,7 +91,9 @@ func TestNewRecover(t *testing.T) {
 	t.Run("panic not error", func(t *testing.T) {
 		fn := NewRecover()
 		w := httptest.NewRecorder()
-		ctx := util.NewContext(w, nil)
+		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/", nil)
+		ctx := util.NewContext(w, r)
+		util.SetContextLogger(ctx, util.GetLogger())
 		ctx.AddHandler(func(ctx iris.Context) {
 			ctx.Next()
 		}, fn, func(ctx iris.Context) {

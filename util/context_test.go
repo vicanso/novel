@@ -188,13 +188,6 @@ func TestGetRequestQuery(t *testing.T) {
 	}
 }
 
-func TestGetStack(t *testing.T) {
-	stack := GetStack(1024)
-	if len(stack) == 0 {
-		t.Fatalf("get stack fail")
-	}
-}
-
 func TestSetHeader(t *testing.T) {
 	ctx := NewResContext()
 	key := "X-Custom-Header"

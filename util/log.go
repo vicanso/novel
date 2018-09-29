@@ -1,20 +1,35 @@
 package util
 
 import (
+	"regexp"
+	"runtime"
+	"strings"
+
 	"github.com/kataras/iris"
 	"go.uber.org/zap"
 )
 
 var (
 	defaultLogger *zap.Logger
+	stackReg      = regexp.MustCompile(`\((0x[\s\S]+)\)`)
+	appPath       = ""
 )
 
 func init() {
-	l, err := zap.NewProduction()
+	c := zap.NewProductionConfig()
+	if IsDevelopment() {
+		c = zap.NewDevelopmentConfig()
+	}
+	l, err := c.Build(zap.AddStacktrace(zap.DPanicLevel))
 	if err != nil {
 		panic(err)
 	}
 	defaultLogger = l
+	_, file, _, _ := runtime.Caller(0)
+	fileDivide := "/"
+	arr := strings.Split(file, fileDivide)
+	arr = arr[0 : len(arr)-2]
+	appPath = strings.Join(arr, fileDivide) + fileDivide
 }
 
 const (
@@ -65,4 +80,27 @@ func GetContextLogger(ctx iris.Context) *zap.Logger {
 		return nil
 	}
 	return logger.(*zap.Logger)
+}
+
+// GetStack 获取调用信息
+func GetStack(start, end int) []string {
+	size := 2 << 10
+	stack := make([]byte, size)
+	runtime.Stack(stack, true)
+	arr := strings.Split(string(stack), "\n")
+	arr = arr[1:]
+	max := len(arr) - 1
+	result := []string{}
+	for index := 0; index < max; index += 2 {
+		if index+1 >= max {
+			break
+		}
+
+		file := strings.Replace(arr[index+1], appPath, "", 1)
+		tmpArr := strings.Split(arr[index], "/")
+		fn := stackReg.ReplaceAllString(tmpArr[len(tmpArr)-1], "")
+		str := fn + ": " + file
+		result = append(result, str)
+	}
+	return result[start:end]
 }

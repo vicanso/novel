@@ -8,12 +8,12 @@ import (
 )
 
 func TestSystemCtrl(t *testing.T) {
-	ctrl := systemCtrl{}
+	ctrl := SystemCtrl{}
 
 	t.Run("getStatus", func(t *testing.T) {
 		ctx := util.NewResContext()
 		ctrl.getStatus(ctx)
-		data := util.GetBody(ctx).(*statusRes)
+		data := util.GetBody(ctx).(*StatusRes)
 		if data.Pid == 0 {
 			t.Fatalf("get status fail")
 		}
@@ -22,7 +22,7 @@ func TestSystemCtrl(t *testing.T) {
 	t.Run("getStats", func(t *testing.T) {
 		ctx := util.NewResContext()
 		ctrl.getStats(ctx)
-		data := util.GetBody(ctx).(*statsRes)
+		data := util.GetBody(ctx).(*StatsRes)
 		if data.Sys == 0 {
 			t.Fatalf("get stats fail")
 		}
@@ -31,7 +31,7 @@ func TestSystemCtrl(t *testing.T) {
 	t.Run("get routes", func(t *testing.T) {
 		ctx := util.NewResContext()
 		ctrl.getRoutes(ctx)
-		_ = util.GetBody(ctx).(*routesRes)
+		_ = util.GetBody(ctx).(*RoutesRes)
 		if ctx.GetStatusCode() != http.StatusOK {
 			t.Fatalf("get routes fail")
 		}

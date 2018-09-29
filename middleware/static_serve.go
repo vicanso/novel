@@ -12,10 +12,10 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/kataras/iris"
+	"github.com/vicanso/fresh"
 	"github.com/vicanso/novel/asset"
 	"github.com/vicanso/novel/cs"
 	"github.com/vicanso/novel/util"
-	"github.com/vicanso/fresh"
 )
 
 const (
@@ -180,7 +180,7 @@ func StaticServe(conf StaticServeConfig) iris.Handler {
 			err = serveFile(ctx, file, &conf)
 		}
 		if err != nil {
-			util.GetLogger().Error("serve static file fail",
+			getLogger().Error("serve static file fail",
 				zap.String("uri", ctx.Request().RequestURI),
 				zap.Error(err),
 			)

@@ -10,4 +10,6 @@ var (
 	getTrackID = util.GetTrackID
 	getAccount = util.GetAccount
 	resErr     = util.ResErr
+
+	getLogger = util.GetLogger
 )

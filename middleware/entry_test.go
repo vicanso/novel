@@ -14,7 +14,7 @@ func TestNewEntry(t *testing.T) {
 	fn := NewEntry()
 	ctx := util.NewContext(w, r)
 	fn(ctx)
-	logger := util.GetLogger()
+	logger := util.GetContextLogger(ctx)
 	if logger == nil {
 		t.Fatalf("entry middle should create a user logger")
 	}

@@ -24,6 +24,7 @@ type (
 		Query  bool
 		Header bool
 		Body   bool
+		IP     bool
 	}
 )
 
@@ -31,6 +32,12 @@ type (
 func NewConcurrentLimiter(conf ConcurrentLimiterConfig) iris.Handler {
 	keys := make([]*ConcurrentKeyInfo, 0)
 	for _, key := range conf.Keys {
+		if key == ":ip" {
+			keys = append(keys, &ConcurrentKeyInfo{
+				IP: true,
+			})
+			continue
+		}
 		if strings.HasPrefix(key, "h:") {
 			keys = append(keys, &ConcurrentKeyInfo{
 				Name:   key[2:],
@@ -56,7 +63,9 @@ func NewConcurrentLimiter(conf ConcurrentLimiterConfig) iris.Handler {
 		for i, key := range keys {
 			v := ""
 			name := key.Name
-			if key.Header {
+			if key.IP {
+				v = ctx.RemoteAddr()
+			} else if key.Header {
 				v = ctx.GetHeader(name)
 			} else if key.Query {
 				query := util.GetRequestQuery(ctx)
