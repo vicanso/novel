@@ -101,6 +101,18 @@ func FindOneBook(conditions interface{}, opts *QueryOptions) (b *Book, err error
 	return
 }
 
+// FindBookByID find the book by id
+func FindBookByID(id uint) (b *Book, err error) {
+	b = &Book{}
+	conditions := &Book{}
+	conditions.ID = id
+	err = GetClient().
+		Where(conditions).
+		First(b).
+		Error
+	return
+}
+
 // FindBook find book
 func FindBook(conditions interface{}, opts *QueryOptions) (books []*Book, err error) {
 	books = make([]*Book, 0)

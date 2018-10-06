@@ -54,6 +54,13 @@ func init() {
 		ctrl.listChapter,
 	)
 
+	// 更新封面
+	books.Add(
+		"PATCH",
+		"/v1/:book/cover",
+		ctrl.updateCover,
+	)
+
 	// 批量新增
 	books.Add(
 		"POST",
@@ -201,4 +208,19 @@ func (c *BookCtrl) listChapter(ctx iris.Context) {
 	res(ctx, map[string]interface{}{
 		"chapters": chapters,
 	})
+}
+
+// updateCover update the cover
+func (c *BookCtrl) updateCover(ctx iris.Context) {
+	bookID, err := ctx.Params().GetInt("book")
+	if err != nil {
+		resErr(ctx, err)
+		return
+	}
+	err = service.UpdateBookCover(uint(bookID))
+	if err != nil {
+		resErr(ctx, err)
+		return
+	}
+	resNoContent(ctx)
 }

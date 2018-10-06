@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/base64"
+	"fmt"
 	"time"
 
 	"github.com/vicanso/novel-spider/novel"
@@ -222,4 +223,14 @@ func CountBookChapter(bookID uint) (count int, err error) {
 // ListBookChapters list the chapters
 func ListBookChapters(conditions interface{}, opts *model.QueryOptions) (chapters []*model.Chapter, err error) {
 	return model.FindBookChapters(conditions, opts)
+}
+
+// UpdateBookCover update the book cover
+func UpdateBookCover(bookID uint) (err error) {
+	b, err := model.FindBookByID(bookID)
+	if err != nil {
+		return
+	}
+	fmt.Println(b)
+	return
 }
