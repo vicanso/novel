@@ -4,23 +4,22 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/vicanso/novel/global"
-
-	"github.com/kataras/iris"
-	"github.com/vicanso/novel/util"
+	"github.com/labstack/echo"
+	"github.com/vicanso/novel/context"
 )
 
 type (
-	// Router 路由配置
+	// Router router
 	Router struct {
-		Method   string
-		Path     string
-		Handlers []iris.Handler
+		Method  string
+		Path    string
+		Mids    []echo.MiddlewareFunc
+		Handler echo.HandlerFunc
 	}
-	// Group group router配置
+	// Group group router
 	Group struct {
-		Path     string
-		Handlers []iris.Handler
+		Path string
+		Mids []echo.MiddlewareFunc
 	}
 )
 
@@ -29,45 +28,43 @@ var (
 	routerList = make([]*Router, 0)
 )
 
-// Add 添加路由配置
-func Add(method, path string, handlers ...iris.Handler) {
+func init() {
+	Add(http.MethodGet, "/ping", func(c echo.Context) (err error) {
+		context.Res(c, "pong")
+		return
+	})
+}
+
+// Add add router config
+func Add(method, path string, handler echo.HandlerFunc, mids ...echo.MiddlewareFunc) {
 	r := &Router{
-		Method:   strings.ToUpper(method),
-		Path:     path,
-		Handlers: handlers,
+		Method:  strings.ToUpper(method),
+		Path:    path,
+		Mids:    mids,
+		Handler: handler,
 	}
 	routerList = append(routerList, r)
 }
 
 // Add group add
-func (g *Group) Add(method, path string, handlers ...iris.Handler) {
+func (g *Group) Add(method, path string, handler echo.HandlerFunc, mids ...echo.MiddlewareFunc) {
 	currentPath := g.Path + path
-	arr := make([]iris.Handler, len(g.Handlers))
-	copy(arr, g.Handlers)
-	arr = append(arr, handlers...)
-	Add(method, currentPath, arr...)
+	arr := make([]echo.MiddlewareFunc, len(g.Mids))
+	copy(arr, g.Mids)
+	arr = append(arr, mids...)
+	Add(method, currentPath, handler, arr...)
 }
 
-// NewGroup 创建group
-func NewGroup(path string, handlers ...iris.Handler) *Group {
+// NewGroup create a group instance
+func NewGroup(path string, mids ...echo.MiddlewareFunc) *Group {
 	g := &Group{
-		Path:     path,
-		Handlers: handlers,
+		Path: path,
+		Mids: mids,
 	}
 	return g
 }
 
-// List 获取所有路由配置
+// List get all route list
 func List() []*Router {
 	return routerList
-}
-
-func init() {
-	Add(http.MethodGet, "/ping", func(ctx iris.Context) {
-		if global.IsApplicationRunning() {
-			util.Res(ctx, "pong")
-		} else {
-			util.ResErr(ctx, util.ErrServiceUnavailable)
-		}
-	})
 }

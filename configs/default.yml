@@ -18,10 +18,10 @@ db:
   uri: postgres://tree:mypwd@127.0.0.1:5432/novel?connect_timeout=5&sslmode=disable
   poolSize: 100
 tiny:
-  host: http://lamer
+  host: http://192.168.31.3:8080
   upload: /api/files/v1/token
-  token: abcd
+  token: MQfWMoFIgU5a3kksom0l
 nsq:
   lookup:
     address:
-      - lamer:4161
+      - 192.168.31.3:4161

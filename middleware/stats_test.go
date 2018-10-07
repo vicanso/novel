@@ -1,42 +1,92 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
-	"github.com/kataras/iris"
-	"github.com/vicanso/novel/util"
+	"github.com/vicanso/novel/xerror"
+
+	"github.com/labstack/echo"
 )
 
 func TestNewStats(t *testing.T) {
-	done := false
-	conf := StatsConfig{
-		OnStats: func(stats *StatsInfo) {
-			done = true
-			if stats.URI != "http://aslant.site/" ||
-				stats.StatusCode != http.StatusOK ||
-				stats.Consuming < 100 ||
-				stats.Type != 2 ||
-				stats.IP == "" {
-				t.Fatalf("stats info is wrong")
-			}
-		},
-	}
-	fn := NewStats(conf)
-	w := httptest.NewRecorder()
-	r := httptest.NewRequest(http.MethodGet, "http://aslant.site/", nil)
-	ctx := util.NewContext(w, r)
-	message := "success"
-	ctx.AddHandler(func(ctx iris.Context) {
-		ctx.Next()
-	}, fn, func(ctx iris.Context) {
-		time.Sleep(time.Millisecond * 100)
-		util.Res(ctx, message)
+	t.Run("handle success", func(t *testing.T) {
+		done := false
+		fn := NewStats(StatsConfig{
+			OnStats: func(info *StatsInfo) {
+				if info.StatusCode != http.StatusNoContent {
+					t.Fatalf("stats info is wrong")
+				}
+				done = true
+			},
+		})(func(c echo.Context) error {
+			return nil
+		})
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "http://aslant.site/", nil)
+		e := echo.New()
+		c := e.NewContext(r, w)
+		err := fn(c)
+		if err != nil {
+			t.Fatalf("stats midlleware fail, %v", err)
+		}
+		if !done {
+			t.Fatalf("on stats is not called")
+		}
 	})
-	ctx.Next()
-	if !done {
-		t.Fatalf("the on stats function isn't called")
-	}
+
+	t.Run("handle error", func(t *testing.T) {
+		done := false
+		fn := NewStats(StatsConfig{
+			OnStats: func(info *StatsInfo) {
+				if info.StatusCode != http.StatusInternalServerError {
+					t.Fatalf("stats info is wrong")
+				}
+				done = true
+			},
+		})(func(c echo.Context) error {
+			return errors.New("abcd")
+		})
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "http://aslant.site/", nil)
+		e := echo.New()
+		c := e.NewContext(r, w)
+		err := fn(c)
+		if err == nil {
+			t.Fatalf("stats should return error")
+		}
+		if !done {
+			t.Fatalf("on stats is not called")
+		}
+	})
+
+	t.Run("handle http error", func(t *testing.T) {
+		done := false
+		fn := NewStats(StatsConfig{
+			OnStats: func(info *StatsInfo) {
+				if info.StatusCode != http.StatusForbidden {
+					t.Fatalf("stats info is wrong")
+				}
+				done = true
+			},
+		})(func(c echo.Context) error {
+			return &xerror.HTTPError{
+				Message:    "abc",
+				StatusCode: http.StatusForbidden,
+			}
+		})
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest(http.MethodGet, "http://aslant.site/", nil)
+		e := echo.New()
+		c := e.NewContext(r, w)
+		err := fn(c)
+		if err == nil {
+			t.Fatalf("stats should return error")
+		}
+		if !done {
+			t.Fatalf("on stats is not called")
+		}
+	})
 }

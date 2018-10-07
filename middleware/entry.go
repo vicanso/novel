@@ -1,16 +1,28 @@
 package middleware
 
 import (
-	"github.com/kataras/iris"
-	"github.com/vicanso/novel/util"
+	"github.com/labstack/echo"
+	"github.com/vicanso/novel/context"
 )
 
-// NewEntry create a new entry
-func NewEntry() iris.Handler {
-	return func(ctx iris.Context) {
-		util.SetNoCache(ctx)
-		logger := util.CreateUserLogger(ctx)
-		util.SetContextLogger(ctx, logger)
-		ctx.Next()
+type (
+	// EntryConfig 入口中间件的配置
+	EntryConfig struct {
+		Header map[string]string
+	}
+)
+
+// NewEntry create a new entry middleware
+func NewEntry(config EntryConfig) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) (err error) {
+			// 全局设置响应头
+			for k, v := range config.Header {
+				context.SetHeader(c, k, v)
+			}
+			// 所有的请求默认设置为no-cache
+			context.SetNoCache(c)
+			return next(c)
+		}
 	}
 }

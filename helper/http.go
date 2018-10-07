@@ -1,8 +1,10 @@
-package util
+package helper
 
 import (
 	"io/ioutil"
 	"net/http"
+
+	"github.com/vicanso/novel/xerror"
 
 	"github.com/mozillazg/request"
 )
@@ -18,15 +20,15 @@ func init() {
 	AddHook(&hookConverError{})
 }
 
-func createRequestError(msg string, req *http.Request, resp *http.Response) (err *HTTPError) {
+func createRequestError(msg string, req *http.Request, resp *http.Response) (err *xerror.HTTPError) {
 	status := http.StatusInternalServerError
 	if resp != nil {
 		status = resp.StatusCode
 	}
-	err = &HTTPError{
+	err = &xerror.HTTPError{
 		StatusCode: status,
 		Message:    msg,
-		Category:   ErrCategoryRequset,
+		Category:   xerror.ErrCategoryRequset,
 	}
 	extra := make(map[string]interface{})
 	url := req.URL

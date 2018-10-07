@@ -5,10 +5,9 @@ import (
 )
 
 func TestAsset(t *testing.T) {
-	as := New()
 	filename := "index.html"
 	t.Run("open", func(t *testing.T) {
-		f, err := as.Open(filename)
+		f, err := Open(filename)
 		if err != nil {
 			t.Fatalf("open fail, %v", err)
 		}
@@ -22,14 +21,14 @@ func TestAsset(t *testing.T) {
 	})
 
 	t.Run("get", func(t *testing.T) {
-		buf := as.Get(filename)
+		buf := Get(filename)
 		if len(buf) == 0 {
 			t.Fatalf("get file data fail")
 		}
 	})
 
 	t.Run("exists", func(t *testing.T) {
-		if !as.Exists(filename) {
+		if !Exists(filename) {
 			t.Fatalf("check exists fail")
 		}
 	})

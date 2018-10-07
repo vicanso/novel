@@ -2,22 +2,30 @@ package middleware
 
 import (
 	"bytes"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/kataras/iris"
-	"github.com/vicanso/novel/util"
+	"github.com/vicanso/novel/context"
+	"github.com/vicanso/novel/xerror"
+
+	"github.com/labstack/echo"
 )
 
 func TestNewRespond(t *testing.T) {
-	fn := NewRespond()
+	fn := NewRespond(RespondConfig{})(func(c echo.Context) error {
+		return nil
+	})
 	t.Run("response no body", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		ctx := util.NewContext(w, nil)
-		util.SetContextLogger(ctx, util.GetLogger())
-		fn(ctx)
-		if w.Code != http.StatusOK || len(w.Body.Bytes()) != 0 {
+		e := echo.New()
+		c := e.NewContext(nil, w)
+		err := fn(c)
+		if err != nil {
+			t.Fatalf("respond middleware fail, %v", err)
+		}
+		if w.Code != http.StatusNoContent || len(w.Body.Bytes()) != 0 {
 			t.Fatalf("response no body fail")
 		}
 	})
@@ -25,10 +33,28 @@ func TestNewRespond(t *testing.T) {
 	t.Run("response string", func(t *testing.T) {
 		text := "abcd"
 		w := httptest.NewRecorder()
-		ctx := util.NewContext(w, nil)
-		util.SetContextLogger(ctx, util.GetLogger())
-		util.Res(ctx, text)
-		fn(ctx)
+		e := echo.New()
+		c := e.NewContext(nil, w)
+		context.Res(c, text)
+		err := fn(c)
+		if err != nil {
+			t.Fatalf("respond middleware fail, %v", err)
+		}
+		if w.Code != http.StatusOK || text != string(w.Body.Bytes()) {
+			t.Fatalf("response string fail")
+		}
+	})
+
+	t.Run("response string", func(t *testing.T) {
+		text := "abcd"
+		w := httptest.NewRecorder()
+		e := echo.New()
+		c := e.NewContext(nil, w)
+		context.Res(c, text)
+		err := fn(c)
+		if err != nil {
+			t.Fatalf("respond middleware fail, %v", err)
+		}
 		if w.Code != http.StatusOK || text != string(w.Body.Bytes()) {
 			t.Fatalf("response string fail")
 		}
@@ -37,16 +63,18 @@ func TestNewRespond(t *testing.T) {
 	t.Run("response bytes", func(t *testing.T) {
 		buf := []byte("abcd")
 		w := httptest.NewRecorder()
-		ctx := util.NewContext(w, nil)
-		util.SetContextLogger(ctx, util.GetLogger())
-		util.Res(ctx, buf)
-		fn(ctx)
+		e := echo.New()
+		c := e.NewContext(nil, w)
+		context.Res(c, buf)
+		err := fn(c)
+		if err != nil {
+			t.Fatalf("respond middleware fail, %v", err)
+		}
 		header := w.HeaderMap
 		if w.Code != http.StatusOK ||
 			!bytes.Equal(buf, w.Body.Bytes()) ||
-			header["Content-Type"][0] != "application/octet-stream" ||
-			header["Content-Length"][0] != "4" {
-			t.Fatalf("response bytes fail")
+			header["Content-Type"][0] != "application/octet-stream" {
+			t.Fatalf("response string fail")
 		}
 	})
 
@@ -56,12 +84,15 @@ func TestNewRespond(t *testing.T) {
 			"age":     18,
 			"vip":     true,
 		}
+		buf, _ := json.Marshal(m)
 		w := httptest.NewRecorder()
-		buf := []byte(`{"account":"vicanso","age":18,"vip":true}`)
-		ctx := util.NewContext(w, nil)
-		util.SetContextLogger(ctx, util.GetLogger())
-		util.Res(ctx, m)
-		fn(ctx)
+		e := echo.New()
+		c := e.NewContext(nil, w)
+		context.Res(c, m)
+		err := fn(c)
+		if err != nil {
+			t.Fatalf("respond middleware fail, %v", err)
+		}
 		if w.Code != http.StatusOK ||
 			!bytes.Equal(buf, w.Body.Bytes()) ||
 			w.Header()["Content-Type"][0] != "application/json; charset=UTF-8" {
@@ -70,36 +101,42 @@ func TestNewRespond(t *testing.T) {
 	})
 
 	t.Run("response error", func(t *testing.T) {
-		category := "custom-category"
-		message := "error-message"
-		code := "custom-code"
-		he := &util.HTTPError{
-			StatusCode: http.StatusBadRequest,
-			Category:   category,
-			Message:    message,
-			Code:       code,
-			Extra: iris.Map{
-				"a": 1,
-				"b": "2",
-			},
-		}
+		errFn := NewRespond(RespondConfig{})(func(c echo.Context) error {
+			return errors.New("abcd")
+		})
 		w := httptest.NewRecorder()
-		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/", nil)
-		ctx := util.NewContext(w, r)
-		util.SetContextLogger(ctx, util.GetLogger())
-		resErr(ctx, he)
-		fn(ctx)
-		e := &util.HTTPError{}
-		err := json.Unmarshal(w.Body.Bytes(), e)
+		e := echo.New()
+		c := e.NewContext(nil, w)
+		err := errFn(c)
 		if err != nil {
-			t.Fatalf("response error fail, %v", err)
+			t.Fatalf("respond middleware fail, %v", err)
 		}
-		if w.Code != http.StatusBadRequest ||
-			e.Category != category ||
-			e.Message != message ||
-			e.Code != code ||
-			w.Header()["Content-Type"][0] != "application/json; charset=UTF-8" {
+		if w.Code != http.StatusInternalServerError ||
+			string(w.Body.Bytes()) != `{"statusCode":500,"exception":true,"message":"abcd","category":"common"}` {
 			t.Fatalf("response error fail")
+		}
+	})
+
+	t.Run("response http error", func(t *testing.T) {
+		errFn := NewRespond(RespondConfig{})(func(c echo.Context) error {
+			he := &xerror.HTTPError{
+				StatusCode: 401,
+				Category:   "a",
+				Exception:  false,
+				Message:    "abcd",
+			}
+			return he
+		})
+		w := httptest.NewRecorder()
+		e := echo.New()
+		c := e.NewContext(nil, w)
+		err := errFn(c)
+		if err != nil {
+			t.Fatalf("respond middleware fail, %v", err)
+		}
+		if w.Code != 401 ||
+			string(w.Body.Bytes()) != `{"statusCode":401,"message":"abcd","category":"a"}` {
+			t.Fatalf("response http error fail")
 		}
 	})
 }

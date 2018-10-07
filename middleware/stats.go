@@ -5,19 +5,22 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/kataras/iris"
-	"github.com/vicanso/novel/global"
+	"github.com/vicanso/novel/context"
+	"github.com/vicanso/novel/xerror"
+
+	"github.com/labstack/echo"
 )
 
 type (
 	// OnStats on stats function
 	OnStats func(*StatsInfo)
-	// StatsConfig stats的配置
+	// StatsConfig stats config
 	StatsConfig struct {
 		OnStats OnStats
 	}
 	// StatsInfo 统计信息
 	StatsInfo struct {
+		RequestID  string
 		IP         string
 		TrackID    string
 		Account    string
@@ -31,43 +34,48 @@ type (
 	}
 )
 
-// NewStats 请求统计
-func NewStats(conf StatsConfig) iris.Handler {
+// NewStats create a new stats middleware
+func NewStats(config StatsConfig) echo.MiddlewareFunc {
 	var connectingCount uint32
-	return func(ctx iris.Context) {
-		atomic.AddUint32(&connectingCount, 1)
-		startedAt := time.Now().UnixNano()
-		req := ctx.Request()
-		uri, _ := url.QueryUnescape(req.RequestURI)
-		if uri == "" {
-			uri = req.RequestURI
-		}
-		ip := ctx.RemoteAddr()
-		trackID := getTrackID(ctx)
-		route := ctx.GetCurrentRoute()
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) (err error) {
+			atomic.AddUint32(&connectingCount, 1)
+			defer atomic.AddUint32(&connectingCount, ^uint32(0))
+			startedAt := time.Now().UnixNano()
+			req := c.Request()
+			uri, _ := url.QueryUnescape(req.RequestURI)
+			if uri == "" {
+				uri = req.RequestURI
+			}
+			info := &StatsInfo{
+				RequestID:  context.GetRequestID(c),
+				Method:     req.Method,
+				Route:      c.Path(),
+				URI:        uri,
+				Connecting: connectingCount,
+				IP:         c.RealIP(),
+				TrackID:    context.GetTrackID(c),
+			}
+			err = next(c)
 
-		ctx.Next()
-		consuming := int(time.Now().UnixNano()-startedAt) / int(time.Millisecond)
-		statusCode := ctx.GetStatusCode()
+			consuming := int(time.Now().UnixNano()-startedAt) / int(time.Millisecond)
+			info.Consuming = consuming
 
-		info := &StatsInfo{
-			URI:        uri,
-			StatusCode: statusCode,
-			Consuming:  consuming,
-			Type:       statusCode / 100,
-			Connecting: connectingCount,
-			IP:         ip,
-			TrackID:    trackID,
-			Account:    getAccount(ctx),
+			if err != nil {
+				info.StatusCode = xerror.GetStatusCode(err)
+			} else {
+				info.StatusCode = context.GetStatus(c)
+			}
+			info.Type = info.StatusCode / 100
+			us := context.GetUserSession(c)
+			if us != nil {
+				info.Account = us.GetAccount()
+			}
+
+			if config.OnStats != nil {
+				config.OnStats(info)
+			}
+			return
 		}
-		if route != nil {
-			info.Method = route.Method()
-			info.Route = route.Path()
-			global.AddRouteCount(info.Method, info.Route)
-		}
-		if conf.OnStats != nil {
-			conf.OnStats(info)
-		}
-		atomic.AddUint32(&connectingCount, ^uint32(0))
 	}
 }

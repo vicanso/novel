@@ -1,43 +1,32 @@
 package main
 
 import (
-	"github.com/kataras/iris"
+	"github.com/labstack/echo"
 	"github.com/vicanso/novel/config"
 	_ "github.com/vicanso/novel/controller"
 	"github.com/vicanso/novel/global"
 	"github.com/vicanso/novel/middleware"
 	"github.com/vicanso/novel/router"
-	"github.com/vicanso/novel/service"
-	"github.com/vicanso/novel/util"
+	_ "github.com/vicanso/novel/schedule"
+	"github.com/vicanso/novel/xlog"
 	"go.uber.org/zap"
 )
 
 func main() {
-	logger := util.GetLogger()
-	redisClient := service.GetRedisClient()
-	if redisClient != nil {
-		// check the redis is healthy
-		_, err := redisClient.Ping().Result()
-		if err != nil {
-			logger.Error("default redis client ping fail", zap.Error(err))
-		}
-	}
+	// Echo instance
+	e := echo.New()
 
-	app := iris.New()
+	e.Use(middleware.NewRecover(middleware.RecoverConfig{}))
 
-	routes := router.List()
+	e.Use(middleware.NewRespond(middleware.RespondConfig{}))
 
-	app.Use(middleware.NewRecover())
+	e.Use(middleware.NewEntry(middleware.EntryConfig{}))
 
-	app.Use(middleware.NewRespond())
-
-	app.Use(middleware.NewEntry())
-
-	accessLogger := util.CreateAccessLogger()
+	accessLogger := xlog.AccessLogger()
 	onStats := func(info *middleware.StatsInfo) {
-		// TODO 可以写入至influxdb
 		accessLogger.Info("",
 			zap.String("trackId", info.TrackID),
+			zap.String("requestId", info.RequestID),
 			zap.String("account", info.Account),
 			zap.String("ip", info.IP),
 			zap.String("method", info.Method),
@@ -48,35 +37,27 @@ func main() {
 			zap.Int("type", info.Type),
 			zap.Uint32("connecting", info.Connecting),
 		)
-		// accessLogger.Infof("%v", *info)
-		// 如果觉得每次保存影响性能，可以只 % 10 == 0 才保存
-		global.SaveConnectingCount(info.Connecting)
+		global.AddRouteCount(info.Method, info.Route)
 	}
-	app.Use(middleware.NewStats(middleware.StatsConfig{
+	e.Use(middleware.NewStats(middleware.StatsConfig{
 		OnStats: onStats,
 	}))
 
-	app.Use(middleware.NewLimiter(middleware.LimiterConfig{
+	e.Use(middleware.NewLimiter(middleware.LimiterConfig{
 		Max: 1000,
 	}))
 
-	app.Use(middleware.NewJSONParser(middleware.JSONParserConfig{}))
-
-	// static file
-	app.Get("/static/*", middleware.StaticServe(middleware.StaticServeConfig{
-		Path: "./assets",
-		// Asset: asset.New(),
-		Header: map[string]string{
-			"X-File": "My-Static-File",
-		},
-		Compression: true,
-		MaxAge:      "24h",
-		SMaxAge:     "1h",
+	e.Use(middleware.NewJSONParser(middleware.JSONParserConfig{
+		Limit: 100 * 1024,
 	}))
 
-	// method 不建议使用 any all
+	// TODO 是否需要增加ETag
+	// 因为我使用的前置缓存Pike有ETag的处理，因此不需要添加
+
+	routes := router.List()
 	routeInfos := make([]map[string]string, 0, 20)
 	urlPrefix := config.GetString("urlPrefix")
+	logger := xlog.Logger()
 	for i, r := range routes {
 		// 对路由检测，判断是否有相同路由
 		for j, tmp := range routes {
@@ -96,11 +77,19 @@ func main() {
 		}
 		routeInfos = append(routeInfos, m)
 		routePath := urlPrefix + r.Path
-		app.Handle(r.Method, routePath, r.Handlers...)
+		e.Add(r.Method, routePath, r.Handler, r.Mids...)
 	}
+
 	global.SaveRouteInfos(routeInfos)
 	global.InitRouteCounter(routeInfos)
 
 	global.StartApplication()
-	app.Run(iris.Addr(config.GetString("listen")))
+
+	defer logger.Sync()
+
+	// Start server
+	err := e.Start(config.GetString("listen"))
+	logger.Error("start server fail",
+		zap.Error(err),
+	)
 }

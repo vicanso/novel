@@ -1,5 +1,7 @@
 package global
 
+// 应用状态的相关切换
+
 const (
 	// AppStatus 记录app的status
 	AppStatus = "app-status"
@@ -14,17 +16,17 @@ const (
 	AppStop
 )
 
-// StartApplication 设置应用状态为running
+// StartApplication start the application(just set the status to running)
 func StartApplication() {
 	Store(AppStatus, AppRunning)
 }
 
-// PauseApplication 设置应用状态为pause
+// PauseApplication pause the application(just set the status to pause)
 func PauseApplication() {
 	Store(AppStatus, AppPause)
 }
 
-// IsApplicationRunning 判断是否正在运行
+// IsApplicationRunning check the application status is running
 func IsApplicationRunning() bool {
 	v, ok := Load(AppStatus)
 	if !ok {

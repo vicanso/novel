@@ -1,18 +1,14 @@
 package service
 
 import (
-	"net/http"
-
 	"github.com/vicanso/novel/config"
-	"github.com/vicanso/novel/util"
+	"github.com/vicanso/novel/helper"
+	"github.com/vicanso/novel/xerror"
 )
 
 var (
 	// ErrIPLocationNotFound ip location not found error
-	ErrIPLocationNotFound = &util.HTTPError{
-		StatusCode: http.StatusBadRequest,
-		Message:    "IP Location not found",
-	}
+	ErrIPLocationNotFound = xerror.New("IP Location not found")
 )
 
 type (
@@ -28,7 +24,7 @@ type (
 // GetLocationByIP get location by ip
 func GetLocationByIP(ip string) (info *IPLocation, err error) {
 	url := config.GetString("locationByIP")
-	buf, err := util.HTTPGet(url, map[string]string{
+	buf, err := helper.HTTPGet(url, map[string]string{
 		"ip": ip,
 	})
 	if err != nil {

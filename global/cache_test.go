@@ -2,13 +2,11 @@ package global
 
 import (
 	"testing"
-
-	"github.com/vicanso/novel/util"
 )
 
 func TestCache(t *testing.T) {
 	t.Run("sync map", func(t *testing.T) {
-		key := util.RandomString(8)
+		key := "sync map 1"
 		value := "a"
 		Store(key, value)
 		v, ok := Load(key)
@@ -20,7 +18,7 @@ func TestCache(t *testing.T) {
 			t.Fatalf("load or store should loaded while data exists")
 		}
 
-		key = util.RandomString(8)
+		key = "sync map 2"
 		v, loaded = LoadOrStore(key, "b")
 		if loaded {
 			t.Fatalf("load or store should not be loaded while data not exists")

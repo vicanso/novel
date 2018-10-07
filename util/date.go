@@ -4,12 +4,12 @@ import (
 	"time"
 )
 
-// GetNow get the time string of time RFC3339
-func GetNow() string {
+// Now get the time string of time RFC3339
+func Now() string {
 	return time.Now().Format(time.RFC3339)
 }
 
-// GetUTCNow get the utc time string of time RFC3339
-func GetUTCNow() string {
+// UTCNow get the utc time string of time RFC3339
+func UTCNow() string {
 	return time.Now().UTC().Format(time.RFC3339)
 }

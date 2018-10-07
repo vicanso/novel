@@ -5,7 +5,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/kataras/iris"
+	"github.com/labstack/echo"
 	"github.com/vicanso/novel/global"
 	"github.com/vicanso/novel/router"
 )
@@ -48,14 +48,14 @@ func init() {
 	system.Add("GET", "/route-counts", ctrl.getRouteCounts)
 }
 
-// getSystemStatus 获取系统状态信息
-func (c *SystemCtrl) getStatus(ctx iris.Context) {
+// getStatus get status info
+func (sc *SystemCtrl) getStatus(c echo.Context) (err error) {
 	status := "running"
 	if !global.IsApplicationRunning() {
 		status = "pause"
 	}
-	setCache(ctx, "10s")
-	res(ctx, &StatusRes{
+	setCache(c, "10s")
+	res(c, &StatusRes{
 		Status:     status,
 		Uptime:     time.Since(systemStartedAt).String(),
 		StartedAt:  systemStartedAt.Format(time.RFC3339),
@@ -63,36 +63,39 @@ func (c *SystemCtrl) getStatus(ctx iris.Context) {
 		Version:    runtime.Version(),
 		Pid:        os.Getpid(),
 	})
+	return
 }
 
-// getSystemStats 获取系统性能信息
-func (c *SystemCtrl) getStats(ctx iris.Context) {
+// getStats get stats info
+func (sc *SystemCtrl) getStats(c echo.Context) (err error) {
 	mem := &runtime.MemStats{}
 	runtime.ReadMemStats(mem)
 	var mb uint64 = 1024 * 1024
-	m := &StatsRes{
+	setCache(c, "10s")
+	res(c, &StatsRes{
 		Sys:             mem.Sys / mb,
 		HeapSys:         mem.HeapSys / mb,
 		HeapInuse:       mem.HeapInuse / mb,
 		RoutineCount:    runtime.NumGoroutine(),
 		ConnectingCount: global.GetConnectingCount(),
-	}
-	setCache(ctx, "10s")
-	res(ctx, m)
+	})
+	return
 }
 
 // getRoutes get the route infos
-func (c *SystemCtrl) getRoutes(ctx iris.Context) {
+func (sc *SystemCtrl) getRoutes(c echo.Context) (err error) {
 	routeInfos := global.GetRouteInfos()
-	setCache(ctx, "1m")
-	res(ctx, &RoutesRes{
+	setCache(c, "1m")
+	res(c, &RoutesRes{
 		Routes: routeInfos,
 	})
+	return
 }
 
 // getRouteCounts get route counts
-func (c *SystemCtrl) getRouteCounts(ctx iris.Context) {
+func (sc *SystemCtrl) getRouteCounts(c echo.Context) (err error) {
 	routeCountInfo := global.GetRouteCount()
-	setCache(ctx, "1m")
-	res(ctx, routeCountInfo)
+	setCache(c, "1m")
+	res(c, routeCountInfo)
+	return
 }

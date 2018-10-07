@@ -10,8 +10,8 @@ const (
 	// ActionUpdateRoles action update roles
 	ActionUpdateRoles = "update-roles"
 
-	// ActionBookBatchAdd book batch add
+	// ActionBookBatchAdd action book batch add
 	ActionBookBatchAdd = "book-batch-add"
-	// ActionBookUpdateChapters update chapters
+	// ActionBookUpdateChapters action book update chapters
 	ActionBookUpdateChapters = "book-update-chapters"
 )

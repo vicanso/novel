@@ -1,4 +1,4 @@
-package util
+package helper
 
 import (
 	"bytes"
@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/h2non/gock"
+	"github.com/vicanso/novel/xerror"
 )
 
 func TestCreateRequestError(t *testing.T) {
@@ -19,7 +20,7 @@ func TestCreateRequestError(t *testing.T) {
 	}
 	message := "出错了"
 	err := createRequestError(message, r, w)
-	if err.Category != ErrCategoryRequset ||
+	if err.Category != xerror.ErrCategoryRequset ||
 		err.StatusCode != http.StatusBadRequest ||
 		err.Message != message {
 		t.Fatalf("create error fail")
@@ -47,31 +48,55 @@ func TestHTTPGet(t *testing.T) {
 }
 
 func TestHTTPPost(t *testing.T) {
-	defer gock.Off()
-	m := map[string]string{
-		"message": "出错了",
-	}
-	gock.New("http://aslant.site").
-		Post("/login").
-		Reply(500).
-		JSON(m)
-	data := map[string]interface{}{
-		"account": "vicanso",
-	}
-	params := map[string]string{
-		"type": "1",
-	}
-	_, err := HTTPPost("http://aslant.site/login?type=1", data, params)
-	if err == nil {
-		t.Fatalf("http post should return error")
-	}
-	he, ok := err.(*HTTPError)
-	if !ok {
-		t.Fatalf("http post error should be HTTPError")
-	}
-	if he.Category != ErrCategoryRequset {
-		t.Fatalf("http requset error category is wrong")
-	}
+	t.Run("http post error", func(t *testing.T) {
+
+		defer gock.Off()
+		m := map[string]string{
+			"message": "出错了",
+		}
+		gock.New("http://aslant.site").
+			Post("/login").
+			Reply(500).
+			JSON(m)
+		data := map[string]interface{}{
+			"account": "vicanso",
+		}
+		params := map[string]string{
+			"type": "1",
+		}
+		_, err := HTTPPost("http://aslant.site/login?type=1", data, params)
+		if err == nil {
+			t.Fatalf("http post should return error")
+		}
+		he, ok := err.(*xerror.HTTPError)
+		if !ok {
+			t.Fatalf("http post error should be HTTPError")
+		}
+		if he.Category != xerror.ErrCategoryRequset {
+			t.Fatalf("http requset error category is wrong")
+		}
+	})
+
+	t.Run("post success", func(t *testing.T) {
+		defer gock.Off()
+		m := map[string]string{
+			"account": "vicanso",
+		}
+		gock.New("http://aslant.site").
+			Post("/login").
+			Reply(200).
+			JSON(m)
+		data := map[string]interface{}{
+			"account": "vicanso",
+		}
+		params := map[string]string{
+			"type": "1",
+		}
+		_, err := HTTPPost("http://aslant.site/login?type=1", data, params)
+		if err != nil {
+			t.Fatalf("http post fail, %v", err)
+		}
+	})
 }
 
 func TestHookConverError(t *testing.T) {
@@ -81,7 +106,7 @@ func TestHookConverError(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/", nil)
 		err := errors.New("request fail")
 		_, newErr := h.AfterRequest(r, nil, err)
-		he := newErr.(*HTTPError)
+		he := newErr.(*xerror.HTTPError)
 		if he.StatusCode != http.StatusInternalServerError ||
 			he.Message != err.Error() {
 			t.Fatalf("create new error fail")
@@ -93,7 +118,7 @@ func TestHookConverError(t *testing.T) {
 		err := errors.New("read error")
 		w := &http.Response{
 			StatusCode: http.StatusBadRequest,
-			Body:       NewErrorReadCloser(err),
+			Body:       xerror.NewErrorReadCloser(err),
 		}
 		_, newErr := h.AfterRequest(r, w, nil)
 		if newErr.Error() != err.Error() {

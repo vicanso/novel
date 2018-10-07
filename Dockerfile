@@ -7,13 +7,12 @@ RUN apk update \
   && go get -u github.com/golang/dep/cmd/dep \
   && cd /go/src/github.com/vicanso/novel \
   && dep ensure \
-  && GOOS=linux GOARCH=amd64 go build -tags netgo -o forest
+  && GOOS=linux GOARCH=amd64 go build -tags netgo -o novel
 
 FROM alpine
 
 RUN apk add --no-cache ca-certificates
 
-COPY --from=builder /go/src/github.com/vicanso/novel/forest /usr/local/bin/forest
+COPY --from=builder /go/src/github.com/vicanso/novel/novel /usr/local/bin/novel
 
-CMD [ "forest" ]
-
+CMD [ "novel" ]

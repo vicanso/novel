@@ -99,6 +99,14 @@ func TestGetValue(t *testing.T) {
 		if strings.Join(keys, ",") != "cuttlefish" {
 			t.Fatalf("get session keys fail")
 		}
+		viper.Set("session.keys", []string{
+			"cuttlefish",
+			"tree.xie",
+		})
+		keys = GetSessionKeys()
+		if strings.Join(keys, ",") != "cuttlefish,tree.xie" {
+			t.Fatalf("get session keys fail")
+		}
 	})
 
 	t.Run("get session cookie", func(t *testing.T) {
@@ -106,11 +114,24 @@ func TestGetValue(t *testing.T) {
 		if cookieName != "sess" {
 			t.Fatalf("get session cookie's name fail")
 		}
+		cookie := "novel"
+		viper.Set("session.cookie.name", "novel")
+		cookieName = GetSessionCookie()
+		if cookieName != cookie {
+			t.Fatalf("get session cookie's name fail")
+		}
+		viper.Set("session.cookie.name", nil)
 	})
 
 	t.Run("get cookie path", func(t *testing.T) {
 		path := GetCookiePath()
 		if path != "/" {
+			t.Fatalf("get cookie's path fail")
+		}
+		newPath := "/user"
+		viper.Set("session.cookie.path", newPath)
+		path = GetCookiePath()
+		if path != newPath {
 			t.Fatalf("get cookie's path fail")
 		}
 	})

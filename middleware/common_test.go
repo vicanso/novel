@@ -1,161 +1,119 @@
 package middleware
 
 import (
-	"net/http"
-	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/vicanso/novel/context"
+	"github.com/vicanso/novel/service"
 	"github.com/vicanso/session"
 
-	"github.com/kataras/iris"
-
-	"github.com/vicanso/novel/util"
+	"github.com/labstack/echo"
 )
 
 func TestIsLogined(t *testing.T) {
-	t.Run("not logined", func(t *testing.T) {
-		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/", nil)
-		w := httptest.NewRecorder()
-		ctx := util.NewContext(w, r)
-		IsLogined(ctx)
-		if ctx.GetStatusCode() != http.StatusUnauthorized {
-			t.Fatalf("the status code should be 401")
+	t.Run("logined", func(t *testing.T) {
+		fn := IsLogined(func(c echo.Context) error {
+			return nil
+		})
+		e := echo.New()
+		c := e.NewContext(nil, nil)
+		sess := session.Mock(session.M{
+			"fetched": true,
+			"data":    session.M{},
+		})
+		us := &service.UserSession{
+			Sess: sess,
 		}
-		err := util.GetBody(ctx).(iris.Map)
-		if err["category"].(string) != util.ErrCategoryLogic ||
-			err["code"].(string) != util.ErrCodeUser {
-			t.Fatalf("the http error is not wrong")
+		context.SetUserSession(c, us)
+		err := us.SetAccount("vicanso")
+		if err != nil {
+			t.Fatalf("set account fail, %v", err)
+		}
+		err = fn(c)
+		if err != nil {
+			t.Fatalf("is logined check fail, %v", err)
 		}
 	})
 
-	t.Run("logined", func(t *testing.T) {
+	t.Run("is not logined", func(t *testing.T) {
+		fn := IsLogined(func(c echo.Context) error {
+			return nil
+		})
+		e := echo.New()
+		c := e.NewContext(nil, nil)
 		sess := session.Mock(session.M{
 			"fetched": true,
-			"data": session.M{
-				"account": "vicanso",
-			},
+			"data":    session.M{},
 		})
-		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/", nil)
-		w := httptest.NewRecorder()
-		ctx := util.NewContext(w, r)
-		util.SetSession(ctx, sess)
-		IsLogined(ctx)
-		if ctx.GetStatusCode() != http.StatusOK {
-			t.Fatalf("is login check fail")
+		us := &service.UserSession{
+			Sess: sess,
+		}
+		context.SetUserSession(c, us)
+		err := fn(c)
+		if err != errNeedLogined {
+			t.Fatalf("should return error when is not logined")
 		}
 	})
 }
 
 func TestIsAnonymous(t *testing.T) {
-	t.Run("not login", func(t *testing.T) {
-		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/", nil)
-		w := httptest.NewRecorder()
-		ctx := util.NewContext(w, r)
-		IsAnonymous(ctx)
-		if ctx.GetStatusCode() != http.StatusOK {
-			t.Fatalf("should be pass to next")
+	t.Run("is not anonymous", func(t *testing.T) {
+		fn := IsAnonymous(func(c echo.Context) error {
+			return nil
+		})
+		e := echo.New()
+		c := e.NewContext(nil, nil)
+		sess := session.Mock(session.M{
+			"fetched": true,
+			"data":    session.M{},
+		})
+		us := &service.UserSession{
+			Sess: sess,
+		}
+		context.SetUserSession(c, us)
+		us.SetAccount("vicanso")
+		err := fn(c)
+		if err != errLoginedAlready {
+			t.Fatalf("should return error when is logined")
 		}
 	})
 
-	t.Run("logined", func(t *testing.T) {
+	t.Run("is anonymous", func(t *testing.T) {
+		fn := IsAnonymous(func(c echo.Context) error {
+			return nil
+		})
+		e := echo.New()
+		c := e.NewContext(nil, nil)
 		sess := session.Mock(session.M{
 			"fetched": true,
-			"data": session.M{
-				"account": "vicanso",
-			},
+			"data":    session.M{},
 		})
-		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/", nil)
-		w := httptest.NewRecorder()
-		ctx := util.NewContext(w, r)
-		util.SetSession(ctx, sess)
-		IsAnonymous(ctx)
-		err := util.GetBody(ctx).(iris.Map)
-		if err["category"].(string) != util.ErrCategoryLogic ||
-			err["code"].(string) != util.ErrCodeUser {
-			t.Fatalf("login should return error")
+		us := &service.UserSession{
+			Sess: sess,
 		}
-	})
-}
-
-func TestIsSu(t *testing.T) {
-	t.Run("not login", func(t *testing.T) {
-		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/", nil)
-		w := httptest.NewRecorder()
-		ctx := util.NewContext(w, r)
-		IsSu(ctx)
-		if ctx.GetStatusCode() != http.StatusUnauthorized {
-			t.Fatalf("need to login")
-		}
-	})
-	t.Run("not su", func(t *testing.T) {
-		sess := session.Mock(session.M{
-			"fetched": true,
-			"data": session.M{
-				"account": "vicanso",
-			},
-		})
-		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/", nil)
-		w := httptest.NewRecorder()
-		ctx := util.NewContext(w, r)
-		util.SetSession(ctx, sess)
-		IsSu(ctx)
-		if ctx.GetStatusCode() != http.StatusForbidden {
-			t.Fatalf("not su should be forbidden")
-		}
-	})
-
-	t.Run("su", func(t *testing.T) {
-		sess := session.Mock(session.M{
-			"fetched": true,
-			"data": session.M{
-				"account": "vicanso",
-				"roles":   []string{"su"},
-			},
-		})
-		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/", nil)
-		w := httptest.NewRecorder()
-		ctx := util.NewContext(w, r)
-		util.SetSession(ctx, sess)
-		IsSu(ctx)
-		if ctx.GetStatusCode() != http.StatusOK {
-			t.Fatalf("su should go to next")
+		context.SetUserSession(c, us)
+		err := fn(c)
+		if err != nil {
+			t.Fatalf("is anonymous check fail, %v", err)
 		}
 	})
 }
 
 func TestWaitFor(t *testing.T) {
-	fn := WaitFor(time.Second)
-	ctx := util.NewResContext()
-	ctx.AddHandler(func(ctx iris.Context) {
-		ctx.Next()
-	}, fn, func(ctx iris.Context) {
+	started := time.Now().UnixNano()
+	wait := time.Second
+	fn := WaitFor(wait)(func(c echo.Context) error {
+		return nil
 	})
-	start := time.Now()
-	ctx.Next()
-	if time.Now().UnixNano()-start.UnixNano() < time.Second.Nanoseconds() {
-		t.Fatalf("wait for middleware fail")
+	e := echo.New()
+	c := e.NewContext(nil, nil)
+	err := fn(c)
+	if err != nil {
+		t.Fatalf("wait for fail, %v", err)
 	}
-}
-
-func TestIsNilQuery(t *testing.T) {
-	t.Run("is nil", func(t *testing.T) {
-		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/", nil)
-		w := httptest.NewRecorder()
-		ctx := util.NewContext(w, r)
-		IsNilQuery(ctx)
-		if ctx.GetStatusCode() != http.StatusOK {
-			t.Fatalf("should pass next when query is nil")
-		}
-	})
-
-	t.Run("is not nil", func(t *testing.T) {
-		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/?a=1", nil)
-		w := httptest.NewRecorder()
-		ctx := util.NewContext(w, r)
-		IsNilQuery(ctx)
-		if ctx.GetStatusCode() != http.StatusBadRequest {
-			t.Fatalf("should return error when query is not nil")
-		}
-	})
+	use := time.Now().UnixNano() - started
+	if use < int64(wait) {
+		t.Fatalf("wait for fail")
+	}
 }

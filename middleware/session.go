@@ -1,13 +1,14 @@
 package middleware
 
 import (
-	"net/http"
 	"time"
 
-	"github.com/vicanso/novel/util"
+	"github.com/vicanso/novel/context"
+	"github.com/vicanso/novel/service"
+	"github.com/vicanso/novel/xerror"
 
 	"github.com/go-redis/redis"
-	"github.com/kataras/iris"
+	"github.com/labstack/echo"
 	"github.com/vicanso/session"
 )
 
@@ -24,8 +25,8 @@ type (
 	}
 )
 
-// NewSession 创建新的session中间件
-func NewSession(client *redis.Client, conf SessionConfig) iris.Handler {
+// NewSession create a new session middleware
+func NewSession(client *redis.Client, config SessionConfig) echo.MiddlewareFunc {
 	var store session.Store
 	if client != nil {
 		store = session.NewRedisStore(client, nil)
@@ -34,40 +35,35 @@ func NewSession(client *redis.Client, conf SessionConfig) iris.Handler {
 	}
 	opts := &session.Options{
 		Store:        store,
-		Key:          conf.Cookie,
-		MaxAge:       int(conf.Expires.Seconds()),
-		CookieKeys:   conf.Keys,
-		CookieMaxAge: int(conf.CookieMaxAge.Seconds()),
-		CookiePath:   conf.CookiePath,
+		Key:          config.Cookie,
+		MaxAge:       int(config.Expires.Seconds()),
+		CookieKeys:   config.Keys,
+		CookieMaxAge: int(config.CookieMaxAge.Seconds()),
+		CookiePath:   config.CookiePath,
 	}
-	return func(ctx iris.Context) {
-		if util.GetSession(ctx) != nil {
-			ctx.Next()
-			return
-		}
-		res := ctx.ResponseWriter()
-		req := ctx.Request()
-		sess := session.New(req, res, opts)
-		_, err := sess.Fetch()
-		if err != nil {
-			resErr(ctx, &util.HTTPError{
-				StatusCode: http.StatusInternalServerError,
-				Category:   util.ErrCategorySession,
-				Message:    err.Error(),
-				Code:       util.ErrCodeSessionFetch,
-			})
-			return
-		}
-		util.SetSession(ctx, sess)
-		ctx.Next()
-		err = sess.Commit()
-		if err != nil {
-			resErr(ctx, &util.HTTPError{
-				StatusCode: http.StatusInternalServerError,
-				Category:   util.ErrCategorySession,
-				Message:    err.Error(),
-				Code:       util.ErrCodeSessionCommit,
-			})
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) (err error) {
+			if context.GetUserSession(c) != nil {
+				return next(c)
+			}
+			res := c.Response()
+			req := c.Request()
+			sess := session.New(req, res, opts)
+			_, err = sess.Fetch()
+			if err != nil {
+				err = xerror.NewSession(err.Error())
+				return
+			}
+			us := service.NewUserSession(sess)
+			context.SetUserSession(c, us)
+			err = next(c)
+			if err != nil {
+				return
+			}
+			err = sess.Commit()
+			if err != nil {
+				err = xerror.NewSession(err.Error())
+			}
 			return
 		}
 	}

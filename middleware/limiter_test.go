@@ -1,39 +1,46 @@
 package middleware
 
 import (
-	"net/http"
 	"testing"
 	"time"
 
-	"github.com/kataras/iris"
+	"github.com/vicanso/novel/xerror"
 
+	"github.com/labstack/echo"
 	"github.com/vicanso/novel/global"
-	"github.com/vicanso/novel/util"
 )
 
 func TestNewLimiter(t *testing.T) {
 	t.Run("limit pass", func(t *testing.T) {
 		fn := NewLimiter(LimiterConfig{
 			Max: 1,
+		})(func(c echo.Context) error {
+			return nil
 		})
-		ctx := util.NewContext(nil, nil)
-		fn(ctx)
+		e := echo.New()
+		c := e.NewContext(nil, nil)
+		err := fn(c)
+		if err != nil {
+			t.Fatalf("pass limiter fail, %v", err)
+		}
 	})
 
 	t.Run("over limit", func(t *testing.T) {
 		global.StartApplication()
 		fn := NewLimiter(LimiterConfig{
 			Max: 0,
+		})(func(c echo.Context) error {
+			return nil
 		})
-		ctx := util.NewResContext()
-		fn(ctx)
+		e := echo.New()
+		c := e.NewContext(nil, nil)
+		err := fn(c)
+		if err == nil || err.(*xerror.HTTPError) != errTooManyRequest {
+			t.Fatalf("should return error over limit")
+		}
+
 		if global.IsApplicationRunning() {
 			t.Fatalf("the application should be paused after over limit")
-		}
-		errData := util.GetBody(ctx).(iris.Map)
-		if ctx.GetStatusCode() != http.StatusTooManyRequests ||
-			errData["message"].(string) != "too many request" {
-			t.Fatalf("the respons error should be too many request")
 		}
 	})
 }

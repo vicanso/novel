@@ -1,11 +1,13 @@
 package global
 
+// 全局使用的缓存配置，可用于缓存一些全局信息
+
 import (
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/hashicorp/golang-lru"
-	"github.com/vicanso/novel/util"
 )
 
 const (
@@ -35,6 +37,10 @@ func init() {
 		panic(err)
 	}
 	lruCache = l
+}
+
+func now() string {
+	return time.Now().Format(time.RFC3339)
 }
 
 // SaveConnectingCount save the current connecting count
@@ -102,7 +108,7 @@ func Remove(key interface{}) {
 
 // InitRouteCounter init route counter
 func InitRouteCounter(routeInfos []map[string]string) {
-	routeCounter.CreatedAt = util.GetNow()
+	routeCounter.CreatedAt = now()
 	routeCounter.Counts = make(map[string]*uint32)
 	counts := routeCounter.Counts
 	for _, info := range routeInfos {
@@ -114,6 +120,9 @@ func InitRouteCounter(routeInfos []map[string]string) {
 
 // AddRouteCount add the route's count
 func AddRouteCount(method, path string) {
+	if method == "" || path == "" {
+		return
+	}
 	key := method + " " + path
 	v := routeCounter.Counts[key]
 	if v == nil {
@@ -127,7 +136,7 @@ func ResetRouteCount() {
 	for _, v := range routeCounter.Counts {
 		atomic.StoreUint32(v, 0)
 	}
-	routeCounter.CreatedAt = util.GetNow()
+	routeCounter.CreatedAt = now()
 }
 
 // GetRouteCount get the route count

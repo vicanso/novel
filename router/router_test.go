@@ -4,50 +4,38 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/kataras/iris"
-	"github.com/vicanso/novel/global"
-	"github.com/vicanso/novel/util"
+	"github.com/labstack/echo"
 )
 
-func TestPing(t *testing.T) {
-	r := routerList[0]
-	if r.Path != "/ping" {
-		t.Fatalf("should add ping route for health check")
-	}
-	global.PauseApplication()
-	ctx := util.NewResContext()
-	r.Handlers[0](ctx)
-	if ctx.GetStatusCode() != http.StatusServiceUnavailable {
-		t.Fatalf("should return service unavailable")
-	}
-	global.StartApplication()
-	ctx = util.NewResContext()
-	r.Handlers[0](ctx)
-	if ctx.GetStatusCode() != http.StatusOK {
-		t.Fatalf("should be ok after application running")
-	}
-}
 func TestAdd(t *testing.T) {
-
-	fn := func(ctx iris.Context) {
+	fn := func(c echo.Context) error {
+		return nil
 	}
 	testPath := "/test-path"
 	Add(http.MethodGet, testPath, fn)
 	r := routerList[1]
-	if r.Method != http.MethodGet || r.Path != testPath || len(r.Handlers) != 1 {
+	if r.Method != http.MethodGet ||
+		r.Path != testPath ||
+		len(r.Mids) != 0 {
 		t.Fatalf("add router fail")
 	}
 }
 
 func TestGroup(t *testing.T) {
-	isLogin := func(ctx iris.Context) {
+	isLogin := func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			return nil
+		}
 	}
 	g := NewGroup("/users", isLogin)
-	getUserOrders := func(ctx iris.Context) {
+	getUserOrders := func(c echo.Context) error {
+		return nil
 	}
 	g.Add(http.MethodGet, "/me/orders", getUserOrders)
 	r := routerList[2]
-	if r.Method != http.MethodGet || r.Path != "/users/me/orders" || len(r.Handlers) != 2 {
+	if r.Method != http.MethodGet ||
+		r.Path != "/users/me/orders" ||
+		len(r.Mids) != 1 {
 		t.Fatalf("add group router fail")
 	}
 }

@@ -1,15 +1,11 @@
 package cs
 
 const (
-	// SessionAccountField session account field
-	SessionAccountField = "account"
-	// SessionLoginedAtField session logined at filed
-	SessionLoginedAtField = "loginedAt"
-	// SessionRolesField session roles fields
-	SessionRolesField = "roles"
 
 	// HeaderCacheControl cache-control header
 	HeaderCacheControl = "Cache-Control"
+	// HeaderNoCache no cache response's header
+	HeaderNoCache = "no-cache, max-age=0"
 	// HeaderETag etag header
 	HeaderETag = "ETag"
 	// HeaderIfNoneMatch if none match

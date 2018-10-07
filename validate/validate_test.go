@@ -1,7 +1,9 @@
-package util
+package validate
 
 import (
 	"testing"
+
+	"github.com/vicanso/novel/xerror"
 
 	"github.com/asaskevich/govalidator"
 )
@@ -14,6 +16,10 @@ type (
 		Age  int `json:"age,omitempty" valid:"xIntRange(0|100)"`
 		Type int `json:"type,omitempty" valid:"xIntIn(1|5|10)"`
 	}
+	params struct {
+		// Account account
+		Account string `json:"account" valid:"ascii,runelength(4|10)"`
+	}
 )
 
 func TestValidate(t *testing.T) {
@@ -23,7 +29,7 @@ func TestValidate(t *testing.T) {
 			"type": 1
 		}`)
 		s := &validateStruct{}
-		err := Validate(s, buf)
+		err := Do(s, buf)
 		if err != nil {
 			t.Fatalf("default custom valid fail, %v", err)
 		}
@@ -32,7 +38,7 @@ func TestValidate(t *testing.T) {
 	t.Run("validate fail", func(t *testing.T) {
 		p := &params{}
 		buf := []byte(`{"account":"abd"}`)
-		err := Validate(p, buf)
+		err := Do(p, buf)
 		if err == nil {
 			t.Fatalf("validate should be fail")
 		}
@@ -40,9 +46,9 @@ func TestValidate(t *testing.T) {
 	t.Run("validate fail with not json buffer", func(t *testing.T) {
 		p := &params{}
 		buf := []byte(`{"account":"vicanso}`)
-		err := Validate(p, buf)
-		he := err.(*HTTPError)
-		if he.Category != ErrCategoryJSON {
+		err := Do(p, buf)
+		he := err.(*xerror.HTTPError)
+		if he.Category != xerror.ErrCategoryJSON {
 			t.Fatalf("validate should be json fail")
 		}
 	})
@@ -51,12 +57,12 @@ func TestValidate(t *testing.T) {
 		p := &params{}
 		account := "vicanso"
 		buf := []byte(`{"account":"vicanso"}`)
-		err := Validate(p, buf)
+		err := Do(p, buf)
 		if err != nil || p.Account != account {
 			t.Fatalf("validate fail, %v", err)
 		}
 		tmp := &params{}
-		err = Validate(tmp, p)
+		err = Do(tmp, p)
 		if err != nil || tmp.Account != account {
 			t.Fatalf("validate fail, %v", err)
 		}
@@ -64,17 +70,17 @@ func TestValidate(t *testing.T) {
 
 	t.Run("custom validate", func(t *testing.T) {
 
-		AddRegexValidate("xMyValidate", "^xMyValidate\\((\\d+)\\|(\\d+)\\)$", func(value string, params ...string) bool {
+		AddRegex("xMyValidate", "^xMyValidate\\((\\d+)\\|(\\d+)\\)$", func(value string, params ...string) bool {
 			return govalidator.InRangeInt(value, params[0], params[1])
 		})
 		s := &customValidate{}
-		err := Validate(s, []byte(`{
+		err := Do(s, []byte(`{
 			"age": 10
 		}`))
 		if err != nil {
 			t.Fatalf("add regexp validate fail, %v", err)
 		}
-		err = Validate(s, []byte(`{
+		err = Do(s, []byte(`{
 			"age": 11
 		}`))
 		if err == nil {

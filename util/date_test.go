@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-func TestGetNow(t *testing.T) {
-	now := GetNow()
+func TestNow(t *testing.T) {
+	now := Now()
 	current := time.Now()
 	_, z := current.Zone()
 	size := 25
@@ -19,8 +19,8 @@ func TestGetNow(t *testing.T) {
 	}
 }
 
-func TestGetUTCNow(t *testing.T) {
-	now := GetUTCNow()
+func TestUTCNow(t *testing.T) {
+	now := UTCNow()
 	if len(now) != 20 {
 		t.Fatalf("get utc now fail")
 	}

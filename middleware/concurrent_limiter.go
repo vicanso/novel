@@ -1,12 +1,24 @@
 package middleware
 
 import (
+	"net/http"
 	"strings"
 	"time"
 
-	"github.com/kataras/iris"
+	"github.com/vicanso/novel/xerror"
+
+	"github.com/labstack/echo"
+	"github.com/vicanso/novel/context"
 	"github.com/vicanso/novel/service"
-	"github.com/vicanso/novel/util"
+)
+
+var (
+	// submit too frequently
+	errSubmitTooFrequently = &xerror.HTTPError{
+		StatusCode: http.StatusBadRequest,
+		Category:   xerror.ErrCategoryValidte,
+		Message:    "submit too frequently",
+	}
 )
 
 type (
@@ -21,6 +33,7 @@ type (
 	// ConcurrentKeyInfo the concurrent key's info
 	ConcurrentKeyInfo struct {
 		Name   string
+		Params bool
 		Query  bool
 		Header bool
 		Body   bool
@@ -28,10 +41,11 @@ type (
 	}
 )
 
-// NewConcurrentLimiter 并发请求限制中间件
-func NewConcurrentLimiter(conf ConcurrentLimiterConfig) iris.Handler {
+// NewConcurrentLimiter create a concurrent limitter middleware
+func NewConcurrentLimiter(config ConcurrentLimiterConfig) echo.MiddlewareFunc {
 	keys := make([]*ConcurrentKeyInfo, 0)
-	for _, key := range conf.Keys {
+	// 根据配置生成key的处理
+	for _, key := range config.Keys {
 		if key == ":ip" {
 			keys = append(keys, &ConcurrentKeyInfo{
 				IP: true,
@@ -52,43 +66,58 @@ func NewConcurrentLimiter(conf ConcurrentLimiterConfig) iris.Handler {
 			})
 			continue
 		}
+		if strings.HasPrefix(key, "p:") {
+			keys = append(keys, &ConcurrentKeyInfo{
+				Name:   key[2:],
+				Params: true,
+			})
+			continue
+		}
 		keys = append(keys, &ConcurrentKeyInfo{
 			Name: key,
 			Body: true,
 		})
 	}
-	return func(ctx iris.Context) {
-		values := make([]string, len(keys)+1)
-		values[0] = conf.Category
-		for i, key := range keys {
-			v := ""
-			name := key.Name
-			if key.IP {
-				v = ctx.RemoteAddr()
-			} else if key.Header {
-				v = ctx.GetHeader(name)
-			} else if key.Query {
-				query := util.GetRequestQuery(ctx)
-				v = query[name]
-			} else {
-				body := util.GetRequestBody(ctx)
-				v = json.Get(body, name).ToString()
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) (err error) {
+			values := make([]string, len(keys)+1)
+			values[0] = config.Category
+			req := c.Request()
+			// 获取lock的key
+			for i, key := range keys {
+				v := ""
+				name := key.Name
+				if key.IP {
+					v = c.RealIP()
+				} else if key.Header {
+					v = req.Header.Get(name)
+				} else if key.Query {
+					query := context.GetRequestQuery(c)
+					v = query[name]
+				} else if key.Params {
+					v = c.Param(name)
+				} else {
+					body := context.GetRequestBody(c)
+					v = json.Get(body, name).ToString()
+				}
+				values[i+1] = v
 			}
-			values[i+1] = v
+			lockKey := strings.Join(values, ",")
+			// 判断是否可以lock成功
+			success, done, err := service.LockWithDone(lockKey, config.TTL)
+			if err != nil {
+				return
+			}
+			// 如果lock失败，则出错
+			if !success {
+				err = errSubmitTooFrequently
+				return
+			}
+			// 如果设置了完成后重置锁，则重置
+			if config.Reset {
+				defer done()
+			}
+			return next(c)
 		}
-		lockKey := strings.Join(values, ",")
-		success, done, err := service.LockWithDone(lockKey, conf.TTL)
-		if err != nil {
-			resErr(ctx, err)
-			return
-		}
-		if !success {
-			resErr(ctx, util.ErrSubmitTooFrequently)
-			return
-		}
-		if conf.Reset {
-			defer done()
-		}
-		ctx.Next()
 	}
 }

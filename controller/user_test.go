@@ -2,35 +2,44 @@ package controller
 
 import (
 	"encoding/base64"
-	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"github.com/kataras/iris"
+	"github.com/vicanso/novel/xerror"
 
 	"github.com/vicanso/novel/config"
-	"github.com/vicanso/novel/model"
+	"github.com/vicanso/novel/context"
+	"github.com/vicanso/novel/service"
 	"github.com/vicanso/novel/util"
 	"github.com/vicanso/session"
+
+	"github.com/labstack/echo"
 )
 
 func TestUserCtrl(t *testing.T) {
+	e := echo.New()
 	ctrl := UserCtrl{}
 	cookies := []string{}
 	account := util.RandomString(10)
 	password := util.Sha1(config.GetString("app") + "123456")
-	t.Run("getInfo", func(t *testing.T) {
+	t.Run("get info", func(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/users/v1/me", nil)
 		w := httptest.NewRecorder()
+		c := e.NewContext(r, w)
 		sess := &session.Session{}
-		ctx := util.NewContext(w, r)
-		util.SetSession(ctx, sess)
-		ctrl.getInfo(ctx)
-
-		cookies = ctx.ResponseWriter().Header()["Set-Cookie"]
-		userInfo := util.GetBody(ctx).(*UserInfoRes)
+		us := &service.UserSession{
+			Sess: sess,
+		}
+		context.SetUserSession(c, us)
+		err := ctrl.getInfo(c)
+		if err != nil {
+			t.Fatalf("get info fail, %v", err)
+		}
+		cookies = c.Response().Header()["Set-Cookie"]
+		userInfo := context.GetBody(c).(*UserInfoRes)
 		if !userInfo.Anonymous {
 			t.Fatalf("user info should be anonymous")
 		}
@@ -40,24 +49,28 @@ func TestUserCtrl(t *testing.T) {
 		}
 	})
 
-	t.Run("getAvatar", func(t *testing.T) {
-		ctx := util.NewResContext()
-		ctrl.getAvatar(ctx)
-		if !strings.HasPrefix(ctx.GetContentType(), "image/jpeg") {
-			t.Fatalf("the content type should be jpeg")
+	t.Run("get avatar", func(t *testing.T) {
+		w := httptest.NewRecorder()
+		c := e.NewContext(nil, w)
+		err := ctrl.getAvatar(c)
+		if err != nil {
+			t.Fatalf("get avatar fail, %v", err)
 		}
-		buf := util.GetBody(ctx).([]byte)
-
+		buf := context.GetBody(c).([]byte)
 		if base64.StdEncoding.EncodeToString(buf) != avatar {
-			t.Fatalf("the content is wrong")
+			t.Fatalf("the avatar content is wrong")
 		}
 	})
 
-	t.Run("getLoginToken", func(t *testing.T) {
+	t.Run("get login token", func(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/users/v1/me/token", nil)
 		w := httptest.NewRecorder()
+		c := e.NewContext(r, w)
 		sess := &session.Session{}
-		ctx := util.NewContext(w, r)
+		us := &service.UserSession{
+			Sess: sess,
+		}
+		context.SetUserSession(c, us)
 		for _, v := range cookies {
 			arr := strings.Split(v, ";")
 			arr = strings.Split(arr[0], "=")
@@ -66,54 +79,66 @@ func TestUserCtrl(t *testing.T) {
 				Value: arr[1],
 			})
 		}
-		util.SetSession(ctx, sess)
-		ctrl.getLoginToken(ctx)
-		data := util.GetBody(ctx).(iris.Map)
-		if len(data["token"].(string)) != 8 {
+		err := ctrl.getLoginToken(c)
+		if err != nil {
+			t.Fatalf("get login token fail, %v", err)
+		}
+		data := context.GetBody(c).(map[string]string)
+		if len(data["token"]) != loginTokenLength {
 			t.Fatalf("get login token fail")
 		}
 	})
 
 	t.Run("register", func(t *testing.T) {
+
+		r := httptest.NewRequest(http.MethodPost, "http://127.0.0.1/users/v1/me", nil)
+		w := httptest.NewRecorder()
+		c := e.NewContext(r, w)
+		sess := session.Mock(session.M{
+			"fetched": true,
+			"data":    session.M{},
+		})
+		us := &service.UserSession{
+			Sess: sess,
+		}
+		context.SetUserSession(c, us)
+		context.SetRequestBody(c, []byte("{}"))
+		err := ctrl.register(c)
+		if err == nil {
+			t.Fatalf("validte should fail")
+		}
+		he := err.(*xerror.HTTPError)
+		if he.Category != xerror.ErrCategoryValidte {
+			t.Fatalf("should be validate fail error")
+		}
+
 		m := map[string]string{
 			"account":  account,
 			"password": password,
 		}
 		buf, _ := json.Marshal(m)
-		r := httptest.NewRequest(http.MethodPost, "http://127.0.0.1/users/v1/me", nil)
-		w := httptest.NewRecorder()
-		sess := session.Mock(session.M{
-			"fetched": true,
-			"data":    session.M{},
-		})
-
-		ctx := util.NewContext(w, r)
-		util.SetRequestBody(ctx, []byte("{}"))
-		util.SetSession(ctx, sess)
-		ctrl.register(ctx)
-		if ctx.GetStatusCode() != http.StatusBadRequest {
-			t.Fatalf("use bad params, register should fail")
+		context.SetRequestBody(c, buf)
+		err = ctrl.register(c)
+		if err != nil {
+			t.Fatalf("register fail, %v", err)
 		}
-
-		ctx = util.NewContext(w, r)
-		util.SetRequestBody(ctx, buf)
-		util.SetSession(ctx, sess)
-		ctrl.register(ctx)
-		if ctx.GetStatusCode() != http.StatusCreated {
-			t.Fatalf("register fail, %v", util.GetBody(ctx))
+		if context.GetStatus(c) != 201 {
+			t.Fatalf("status should be 201")
 		}
 	})
 
-	t.Run("login param invalid", func(t *testing.T) {
+	t.Run("login params invalid", func(t *testing.T) {
 		r := httptest.NewRequest(http.MethodPost, "http://127.0.0.1/users/v1/me/login", nil)
 		w := httptest.NewRecorder()
-
-		ctx := util.NewContext(w, r)
-		util.SetRequestBody(ctx, []byte("{}"))
-		ctrl.doLogin(ctx)
-		errData := util.GetBody(ctx).(iris.Map)
-		if ctx.GetStatusCode() != http.StatusBadRequest || errData["category"] != util.ErrCategoryValidate {
-			t.Fatalf("login params should be invalid")
+		c := e.NewContext(r, w)
+		context.SetRequestBody(c, []byte("{}"))
+		err := ctrl.doLogin(c)
+		if err == nil {
+			t.Fatalf("validte should fail")
+		}
+		he := err.(*xerror.HTTPError)
+		if he.Category != xerror.ErrCategoryValidte {
+			t.Fatalf("should be validate fail error")
 		}
 	})
 
@@ -121,16 +146,19 @@ func TestUserCtrl(t *testing.T) {
 		r := httptest.NewRequest(http.MethodPost, "http://127.0.0.1/users/v1/me/login", nil)
 		w := httptest.NewRecorder()
 
-		ctx := util.NewContext(w, r)
+		c := e.NewContext(r, w)
 		sess := session.Mock(session.M{
 			"fetched": true,
 			"data":    session.M{},
 		})
-		util.SetRequestBody(ctx, []byte(`{
+		us := &service.UserSession{
+			Sess: sess,
+		}
+		context.SetUserSession(c, us)
+		context.SetRequestBody(c, []byte(`{
 			"account": "vicanso",
 			"password": "12341234"
 		}`))
-		util.SetSession(ctx, sess)
 		for _, v := range cookies {
 			arr := strings.Split(v, ";")
 			arr = strings.Split(arr[0], "=")
@@ -139,12 +167,13 @@ func TestUserCtrl(t *testing.T) {
 				Value: arr[1],
 			})
 		}
-
-		ctrl.doLogin(ctx)
-		errData := util.GetBody(ctx).(iris.Map)
-		if ctx.GetStatusCode() != http.StatusBadRequest ||
-			errData["message"] != "login token can not be nil" {
-			t.Fatalf("no login token should return error")
+		err := ctrl.doLogin(c)
+		if err == nil {
+			t.Fatalf("should be fail when login token nil")
+		}
+		he := err.(*xerror.HTTPError)
+		if he != errLoginTokenNil {
+			t.Fatalf("the error should be login token nil")
 		}
 	})
 
@@ -152,17 +181,19 @@ func TestUserCtrl(t *testing.T) {
 		r := httptest.NewRequest(http.MethodPost, "http://127.0.0.1/users/v1/me/login", nil)
 		w := httptest.NewRecorder()
 
-		ctx := util.NewContext(w, r)
+		c := e.NewContext(r, w)
 		sess := session.Mock(session.M{
 			"fetched": true,
 			"data":    session.M{},
 		})
-		util.SetRequestBody(ctx, []byte(`{
+		us := service.NewUserSession(sess)
+		context.SetUserSession(c, us)
+		context.SetRequestBody(c, []byte(`{
 			"account": "xxxxxxxx",
 			"password": "12341234"
 		}`))
-		util.SetSession(ctx, sess)
-		sess.Set(loginTokenKey, util.RandomString(8))
+		us.SetLoginToken(util.RandomString(loginTokenLength))
+
 		for _, v := range cookies {
 			arr := strings.Split(v, ";")
 			arr = strings.Split(arr[0], "=")
@@ -172,23 +203,27 @@ func TestUserCtrl(t *testing.T) {
 			})
 		}
 
-		ctrl.doLogin(ctx)
-		errData := util.GetBody(ctx).(iris.Map)
-		if ctx.GetStatusCode() != http.StatusBadRequest ||
-			errData["message"] != "account or password is wrong" {
-			t.Fatalf("login not exists account should return error")
+		err := ctrl.doLogin(c)
+		if err == nil {
+			t.Fatalf("should be fail when account is not exists")
+		}
+		he := err.(*xerror.HTTPError)
+		if he.Category != xerror.ErrCategoryUser {
+			t.Fatalf("the error category should be user")
 		}
 
-		util.SetRequestBody(ctx, []byte(`{
+		context.SetRequestBody(c, []byte(`{
 			"account": "`+account+`",
 			"password": "12341234"
 		}`))
 
-		ctrl.doLogin(ctx)
-		errData = util.GetBody(ctx).(iris.Map)
-		if ctx.GetStatusCode() != http.StatusBadRequest ||
-			errData["message"] != "account or password is wrong" {
-			t.Fatalf("login not exists account should return error")
+		err = ctrl.doLogin(c)
+		if err == nil {
+			t.Fatalf("should be fail when password is wrong")
+		}
+		he = err.(*xerror.HTTPError)
+		if he.Category != xerror.ErrCategoryUser {
+			t.Fatalf("the error category should be user")
 		}
 	})
 
@@ -196,18 +231,21 @@ func TestUserCtrl(t *testing.T) {
 		r := httptest.NewRequest(http.MethodPost, "http://127.0.0.1/users/v1/me/login", nil)
 		w := httptest.NewRecorder()
 
-		ctx := util.NewContext(w, r)
+		c := e.NewContext(r, w)
 		sess := session.Mock(session.M{
 			"fetched": true,
 			"data":    session.M{},
 		})
-		token := util.RandomString(8)
-		util.SetRequestBody(ctx, []byte(`{
+		us := service.NewUserSession(sess)
+		token := util.RandomString(loginTokenLength)
+		us.SetLoginToken(token)
+		context.SetUserSession(c, us)
+
+		context.SetRequestBody(c, []byte(`{
 			"account": "`+account+`",
 			"password": "`+util.Sha1(token+password)+`"
 		}`))
-		util.SetSession(ctx, sess)
-		sess.Set(loginTokenKey, token)
+
 		for _, v := range cookies {
 			arr := strings.Split(v, ";")
 			arr = strings.Split(arr[0], "=")
@@ -217,75 +255,45 @@ func TestUserCtrl(t *testing.T) {
 			})
 		}
 
-		ctrl.doLogin(ctx)
-		data := util.GetBody(ctx).(*UserInfoRes)
-		if data.Account != account {
+		err := ctrl.doLogin(c)
+		if err != nil {
+			t.Fatalf("login fail, %v", err)
+		}
+
+		userInfo := context.GetBody(c).(*UserInfoRes)
+		if userInfo.Anonymous || userInfo.Account != account {
 			t.Fatalf("login fail")
 		}
 
-		ctrl.doLogout(ctx)
-		data = util.GetBody(ctx).(*UserInfoRes)
-		if !data.Anonymous {
+		// 退出登录
+		w = httptest.NewRecorder()
+		c = e.NewContext(r, w)
+		context.SetUserSession(c, us)
+		err = ctrl.doLogout(c)
+		if err != nil {
+			t.Fatalf("logout fail, %v", err)
+		}
+		userInfo = context.GetBody(c).(*UserInfoRes)
+		if !userInfo.Anonymous || userInfo.Account != "" {
 			t.Fatalf("logout fail")
 		}
 	})
 
 	t.Run("refresh", func(t *testing.T) {
-		ctx := util.NewResContext()
+		c := e.NewContext(nil, nil)
 		sess := session.Mock(session.M{
 			"fetched": true,
 			"data":    session.M{},
 		})
-		util.SetSession(ctx, sess)
-		ctrl.refresh(ctx)
-		if ctx.GetStatusCode() != http.StatusNoContent {
-			t.Fatalf("http status should be 204")
+		us := service.NewUserSession(sess)
+		fmt.Println(us.GetUpdatedAt())
+		context.SetUserSession(c, us)
+		err := ctrl.refresh(c)
+		if err != nil {
+			t.Fatalf("refresh fail, %v", err)
 		}
-		if sess.GetUpdatedAt() == "" {
+		if us.GetUpdatedAt() == "" {
 			t.Fatalf("the updated at should not be empty")
-		}
-	})
-
-	t.Run("update roles", func(t *testing.T) {
-		ctx := util.NewResContext()
-		ctx.Params().Set("account", account)
-		util.SetRequestBody(ctx, []byte(`{
-			"role": "admin",
-			"type": "add"
-		}`))
-		ctrl.updateRoles(ctx)
-		if ctx.GetStatusCode() != http.StatusNoContent {
-			t.Fatalf("update role fail")
-		}
-		u := model.User{
-			Account: account,
-		}
-		err := u.First()
-		if err != nil {
-			t.Fatalf("get user fail, %v", err)
-		}
-		roles := strings.Join(u.Roles, ",")
-		if !strings.Contains(roles, "admin") {
-			t.Fatalf("add roles fail")
-		}
-		util.SetRequestBody(ctx, []byte(`{
-			"role": "admin",
-			"type": "remove"
-		}`))
-		ctrl.updateRoles(ctx)
-		if ctx.GetStatusCode() != http.StatusNoContent {
-			t.Fatalf("update role fail")
-		}
-		u = model.User{
-			Account: account,
-		}
-		err = u.First()
-		if err != nil {
-			t.Fatalf("get user fail, %v", err)
-		}
-		roles = strings.Join(u.Roles, ",")
-		if strings.Contains(roles, "admin") {
-			t.Fatalf("remove role fail")
 		}
 	})
 }

@@ -2,21 +2,20 @@ package controller
 
 import (
 	"strconv"
+	"time"
 
-	"go.uber.org/zap"
-
-	"github.com/kataras/iris"
+	"github.com/labstack/echo"
 	"github.com/vicanso/novel/cs"
 	"github.com/vicanso/novel/middleware"
-	"github.com/vicanso/novel/model"
 	"github.com/vicanso/novel/router"
 	"github.com/vicanso/novel/service"
+	"github.com/vicanso/novel/validate"
+	"go.uber.org/zap"
 )
 
 type (
 	// BookCtrl book controller
-	BookCtrl struct {
-	}
+	BookCtrl struct{}
 	// BookBatchAddParams params for book batch add
 	BookBatchAddParams struct {
 		Category string `valid:"in(xBiQuGe)"`
@@ -25,75 +24,69 @@ type (
 	}
 	// BookUpdateChaptersParams params for book update chapters
 	BookUpdateChaptersParams struct {
-		Author string `valid:"runelength(1|64)"`
-		Name   string `valid:"runelength(1|64)"`
-		Limit  int    `valid:"xIntRange(1|10)"`
-	}
-	// BookQueryOptionsParams params for the query
-	BookQueryOptionsParams struct {
-		Limit  string `json:"limit,omitempty" valid:"range(1|20)"`
-		Offset string `json:"offset,omitempty" valid:"numeric"`
-		Field  string `json:"field,omitempty" valid:"runelength(2|64)"`
-		Order  string `json:"order,omitempty" valid:"runelength(2|32)"`
+		Limit int `valid:"xIntRange(1|10)"`
 	}
 )
 
 func init() {
-	ctrl := BookCtrl{}
 	books := router.NewGroup("/books")
-	// 书籍查询
+	ctrl := BookCtrl{}
+	isSu := middleware.IsSu
+
 	books.Add(
 		"GET",
 		"/v1",
 		ctrl.list,
 	)
-	// 章节查询
-	books.Add(
-		"GET",
-		"/v1/:book/chapters",
-		ctrl.listChapter,
-	)
 
-	// 更新封面
-	books.Add(
-		"PATCH",
-		"/v1/:book/cover",
-		ctrl.updateCover,
-	)
-
-	// 批量新增
 	books.Add(
 		"POST",
 		"/v1/batch-add",
-		newDefaultTracker(cs.ActionBookBatchAdd, nil),
-		middleware.Session,
-		middleware.IsSu,
 		ctrl.batchAdd,
+		createTracker(cs.ActionBookBatchAdd),
+		userSession,
+		isSu,
 	)
-	// 更新章节
+
 	books.Add(
 		"PATCH",
-		"/v1/chapters",
-		newDefaultTracker(cs.ActionBookUpdateChapters, nil),
-		middleware.Session,
-		middleware.IsSu,
+		"/v1/:id/chapters",
 		ctrl.updateChapters,
+		createTracker(cs.ActionBookUpdateChapters),
+		userSession,
+		isSu,
+		middleware.NewConcurrentLimiter(middleware.ConcurrentLimiterConfig{
+			Category: cs.ActionBookUpdateChapters,
+			Keys: []string{
+				"p:id",
+			},
+			// 只允许5分钟执行一点主动更新
+			TTL: 300 * time.Second,
+		}),
 	)
+
+	books.Add(
+		"PATCH",
+		"/v1/:id/cover",
+		ctrl.updateCover,
+		userSession,
+		isSu,
+	)
+
 }
 
-// batchAdd 批量添加
-func (c *BookCtrl) batchAdd(ctx iris.Context) {
+// batchAdd batch add books
+func (bc *BookCtrl) batchAdd(c echo.Context) (err error) {
 	params := &BookBatchAddParams{}
-	err := validate(params, getRequestBody(ctx))
+	err = validate.Do(params, getRequestBody(c))
 	if err != nil {
-		resErr(ctx, err)
 		return
 	}
+	logger := getContextLogger(c)
 	go func() {
 		start := params.Start
 		end := params.End
 		category := params.Category
-		userLogger := getUserLogger(ctx)
 		if start >= end {
 			return
 		}
@@ -103,124 +96,66 @@ func (c *BookCtrl) batchAdd(ctx iris.Context) {
 			wait <- true
 			id := i
 			go func() {
-				service.AddBook(category, id)
+				bookService.Add(category, id)
 				<-wait
 			}()
 		}
-		userLogger.Info("batch add books done",
+		logger.Info("batch add books done",
 			zap.Int("start", start),
 			zap.Int("end", end),
 		)
 	}()
-	resNoContent(ctx)
+	return
 }
 
-// updateChapters update chapters
-func (c *BookCtrl) updateChapters(ctx iris.Context) {
+// updateChapters update the latest book's chapters
+func (bc *BookCtrl) updateChapters(c echo.Context) (err error) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return
+	}
 	params := &BookUpdateChaptersParams{}
-	err := validate(params, getRequestBody(ctx))
+	err = validate.Do(params, getRequestBody(c))
 	if err != nil {
-		resErr(ctx, err)
 		return
 	}
-	service.UpdateBookChapter(params.Author, params.Name, params.Limit)
+	err = bookService.UpdateChapters(id, params.Limit)
+	return
 }
 
-func getQueryOptions(ctx iris.Context) (opts *model.QueryOptions, err error) {
-	params := &BookQueryOptionsParams{}
-	err = validate(params, getRequestQuery(ctx))
+// updateCover update book's cover
+func (bc *BookCtrl) updateCover(c echo.Context) (err error) {
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return
 	}
-	limit, _ := strconv.Atoi(params.Limit)
-	offset, _ := strconv.Atoi(params.Offset)
-	opts = &model.QueryOptions{
-		Limit:  limit,
-		Offset: offset,
-		Order:  params.Order,
-		Field:  params.Field,
-	}
+	err = bookService.UpdateCover(id)
 	return
 }
 
 // list list the book
-func (c *BookCtrl) list(ctx iris.Context) {
-	opts, err := getQueryOptions(ctx)
+func (bc *BookCtrl) list(c echo.Context) (err error) {
+	params := &service.BookQueryParams{}
+	err = validate.Do(params, getRequestQuery(c))
 	if err != nil {
-		resErr(ctx, err)
 		return
 	}
-
-	query := getRequestQuery(ctx)
-	q := query["q"]
-	if q != "" {
-		books, err := service.ListBookByKeyword(q, opts)
-		if err != nil {
-			resErr(ctx, err)
-			return
-		}
-		setCache(ctx, "1m")
-		res(ctx, map[string]interface{}{
-			"books": books,
-		})
-		return
-	}
-
-	conditions := model.Book{}
-	count, err := service.CountBook(conditions)
+	books, err := bookService.List(params)
 	if err != nil {
-		resErr(ctx, err)
 		return
 	}
-	books, err := service.ListBook(&conditions, opts)
-	if err != nil {
-		resErr(ctx, err)
-		return
-	}
-	setCache(ctx, "5m")
-	res(ctx, map[string]interface{}{
+	m := map[string]interface{}{
 		"books": books,
-		"count": count,
-	})
-}
-
-// listChapter list the chapter
-func (c *BookCtrl) listChapter(ctx iris.Context) {
-	opts, err := getQueryOptions(ctx)
-	if err != nil {
-		resErr(ctx, err)
-		return
 	}
-	bookID, err := ctx.Params().GetInt("book")
-	if err != nil {
-		resErr(ctx, err)
-		return
+	offset := params.Offset
+	if offset == "0" || offset == "" {
+		count, err := bookService.Count(params)
+		if err != nil {
+			return err
+		}
+		m["count"] = count
 	}
-	conditions := &model.Chapter{
-		BookID: uint(bookID),
-	}
-	chapters, err := service.ListBookChapters(conditions, opts)
-	if err != nil {
-		resErr(ctx, err)
-		return
-	}
-	setCache(ctx, "5m")
-	res(ctx, map[string]interface{}{
-		"chapters": chapters,
-	})
-}
-
-// updateCover update the cover
-func (c *BookCtrl) updateCover(ctx iris.Context) {
-	bookID, err := ctx.Params().GetInt("book")
-	if err != nil {
-		resErr(ctx, err)
-		return
-	}
-	err = service.UpdateBookCover(uint(bookID))
-	if err != nil {
-		resErr(ctx, err)
-		return
-	}
-	resNoContent(ctx)
+	setCache(c, "1m")
+	res(c, m)
+	return
 }

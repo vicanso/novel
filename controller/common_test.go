@@ -1,15 +1,16 @@
 package controller
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/kataras/iris"
+	"github.com/vicanso/novel/context"
+	"github.com/vicanso/novel/xerror"
+
+	"github.com/labstack/echo"
 
 	"github.com/h2non/gock"
-	"github.com/vicanso/novel/util"
 )
 
 func TestCommonCtrl(t *testing.T) {
@@ -18,14 +19,13 @@ func TestCommonCtrl(t *testing.T) {
 		defer gock.Off()
 		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/v1/ip-location?ip=abcd", nil)
 		w := httptest.NewRecorder()
-		ctx := util.NewContext(w, r)
-		ctrl.getLocationByIP(ctx)
-		data := util.GetBody(ctx).(iris.Map)
-		if data["category"] != util.ErrCategoryValidate {
-			t.Fatalf("the error category should be validate")
-		}
-		if ctx.GetStatusCode() != http.StatusBadRequest {
-			t.Fatalf("the request query should be invalid")
+		e := echo.New()
+		c := e.NewContext(r, w)
+		err := ctrl.getLocationByIP(c)
+		he := err.(*xerror.HTTPError)
+		if he.Category != xerror.ErrCategoryValidte ||
+			he.StatusCode != http.StatusBadRequest {
+			t.Fatalf("the error is invalid")
 		}
 
 		gock.New("http://ip.taobao.com").
@@ -34,14 +34,12 @@ func TestCommonCtrl(t *testing.T) {
 			BodyString("{}")
 		r = httptest.NewRequest(http.MethodGet, "http://127.0.0.1/v1/ip-location?ip=114.114.114.114", nil)
 		w = httptest.NewRecorder()
-		ctx = util.NewContext(w, r)
-		ctrl.getLocationByIP(ctx)
-		data = util.GetBody(ctx).(iris.Map)
-		if data["category"] != util.ErrCategoryRequset {
-			t.Fatalf("the error category should be request")
-		}
-		if ctx.GetStatusCode() != http.StatusInternalServerError {
-			t.Fatalf("the request response should be 500")
+		c = e.NewContext(r, w)
+		err = ctrl.getLocationByIP(c)
+		he = err.(*xerror.HTTPError)
+		if he.Category != xerror.ErrCategoryRequset ||
+			he.StatusCode != http.StatusInternalServerError {
+			t.Fatalf("the error is invalid")
 		}
 
 		gock.New("http://ip.taobao.com").
@@ -51,12 +49,14 @@ func TestCommonCtrl(t *testing.T) {
 
 		r = httptest.NewRequest(http.MethodGet, "http://127.0.0.1/v1/ip-location?ip=114.114.114.114", nil)
 		w = httptest.NewRecorder()
-		ctx = util.NewContext(w, r)
-		ctrl.getLocationByIP(ctx)
-		if ctx.GetStatusCode() != http.StatusOK {
-			t.Fatalf("get location fail")
+		c = e.NewContext(r, w)
+
+		err = ctrl.getLocationByIP(c)
+		if err != nil {
+			t.Fatalf("get location by ip fail, %v", err)
 		}
-		buf, err := json.Marshal(util.GetBody(ctx))
+
+		buf, err := json.Marshal(context.GetBody(c))
 		if err != nil {
 			t.Fatalf("response data is not json, %v", err)
 		}

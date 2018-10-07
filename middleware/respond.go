@@ -2,50 +2,80 @@ package middleware
 
 import (
 	"net/http"
-	"strconv"
 
-	"github.com/kataras/iris"
+	"github.com/labstack/echo"
+	"github.com/vicanso/novel/context"
 	"github.com/vicanso/novel/cs"
-	"github.com/vicanso/novel/util"
+	"github.com/vicanso/novel/xerror"
 	"go.uber.org/zap"
 )
 
-// NewRespond 新建响应处理
-func NewRespond() iris.Handler {
-	return func(ctx iris.Context) {
-		ctx.Next()
-		logger := util.GetContextLogger(ctx)
-		body := util.GetBody(ctx)
-		if body == nil {
-			return
-		}
-		// 对于>=400的错误记录出错数据
-		if ctx.GetStatusCode() >= http.StatusBadRequest {
-			logger.Error("request handle fail",
-				zap.String("uri", ctx.Request().RequestURI),
-				zap.Any("data", body),
-			)
-		}
-		var err error
-		contentType := ctx.GetContentType()
-		switch body.(type) {
-		case string:
-			_, err = ctx.WriteString(body.(string))
-		case []byte:
-			if contentType == "" {
-				ctx.ContentType(cs.ContentBinaryHeaderValue)
+type (
+	// RespondConfig the config of respond middleware
+	RespondConfig struct {
+	}
+)
+
+// NewRespond create a new entry middleware
+func NewRespond(config RespondConfig) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			logger := context.GetLogger(c)
+			err := next(c)
+			// 处理出错的响应
+			if err != nil {
+				he, ok := err.(*xerror.HTTPError)
+				if !ok {
+					he = &xerror.HTTPError{
+						StatusCode: http.StatusInternalServerError,
+						// 如果非http error认为非主动返回异常
+						Exception: true,
+						Message:   err.Error(),
+						Category:  xerror.ErrCategoryCommon,
+					}
+				}
+				status := he.StatusCode
+				if status == 0 {
+					status = http.StatusInternalServerError
+				}
+				buf, err := json.Marshal(he)
+				if err == nil {
+					err = c.JSONBlob(status, buf)
+				}
+				if err != nil {
+					logger.Error("c.JSON fail",
+						zap.Error(err),
+					)
+				}
+				return nil
 			}
-			buf := body.([]byte)
-			util.SetHeader(ctx, cs.HeaderContentLength, strconv.Itoa(len(buf)))
-			_, err = ctx.Write(buf)
-		default:
-			_, err = ctx.JSON(body)
-		}
-		if err != nil {
-			logger.Error("response fail",
-				zap.String("uri", ctx.Request().RequestURI),
-				zap.Error(err),
-			)
+			body := context.GetBody(c)
+			status := context.GetStatus(c)
+			if body == nil {
+				err = c.NoContent(status)
+			} else {
+				switch body.(type) {
+				case string:
+					err = c.String(status, body.(string))
+				case []byte:
+					contentType := context.GetContentType(c)
+					if contentType == "" {
+						contentType = cs.ContentBinaryHeaderValue
+					}
+					err = c.Blob(status, contentType, body.([]byte))
+				default:
+					buf, err := json.Marshal(body)
+					if err == nil {
+						err = c.JSONBlob(status, buf)
+					}
+				}
+			}
+			if err != nil {
+				logger.Error("c.JSON fail",
+					zap.Error(err),
+				)
+			}
+			return nil
 		}
 	}
 }

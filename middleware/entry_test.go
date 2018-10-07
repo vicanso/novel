@@ -1,21 +1,35 @@
 package middleware
 
 import (
-	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/vicanso/novel/util"
+	"github.com/labstack/echo"
+	"github.com/vicanso/novel/cs"
 )
 
 func TestNewEntry(t *testing.T) {
-	r := httptest.NewRequest(http.MethodGet, "http://aslant.site/", nil)
-	w := httptest.NewRecorder()
-	fn := NewEntry()
-	ctx := util.NewContext(w, r)
-	fn(ctx)
-	logger := util.GetContextLogger(ctx)
-	if logger == nil {
-		t.Fatalf("entry middle should create a user logger")
+	e := echo.New()
+	res := httptest.NewRecorder()
+	c := e.NewContext(nil, res)
+	k := "X-Token"
+	v := "a"
+	fn := NewEntry(EntryConfig{
+		Header: map[string]string{
+			k: v,
+		},
+	})(func(c echo.Context) error {
+		return nil
+	})
+	err := fn(c)
+	if err != nil {
+		t.Fatalf("entry middleware fail, %v", err)
+	}
+	header := c.Response().Header()
+	if header[k][0] != v {
+		t.Fatalf("set header fail")
+	}
+	if header[cs.HeaderCacheControl][0] != cs.HeaderNoCache {
+		t.Fatalf("set no cache fail")
 	}
 }

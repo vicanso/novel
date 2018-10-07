@@ -1,5 +1,8 @@
 package config
 
+// 系统相关配置，读取default.yml的相关配置为默认配置，
+// 再根据当前配置的GO_ENV读取对应的配置文件
+
 import (
 	"fmt"
 	"os"
@@ -9,16 +12,16 @@ import (
 	"github.com/spf13/viper"
 )
 
-// ENV 配置的环境变量
 var env = os.Getenv("GO_ENV")
 var configPath = os.Getenv("CONFIG")
 var viperInitTest = os.Getenv("VIPER_INIT_TEST")
 
-// 初始化配置
+// init viper config
 func viperInit(path string) error {
 	configType := "yml"
 	defaultPath := "."
 	v := viper.New()
+	// 从default中读取默认的配置
 	v.SetConfigName("default")
 	v.AddConfigPath(defaultPath)
 	v.AddConfigPath(path)
@@ -27,10 +30,13 @@ func viperInit(path string) error {
 	if err != nil {
 		return err
 	}
+
 	configs := v.AllSettings()
+	// 将default中的配置全部以默认配置写入
 	for k, v := range configs {
 		viper.SetDefault(k, v)
 	}
+	// 根据配置的env读取相应的配置信息
 	if env != "" {
 		viper.SetConfigName(env)
 		viper.AddConfigPath(defaultPath)
@@ -44,6 +50,7 @@ func viperInit(path string) error {
 	return nil
 }
 
+// set default config for test
 func setDefaultForTest() {
 	viper.Set("locationByIP", "http://ip.taobao.com/service/getIpInfo.php")
 	viper.Set("redis", "127.0.0.1:6379")
@@ -52,6 +59,7 @@ func setDefaultForTest() {
 }
 
 func init() {
+	// 如果设置为测试，则直接读测试的配置
 	if viperInitTest != "" {
 		setDefaultForTest()
 		return

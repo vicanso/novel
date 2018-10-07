@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/vicanso/novel/util"
-
-	"github.com/kataras/iris"
+	"github.com/labstack/echo"
+	"github.com/vicanso/novel/context"
+	"github.com/vicanso/novel/xerror"
 )
 
 const (
@@ -16,42 +16,50 @@ const (
 )
 
 type (
-	// JSONParserConfig config配置
+	// JSONParserConfig json parser middleware config
 	JSONParserConfig struct {
-		// 数据大小限制
 		Limit int
 	}
 )
 
-// NewJSONParser 创建新的json parser handler
-func NewJSONParser(conf JSONParserConfig) iris.Handler {
-	limit := defaultRequestJSONLimit
-	if conf.Limit != 0 {
-		limit = conf.Limit
+var (
+	// errJSONTooLarge too large error
+	errJSONTooLarge = &xerror.HTTPError{
+		StatusCode: http.StatusRequestEntityTooLarge,
+		Message:    "request post json too large",
+		Category:   xerror.ErrCategoryIO,
 	}
-	return func(ctx iris.Context) {
-		method := ctx.Method()
-		if method != http.MethodPost && method != http.MethodPatch && method != http.MethodPut {
-			ctx.Next()
-			return
-		}
-		req := ctx.Request()
-		contentType := req.Header.Get("Content-Type")
+)
 
-		if !strings.HasPrefix(contentType, "application/json") {
-			ctx.Next()
-			return
+// NewJSONParser create a new json parser middleware
+func NewJSONParser(config JSONParserConfig) echo.MiddlewareFunc {
+	limit := defaultRequestJSONLimit
+	if config.Limit != 0 {
+		limit = config.Limit
+	}
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) (err error) {
+			req := c.Request()
+			method := req.Method
+			if method != http.MethodPost && method != http.MethodPatch && method != http.MethodPut {
+				return next(c)
+			}
+			contentType := req.Header.Get("Content-Type")
+			// 非json则跳过
+			if !strings.HasPrefix(contentType, "application/json") {
+				return next(c)
+			}
+			body, err := ioutil.ReadAll(req.Body)
+			if err != nil {
+				err = xerror.NewIO(err.Error())
+				return
+			}
+			if limit != 0 && len(body) > limit {
+				err = errJSONTooLarge
+				return
+			}
+			context.SetRequestBody(c, body)
+			return next(c)
 		}
-		body, err := ioutil.ReadAll(req.Body)
-		if err != nil {
-			resErr(ctx, err)
-			return
-		}
-		if limit != 0 && len(body) > limit {
-			resErr(ctx, util.ErrRequestJSONTooLarge)
-			return
-		}
-		util.SetRequestBody(ctx, body)
-		ctx.Next()
 	}
 }
