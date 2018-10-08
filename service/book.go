@@ -3,8 +3,10 @@ package service
 import (
 	"encoding/base64"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/vicanso/novel-spider/mq"
 	"github.com/vicanso/novel-spider/novel"
 	"github.com/vicanso/novel/config"
@@ -28,14 +30,32 @@ type (
 	// Book book service struct
 	Book struct {
 	}
+	// ChapterCountResult chapter count's result
+	ChapterCountResult struct {
+		Total int
+	}
 
 	// BookQueryParams params for the query
 	BookQueryParams struct {
+		Limit    string `json:"limit,omitempty" valid:"range(1|20)"`
+		Offset   string `json:"offset,omitempty" valid:"numeric"`
+		Field    string `json:"field,omitempty" valid:"runelength(2|64)"`
+		Order    string `json:"order,omitempty" valid:"runelength(2|32)"`
+		Q        string `json:"q,omitempty" valid:"runelength(1|32),optional"`
+		Category string `json:"category,omitempty" valid:"runelength(2|8),optional"`
+	}
+	// BookUpdateParams params for update
+	BookUpdateParams struct {
+		Brief    string `json:"brief,omitempty" valid:"runelength(5|2000),optional"`
+		Status   int    `json:"status,omitempty" valid:"xIntIn(1|2),optional"`
+		Category string `json:"category,omitempty" valid:"runelength(2|32),optional"`
+	}
+	// BookChapterQueryParams params for the query
+	BookChapterQueryParams struct {
 		Limit  string `json:"limit,omitempty" valid:"range(1|20)"`
 		Offset string `json:"offset,omitempty" valid:"numeric"`
 		Field  string `json:"field,omitempty" valid:"runelength(2|64)"`
 		Order  string `json:"order,omitempty" valid:"runelength(2|32)"`
-		Q      string `json:"q,omitempty" valid:"runelength(1|32),optional"`
 	}
 )
 
@@ -137,6 +157,8 @@ func initReceiveChapterEvent(c *mq.MQ) (err error) {
 				zap.Int("index", c.Index),
 			)
 		}
+		bookService := &Book{}
+		bookService.UpdateWordCount(int(b.ID))
 	}
 	err = c.SubReceiveChapter(cb)
 	return
@@ -247,6 +269,23 @@ func (b *Book) UpdateCover(id int) (err error) {
 	return
 }
 
+// bookKeywordSearch the keyword search
+func bookKeywordSearch(client *gorm.DB, q string) *gorm.DB {
+	if q != "" {
+		client = client.Where("name LIKE ?", q).
+			Or("author LIKE ?", q)
+	}
+	return client
+}
+
+// bookCategorySearch the category search
+func bookCategorySearch(client *gorm.DB, category string) *gorm.DB {
+	if category != "" {
+		client = client.Where("? = ANY(category)", category)
+	}
+	return client
+}
+
 // List list the book
 func (b *Book) List(params *BookQueryParams) (books []*model.Book, err error) {
 	limit, _ := strconv.Atoi(params.Limit)
@@ -259,23 +298,99 @@ func (b *Book) List(params *BookQueryParams) (books []*model.Book, err error) {
 	}
 	books = make([]*model.Book, 0)
 	client := getClientByOptions(options, nil)
-	q := params.Q
-	if q != "" {
-		client = client.Where("name LIKE ?", q).
-			Or("author LIKE ?", q)
-	}
+	client = bookKeywordSearch(client, params.Q)
+	client = bookCategorySearch(client, params.Category)
 	err = client.Find(&books).Error
 	return
 }
 
 // Count count the book
 func (b *Book) Count(params *BookQueryParams) (count int, err error) {
-	q := params.Q
 	client := getClient().Model(&model.Book{})
-	if q != "" {
-		client = client.Where("name LIKE ?", q).
-			Or("author LIKE ?", q)
-	}
+	client = bookKeywordSearch(client, params.Q)
+	client = bookCategorySearch(client, params.Category)
 	err = client.Count(&count).Error
+	return
+}
+
+// GetInfo get the book's info
+func (b *Book) GetInfo(id int) (book *model.Book, err error) {
+	book = &model.Book{}
+	book.ID = uint(id)
+	err = getClient().Where(book).First(book).Error
+	return
+}
+
+// UpdateInfo update the book's info
+func (b *Book) UpdateInfo(id int, params *BookUpdateParams) (err error) {
+	book := &model.Book{}
+	book.ID = uint(id)
+	updateInfo := &model.Book{}
+	if params.Brief != "" {
+		updateInfo.Brief = params.Brief
+	}
+	if params.Category != "" {
+		updateInfo.Category = strings.Split(params.Category, ",")
+	}
+	if params.Status != 0 {
+		updateInfo.Status = params.Status
+	}
+	err = getClient().Model(book).Updates(updateInfo).Error
+	return
+}
+
+// UpdateWordCount update the book's word count
+func (b *Book) UpdateWordCount(id int) (err error) {
+	result := &ChapterCountResult{}
+	err = getClient().
+		Model(&model.Chapter{}).
+		Select("sum(word_count) as total").
+		Where(&model.Chapter{
+			BookID: uint(id),
+		}).
+		Scan(result).Error
+	if err != nil || result.Total == 0 {
+		return
+	}
+	book := &model.Book{}
+	book.ID = uint(id)
+	err = getClient().
+		Where(book).
+		First(book).Error
+	if err != nil || book.WordCount == result.Total {
+		return
+	}
+
+	err = getClient().Model(book).Updates(&model.Book{
+		WordCount: result.Total,
+	}).Error
+	return
+}
+
+// ListChapters list the book's chapters
+func (b *Book) ListChapters(bookID int, params *BookChapterQueryParams) (chapters []*model.Chapter, err error) {
+	limit, _ := strconv.Atoi(params.Limit)
+	offset, _ := strconv.Atoi(params.Offset)
+	options := &model.QueryOptions{
+		Limit:  limit,
+		Offset: offset,
+		Field:  params.Field,
+		Order:  params.Order,
+	}
+	chapters = make([]*model.Chapter, 0)
+	client := getClientByOptions(options, nil)
+	err = client.Where(&model.Chapter{
+		BookID: uint(bookID),
+	}).Find(&chapters).Error
+	return
+}
+
+// CountChapters count the book's chapters
+func (b *Book) CountChapters(bookID int) (count int, err error) {
+	err = getClient().
+		Model(&model.Chapter{}).
+		Where(&model.Chapter{
+			BookID: uint(bookID),
+		}).Count(&count).Error
 	return
 }

@@ -33,12 +33,31 @@ func init() {
 	ctrl := BookCtrl{}
 	isSu := middleware.IsSu
 
+	// list the books
 	books.Add(
 		"GET",
 		"/v1",
 		ctrl.list,
 	)
 
+	// get the book's info
+	books.Add(
+		"GET",
+		"/v1/:id",
+		ctrl.getInfo,
+	)
+
+	// update the book's info
+	books.Add(
+		"PATCH",
+		"/v1/:id",
+		ctrl.updateInfo,
+		createTracker(cs.ActionBookUpdateInfo),
+		userSession,
+		isSu,
+	)
+
+	// batch add books
 	books.Add(
 		"POST",
 		"/v1/batch-add",
@@ -48,6 +67,7 @@ func init() {
 		isSu,
 	)
 
+	// update the book's chapters
 	books.Add(
 		"PATCH",
 		"/v1/:id/chapters",
@@ -60,9 +80,16 @@ func init() {
 			Keys: []string{
 				"p:id",
 			},
-			// 只允许5分钟执行一点主动更新
+			// 只允许5分钟执行一次主动更新
 			TTL: 300 * time.Second,
 		}),
+	)
+
+	// list the book's chapters
+	books.Add(
+		"GET",
+		"/v1/:id/chapters",
+		ctrl.listChapaters,
 	)
 
 	books.Add(
@@ -156,6 +183,67 @@ func (bc *BookCtrl) list(c echo.Context) (err error) {
 		m["count"] = count
 	}
 	setCache(c, "1m")
+	res(c, m)
+	return
+}
+
+// get get the book's info
+func (bc *BookCtrl) getInfo(c echo.Context) (err error) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return
+	}
+	book, err := bookService.GetInfo(id)
+	if err != nil {
+		return
+	}
+	setCache(c, "10s")
+	res(c, map[string]interface{}{
+		"book": book,
+	})
+	return
+}
+
+// update update the book's info
+func (bc *BookCtrl) updateInfo(c echo.Context) (err error) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return
+	}
+	params := &service.BookUpdateParams{}
+	err = validate.Do(params, getRequestBody(c))
+	if err != nil {
+		return
+	}
+	err = bookService.UpdateInfo(id, params)
+	return
+}
+
+// listChapaters list the book's chapters
+func (bc *BookCtrl) listChapaters(c echo.Context) (err error) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return
+	}
+	params := &service.BookChapterQueryParams{}
+	err = validate.Do(params, getRequestQuery(c))
+	if err != nil {
+		return
+	}
+	chapters, err := bookService.ListChapters(id, params)
+	if err != nil {
+		return
+	}
+	m := make(map[string]interface{})
+	m["chapters"] = chapters
+	offset := params.Offset
+	if offset == "0" || offset == "" {
+		count, err := bookService.CountChapters(id)
+		if err != nil {
+			return err
+		}
+		m["count"] = count
+	}
 	res(c, m)
 	return
 }

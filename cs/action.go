@@ -14,4 +14,6 @@ const (
 	ActionBookBatchAdd = "book-batch-add"
 	// ActionBookUpdateChapters action book update chapters
 	ActionBookUpdateChapters = "book-update-chapters"
+	// ActionBookUpdateInfo action book update info
+	ActionBookUpdateInfo = "book-update-info"
 )
