@@ -24,6 +24,9 @@ var (
 
 const (
 	bookCoverCategory = "book-cover"
+	bookViewCount     = "view_count"
+	bookLikeCount     = "like_count"
+	bookWordCount     = "word_count"
 )
 
 type (
@@ -344,7 +347,7 @@ func (b *Book) UpdateWordCount(id int) (err error) {
 	result := &ChapterCountResult{}
 	err = getClient().
 		Model(&model.Chapter{}).
-		Select("sum(word_count) as total").
+		Select("sum(" + bookWordCount + ") as total").
 		Where(&model.Chapter{
 			BookID: uint(id),
 		}).
@@ -393,4 +396,24 @@ func (b *Book) CountChapters(bookID int) (count int, err error) {
 			BookID: uint(bookID),
 		}).Count(&count).Error
 	return
+}
+
+// incCount inc the count of book
+func (b *Book) incCount(id int, field string) (err error) {
+	book := &model.Book{}
+	book.ID = uint(id)
+	m := make(map[string]interface{})
+	m[field] = gorm.Expr(field + " + 1")
+	err = getClient().Model(book).Updates(m).Error
+	return
+}
+
+// Like like the book
+func (b *Book) Like(id int) (err error) {
+	return b.incCount(id, bookLikeCount)
+}
+
+// View view the book
+func (b *Book) View(id int) (err error) {
+	return b.incCount(id, bookViewCount)
 }

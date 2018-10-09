@@ -16,4 +16,7 @@ const (
 	ActionBookUpdateChapters = "book-update-chapters"
 	// ActionBookUpdateInfo action book update info
 	ActionBookUpdateInfo = "book-update-info"
+
+	// ActionUserBookAction action user book action
+	ActionUserBookAction = "user-book-action"
 )

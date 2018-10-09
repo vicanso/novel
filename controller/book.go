@@ -26,6 +26,10 @@ type (
 	BookUpdateChaptersParams struct {
 		Limit int `valid:"xIntRange(1|10)"`
 	}
+	// UserActionParams user action params
+	UserActionParams struct {
+		Type string `valid:"in(like|view)"`
+	}
 )
 
 func init() {
@@ -92,6 +96,7 @@ func init() {
 		ctrl.listChapaters,
 	)
 
+	// update the book's cover
 	books.Add(
 		"PATCH",
 		"/v1/:id/cover",
@@ -100,6 +105,15 @@ func init() {
 		isSu,
 	)
 
+	// userAction the book
+	// TODO 如果支持登录后，需要增加登录状态的判断
+	books.Add(
+		"POST",
+		"/v1/:id/action",
+		ctrl.userAction,
+		createTracker(cs.ActionUserBookAction),
+		userSession,
+	)
 }
 
 // batchAdd batch add books
@@ -245,5 +259,24 @@ func (bc *BookCtrl) listChapaters(c echo.Context) (err error) {
 		m["count"] = count
 	}
 	res(c, m)
+	return
+}
+
+// userAction user actions
+func (bc *BookCtrl) userAction(c echo.Context) (err error) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return
+	}
+	parmas := &UserActionParams{}
+	err = validate.Do(parmas, getRequestBody(c))
+	if err != nil {
+		return
+	}
+	if parmas.Type == "view" {
+		err = bookService.View(id)
+	} else {
+		err = bookService.Like(id)
+	}
 	return
 }
