@@ -14,5 +14,6 @@ FROM alpine
 RUN apk add --no-cache ca-certificates
 
 COPY --from=builder /go/src/github.com/vicanso/novel/novel /usr/local/bin/novel
+COPY --from=builder /go/src/github.com/vicanso/novel/configs /configs
 
 CMD [ "novel" ]
