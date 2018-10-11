@@ -20,6 +20,8 @@ install:
 script:
   - dep ensure
   - make test
+
+after_success:
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - docker build -t novel .
   - docker tag novel $DOCKER_USERNAME/novel
