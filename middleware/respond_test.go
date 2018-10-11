@@ -112,7 +112,7 @@ func TestNewRespond(t *testing.T) {
 			t.Fatalf("respond middleware fail, %v", err)
 		}
 		if w.Code != http.StatusInternalServerError ||
-			string(w.Body.Bytes()) != `{"statusCode":500,"exception":true,"message":"abcd","category":"common"}` {
+			string(w.Body.Bytes()) != `{"statusCode":500,"exception":true,"message":"abcd","category":"exception"}` {
 			t.Fatalf("response error fail")
 		}
 	})
