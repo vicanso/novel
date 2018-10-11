@@ -6,6 +6,8 @@ import (
 )
 
 const (
+	// ErrCategoryException exception error
+	ErrCategoryException = "exception"
 	// ErrCategoryCommon common error
 	ErrCategoryCommon = "common"
 	// ErrCategoryIO io error

@@ -1,10 +1,15 @@
 package service
 
 import (
+	"net/url"
+	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/go-redis/redis"
 	"github.com/vicanso/novel/config"
+	"github.com/vicanso/novel/xlog"
+	"go.uber.org/zap"
 )
 
 var (
@@ -23,15 +28,44 @@ type (
 func init() {
 	uri := config.GetString("redis")
 	if uri != "" {
-		redisClient = newRedisClient(uri)
+		c, err := newRedisClient(uri)
+		if err != nil {
+			panic(err)
+		}
+		redisClient = c
+		_, err = redisClient.Ping().Result()
+		logger := xlog.Logger()
+		mask := regexp.MustCompile(`redis://:(\S+)\@`)
+		str := mask.ReplaceAllString(uri, "redis://:***@")
+		if err != nil {
+			logger.Error("redis ping fail",
+				zap.String("uri", str),
+				zap.Error(err),
+			)
+		} else {
+			logger.Info("redis ping success",
+				zap.String("uri", str),
+			)
+		}
 	}
 }
 
 // newRedisClient new client
-func newRedisClient(addr string) *redis.Client {
-	return redis.NewClient(&redis.Options{
-		Addr: addr,
-	})
+func newRedisClient(uri string) (client *redis.Client, err error) {
+	info, err := url.Parse(uri)
+	if err != nil {
+		return
+	}
+	opts := &redis.Options{
+		Addr: info.Host,
+	}
+	db := info.Query().Get("db")
+	if db != "" {
+		opts.DB, _ = strconv.Atoi(db)
+	}
+	opts.Password, _ = info.User.Password()
+	client = redis.NewClient(opts)
+	return
 }
 
 // GetRedisClient get redis client

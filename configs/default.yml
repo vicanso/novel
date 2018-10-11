@@ -1,7 +1,9 @@
 app: novel
 # urlPrefix: /api
 listen: ":8080"
-redis: 127.0.0.1:6379
+# redis: redis://:pwd@127.0.0.1:6379/?db=1
+redis: redis://127.0.0.1:6379
+influxdb: http://user:pwd@127.0.0.1:8086/?db=novel
 track: jt
 session:
   # 默认为以下值，可不配置

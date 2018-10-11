@@ -31,7 +31,7 @@ func NewRespond(config RespondConfig) echo.MiddlewareFunc {
 						// 如果非http error认为非主动返回异常
 						Exception: true,
 						Message:   err.Error(),
-						Category:  xerror.ErrCategoryCommon,
+						Category:  xerror.ErrCategoryException,
 					}
 				}
 				status := he.StatusCode

@@ -16,6 +16,7 @@ type (
 func NewEntry(config EntryConfig) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) (err error) {
+			context.SetHeader(c, "X-Response-Id", context.GetRequestID(c))
 			// 全局设置响应头
 			for k, v := range config.Header {
 				context.SetHeader(c, k, v)

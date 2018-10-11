@@ -1,18 +1,27 @@
 package main
 
 import (
+	"strconv"
+
 	"github.com/labstack/echo"
 	"github.com/vicanso/novel/config"
 	_ "github.com/vicanso/novel/controller"
+	"github.com/vicanso/novel/cs"
 	"github.com/vicanso/novel/global"
 	"github.com/vicanso/novel/middleware"
 	"github.com/vicanso/novel/router"
 	_ "github.com/vicanso/novel/schedule"
+	"github.com/vicanso/novel/service"
 	"github.com/vicanso/novel/xlog"
 	"go.uber.org/zap"
 )
 
 func main() {
+	logger := xlog.Logger()
+	influxdbClient := service.GetInfluxdbClient()
+	if influxdbClient != nil {
+		defer influxdbClient.Close()
+	}
 	// Echo instance
 	e := echo.New()
 
@@ -38,6 +47,29 @@ func main() {
 			zap.Uint32("connecting", info.Connecting),
 		)
 		global.AddRouteCount(info.Method, info.Route)
+		if influxdbClient != nil {
+			tags := map[string]string{
+				"method": info.Method,
+				"route":  info.Route,
+				"type":   strconv.Itoa(info.Type),
+			}
+			fields := map[string]interface{}{
+				"trackId":    info.TrackID,
+				"requestId":  info.RequestID,
+				"account":    info.Account,
+				"ip":         info.IP,
+				"uri":        info.URI,
+				"status":     info.StatusCode,
+				"use":        info.Consuming,
+				"connecting": info.Connecting,
+			}
+			err := service.WriteInfluxPoint(cs.MeasurementAccess, tags, fields)
+			if err != nil {
+				logger.Error("influxdb write point fail",
+					zap.Error(err),
+				)
+			}
+		}
 	}
 	e.Use(middleware.NewStats(middleware.StatsConfig{
 		OnStats: onStats,
@@ -57,7 +89,6 @@ func main() {
 	routes := router.List()
 	routeInfos := make([]map[string]string, 0, 20)
 	urlPrefix := config.GetString("urlPrefix")
-	logger := xlog.Logger()
 	for i, r := range routes {
 		// 对路由检测，判断是否有相同路由
 		for j, tmp := range routes {

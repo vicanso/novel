@@ -1,17 +1,18 @@
 package validate
 
 import (
-	"encoding/json"
 	"regexp"
 	"strings"
 
 	"github.com/asaskevich/govalidator"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/vicanso/novel/xerror"
 )
 
 var (
 	paramTagRegexMap = govalidator.ParamTagRegexMap
 	paramTagMap      = govalidator.ParamTagMap
+	json             = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
 func init() {
