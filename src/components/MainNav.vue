@@ -4,10 +4,10 @@ nav.nav
     v-for="item in categories"
   )
     li: a(
-      :class="active == item ? 'active': ''"
+      :class="active == item.name ? 'active': ''"
       href="javascript:;"
       @click="go(item)"
-    ) {{item}}
+    ) {{item.name}}
 </template>
 
 <style lang="sass" scoped>
@@ -39,22 +39,28 @@ ul
 </style>
 
 <script>
-import { mapState } from "vuex";
+import {
+  routeBookList,
+} from "@/routes";
 export default {
   name: "main-nav",
   data() {
     return {
       active: this.$route.params.category || "",
+      categories: [
+        {
+          name: 'books',
+          path: routeBookList,
+        },
+      ],
     };
   },
-  computed: {
-    ...mapState({
-      categories: () => [], 
-    })
-  },
   methods: {
-    go(category) {
-      this.active = category;
+    go({name, path}) {
+      this.active = name;
+      this.$router.push({
+        name: path,
+      });
     }
   }
 };

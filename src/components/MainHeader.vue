@@ -39,7 +39,7 @@ header.header
     @click="$router.push({name: routeHome})"
   )
     i.el-icon-news
-    | Forest 
+    | aslant 
 </template>
 
 <style lang="sass" scoped>

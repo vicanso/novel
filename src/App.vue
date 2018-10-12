@@ -25,7 +25,7 @@ export default {
     };
   },
   methods: {
-    ...mapActions(["userGetInfo", "fileListCategory"])
+    ...mapActions(["userGetInfo"])
   },
   computed: {
     ...mapState({
@@ -40,9 +40,6 @@ export default {
       }
       if (account != this.account) {
         this.account = account;
-        if (account) {
-          this.fileListCategory();
-        }
       }
     }
   },
