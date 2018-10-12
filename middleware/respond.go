@@ -33,6 +33,10 @@ func NewRespond(config RespondConfig) echo.MiddlewareFunc {
 						Message:   err.Error(),
 						Category:  xerror.ErrCategoryException,
 					}
+					ehe, ok := err.(*echo.HTTPError)
+					if ok {
+						he.StatusCode = ehe.Code
+					}
 				}
 				status := he.StatusCode
 				if status == 0 {

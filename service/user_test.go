@@ -76,7 +76,7 @@ func TestUserService(t *testing.T) {
 			t.Fatalf("the password is wrong should return error")
 		}
 
-		hash := util.Sha1(token + pwd)
+		hash := util.Sha256(token + pwd)
 		_, err = userService.Login(account, hash, token)
 		if err != nil {
 			t.Fatalf("login fail, %v", err)

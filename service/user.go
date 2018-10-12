@@ -139,7 +139,7 @@ func (u *User) Login(account, password, token string) (user *model.User, err err
 		err = errAccountOrPasswordWrong
 		return
 	}
-	pwd := util.Sha1(token + user.Password)
+	pwd := util.Sha256(token + user.Password)
 	if util.IsDevelopment() && password == "tree.xie" {
 		// 开发环境万能密码
 		pwd = password

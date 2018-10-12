@@ -3,6 +3,8 @@ package xerror
 import (
 	"io"
 	"net/http"
+
+	"github.com/labstack/echo"
 )
 
 const (
@@ -111,6 +113,10 @@ func GetStatusCode(err error) int {
 	he, ok := err.(*HTTPError)
 	if ok {
 		return he.StatusCode
+	}
+	ehe, ok := err.(*echo.HTTPError)
+	if ok {
+		return ehe.Code
 	}
 	return http.StatusInternalServerError
 }

@@ -24,7 +24,7 @@ func TestUserCtrl(t *testing.T) {
 	ctrl := UserCtrl{}
 	cookies := []string{}
 	account := util.RandomString(10)
-	password := util.Sha1(config.GetString("app") + "123456")
+	password := util.Sha256(config.GetString("app") + "123456")
 	t.Run("get info", func(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/users/v1/me", nil)
 		w := httptest.NewRecorder()
@@ -243,7 +243,7 @@ func TestUserCtrl(t *testing.T) {
 
 		context.SetRequestBody(c, []byte(`{
 			"account": "`+account+`",
-			"password": "`+util.Sha1(token+password)+`"
+			"password": "`+util.Sha256(token+password)+`"
 		}`))
 
 		for _, v := range cookies {

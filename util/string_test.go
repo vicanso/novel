@@ -19,9 +19,9 @@ func TestUlid(t *testing.T) {
 	}
 }
 
-func TestSha1(t *testing.T) {
-	if Sha1("vicanso") != "YJK8pc0iDgqPpUBkmP89dEPYPhk=" {
-		t.Fatalf("sha1 fail")
+func TestSha256(t *testing.T) {
+	if Sha256("vicanso") != "WLNYrrG6ofufjI5HDURypQhIRfsADsWAjZkSXT1ilkQ=" {
+		t.Fatalf("sha256 fail")
 	}
 }
 
