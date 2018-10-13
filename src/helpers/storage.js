@@ -1,15 +1,15 @@
-const listFilePageSizeKey = "list-file-page-size";
-export function saveListFilePageSize(size) {
+const listBookPageSizeKey = "list-book-page-size";
+export function saveListBookPageSize(size) {
   if (localStorage) {
-    localStorage.setItem(listFilePageSizeKey, size);
+    localStorage.setItem(listBookPageSizeKey, size);
   }
   return;
 }
 
-export function getListFilePageSize() {
+export function getListBookPageSize() {
   let pageSize = 10;
   if (localStorage) {
-    const v = localStorage.getItem(listFilePageSizeKey);
+    const v = localStorage.getItem(listBookPageSizeKey);
     if (v) {
       pageSize = Number.parseInt(v, 10);
     }

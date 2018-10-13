@@ -4,12 +4,7 @@ import Home from "@/views/Home.vue";
 import Login from "@/views/Login.vue";
 import Register from "@/views/Register.vue";
 import BookList from "@/views/BookList.vue";
-import {
-  routeLogin,
-  routeHome,
-  routeRegister,
-  routeBookList,
-} from "@/routes";
+import { routeLogin, routeHome, routeRegister, routeBookList } from "@/routes";
 
 Vue.use(Router);
 
@@ -33,7 +28,7 @@ export default new Router({
     {
       path: "/book-list",
       name: routeBookList,
-      component: BookList,
-    },
+      component: BookList
+    }
   ]
 });

@@ -6,7 +6,7 @@ import { sha256 } from "@/helpers/crypto";
 function genPassword(password) {
   // 是否需要添加特定串，如加APP的名字，避免与密码表的一致
   // 或者将账号与密码一起生成，这样每个客户都唯一（不过登录时就必须使用账号登录）
-  return sha256(password);  
+  return sha256(password);
 }
 
 const userGetInfo = async ({ commit }) => {

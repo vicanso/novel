@@ -1,4 +1,4 @@
-export const app = "tiny";
+export const app = "novel";
 
 export const urlPrefix = "/@nv";
 

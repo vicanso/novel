@@ -39,9 +39,7 @@ ul
 </style>
 
 <script>
-import {
-  routeBookList,
-} from "@/routes";
+import { routeBookList } from "@/routes";
 export default {
   name: "main-nav",
   data() {
@@ -49,17 +47,17 @@ export default {
       active: this.$route.params.category || "",
       categories: [
         {
-          name: 'books',
-          path: routeBookList,
-        },
-      ],
+          name: "books",
+          path: routeBookList
+        }
+      ]
     };
   },
   methods: {
-    go({name, path}) {
+    go({ name, path }) {
       this.active = name;
       this.$router.push({
-        name: path,
+        name: path
       });
     }
   }
