@@ -1,9 +1,11 @@
 package service
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/vicanso/novel/global"
+	"github.com/vicanso/novel/model"
 	"github.com/vicanso/novel/service"
 	"github.com/vicanso/novel/xlog"
 	"go.uber.org/zap"
@@ -14,6 +16,7 @@ func init() {
 	go initRedisCheckTicker()
 	go initInfluxdbCheckTicker()
 	go initBookCategoryTicker()
+	go initBookUpdateChaptersTicker()
 }
 
 func runTicker(ticker *time.Ticker, message string, do func() error, restart func()) {
@@ -81,4 +84,23 @@ func initBookCategoryTicker() {
 		b := service.Book{}
 		return b.UpdateCategories()
 	}, initBookCategoryTicker)
+}
+
+func initBookUpdateChaptersTicker() {
+	ticker := time.NewTicker(3600 * time.Second)
+	runTicker(ticker, "update book chapter", func() (err error) {
+		b := service.Book{}
+		status := strconv.Itoa(model.BookStatusPassed)
+		books, err := b.List(&service.BookQueryParams{
+			Status: status,
+			Field:  "id",
+		})
+		if err != nil {
+			return
+		}
+		for _, book := range books {
+			b.UpdateChapters(int(book.ID), 10)
+		}
+		return
+	}, initBookUpdateChaptersTicker)
 }

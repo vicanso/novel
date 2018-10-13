@@ -280,16 +280,6 @@ func (b *Book) UpdateCover(id int) (err error) {
 	return
 }
 
-// bookKeywordSearch the keyword search
-func bookKeywordSearch(client *gorm.DB, q string) *gorm.DB {
-	if q != "" {
-		key := "%" + q + "%"
-		client = client.Where(bookName+" LIKE ?", key).
-			Or(bookAuthor+" LIKE ?", key)
-	}
-	return client
-}
-
 // getWhereConditions get where conditions
 func getWhereConditions(params *BookQueryParams) (query string, args []interface{}) {
 	args = make([]interface{}, 0)
@@ -314,14 +304,6 @@ func getWhereConditions(params *BookQueryParams) (query string, args []interface
 	}
 	query = strings.Join(sql, " AND ")
 	return
-}
-
-// bookCategorySearch the category search
-func bookCategorySearch(client *gorm.DB, category string) *gorm.DB {
-	if category != "" {
-		client = client.Where("? = ANY("+bookCategory+")", category)
-	}
-	return client
 }
 
 // List list the book
