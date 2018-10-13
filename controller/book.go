@@ -44,11 +44,11 @@ func init() {
 		ctrl.list,
 	)
 
-	// get the book's info
+	// get the book's categories
 	books.Add(
 		"GET",
-		"/v1/:id",
-		ctrl.getInfo,
+		"/v1/categories",
+		ctrl.getCategories,
 	)
 
 	// update the book's info
@@ -114,6 +114,14 @@ func init() {
 		createTracker(cs.ActionUserBookAction),
 		userSession,
 	)
+
+	// get the book's info
+	books.Add(
+		"GET",
+		"/v1/:id",
+		ctrl.getInfo,
+	)
+
 }
 
 // batchAdd batch add books
@@ -278,5 +286,19 @@ func (bc *BookCtrl) userAction(c echo.Context) (err error) {
 	} else {
 		err = bookService.Like(id)
 	}
+	return
+}
+
+// getCategories get the book's categories
+func (bc *BookCtrl) getCategories(c echo.Context) (err error) {
+	categories := make(map[string]int)
+	_, err = service.RedisGet(cs.CacheBookCategories, &categories)
+	if err != nil {
+		return
+	}
+	setCache(c, "5m")
+	res(c, map[string]interface{}{
+		"categories": categories,
+	})
 	return
 }

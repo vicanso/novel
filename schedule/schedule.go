@@ -13,6 +13,7 @@ func init() {
 	go initRouteCountTicker()
 	go initRedisCheckTicker()
 	go initInfluxdbCheckTicker()
+	go initBookCategoryTicker()
 }
 
 func runTicker(ticker *time.Ticker, message string, do func() error, restart func()) {
@@ -72,4 +73,12 @@ func initInfluxdbCheckTicker() {
 		_, _, err := clinet.Ping(3 * time.Second)
 		return err
 	}, initInfluxdbCheckTicker)
+}
+
+func initBookCategoryTicker() {
+	ticker := time.NewTicker(600 * time.Second)
+	runTicker(ticker, "update book category", func() error {
+		b := service.Book{}
+		return b.UpdateCategories()
+	}, initBookCategoryTicker)
 }

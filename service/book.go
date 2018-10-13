@@ -7,9 +7,11 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
+	"github.com/lib/pq"
 	"github.com/vicanso/novel-spider/mq"
 	"github.com/vicanso/novel-spider/novel"
 	"github.com/vicanso/novel/config"
+	"github.com/vicanso/novel/cs"
 	"github.com/vicanso/novel/helper"
 	"github.com/vicanso/novel/model"
 	"github.com/vicanso/novel/xlog"
@@ -27,6 +29,9 @@ const (
 	bookViewCount     = "view_count"
 	bookLikeCount     = "like_count"
 	bookWordCount     = "word_count"
+	bookCategory      = "category"
+	bookAuthor        = "author"
+	bookName          = "name"
 )
 
 type (
@@ -275,8 +280,9 @@ func (b *Book) UpdateCover(id int) (err error) {
 // bookKeywordSearch the keyword search
 func bookKeywordSearch(client *gorm.DB, q string) *gorm.DB {
 	if q != "" {
-		client = client.Where("name LIKE ?", q).
-			Or("author LIKE ?", q)
+		key := "%" + q + "%"
+		client = client.Where(bookName+" LIKE ?", key).
+			Or(bookAuthor+" LIKE ?", key)
 	}
 	return client
 }
@@ -284,7 +290,7 @@ func bookKeywordSearch(client *gorm.DB, q string) *gorm.DB {
 // bookCategorySearch the category search
 func bookCategorySearch(client *gorm.DB, category string) *gorm.DB {
 	if category != "" {
-		client = client.Where("? = ANY(category)", category)
+		client = client.Where("? = ANY("+bookCategory+")", category)
 	}
 	return client
 }
@@ -416,4 +422,21 @@ func (b *Book) Like(id int) (err error) {
 // View view the book
 func (b *Book) View(id int) (err error) {
 	return b.incCount(id, bookViewCount)
+}
+
+// UpdateCategories get category list
+func (b *Book) UpdateCategories() (err error) {
+	result := make([]pq.StringArray, 0)
+	err = getClient().Model(&model.Book{}).Pluck(bookCategory, &result).Error
+	if err != nil {
+		return
+	}
+	categoriesInfo := make(map[string]int)
+	for _, values := range result {
+		for _, category := range values {
+			categoriesInfo[category]++
+		}
+	}
+	_, err = RedisSet(cs.CacheBookCategories, categoriesInfo, time.Hour)
+	return
 }
