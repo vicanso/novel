@@ -1,9 +1,11 @@
 package service
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
+	"github.com/vicanso/novel/cs"
 	"github.com/vicanso/novel/global"
 	"github.com/vicanso/novel/model"
 	"github.com/vicanso/novel/service"
@@ -81,6 +83,11 @@ func initInfluxdbCheckTicker() {
 func initBookCategoryTicker() {
 	ticker := time.NewTicker(600 * time.Second)
 	runTicker(ticker, "update book category", func() error {
+		// 避免启动多个实例时并发更新
+		ok, _ := service.Lock(cs.CacheBookCategoriesLock, 300*time.Second)
+		if !ok {
+			return nil
+		}
 		b := service.Book{}
 		return b.UpdateCategories()
 	}, initBookCategoryTicker)
@@ -99,7 +106,14 @@ func initBookUpdateChaptersTicker() {
 			return
 		}
 		for _, book := range books {
-			b.UpdateChapters(int(book.ID), 10)
+			id := int(book.ID)
+			key := fmt.Sprintf("%s-%d", cs.CacheBookUpdateChaptersLock, id)
+			// 保证30分钟内只有实例获得更新
+			ok, _ := service.Lock(key, 1800*time.Second)
+			if !ok {
+				return
+			}
+			b.UpdateChapters(id, 10)
 		}
 		return
 	}, initBookUpdateChaptersTicker)
