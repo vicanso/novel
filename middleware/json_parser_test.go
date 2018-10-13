@@ -3,7 +3,6 @@ package middleware
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -69,7 +68,6 @@ func TestNewJSONParser(t *testing.T) {
 		e := echo.New()
 		c := e.NewContext(r, w)
 		err := fn(c)
-		fmt.Println(err)
 		if err == nil || err.Error() != message {
 			t.Fatalf("read body should return error")
 		}

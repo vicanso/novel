@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/base64"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -286,7 +285,6 @@ func TestUserCtrl(t *testing.T) {
 			"data":    session.M{},
 		})
 		us := service.NewUserSession(sess)
-		fmt.Println(us.GetUpdatedAt())
 		context.SetUserSession(c, us)
 		err := ctrl.refresh(c)
 		if err != nil {

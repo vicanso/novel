@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/base64"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -32,6 +33,7 @@ const (
 	bookCategory      = "category"
 	bookAuthor        = "author"
 	bookName          = "name"
+	bookStatus        = "status"
 )
 
 type (
@@ -51,6 +53,7 @@ type (
 		Order    string `json:"order,omitempty" valid:"runelength(2|32)"`
 		Q        string `json:"q,omitempty" valid:"runelength(1|32),optional"`
 		Category string `json:"category,omitempty" valid:"runelength(2|8),optional"`
+		Status   string `json:"status,omitempty" valid:"in(0|1|2),optional"`
 	}
 	// BookUpdateParams params for update
 	BookUpdateParams struct {
@@ -287,6 +290,32 @@ func bookKeywordSearch(client *gorm.DB, q string) *gorm.DB {
 	return client
 }
 
+// getWhereConditions get where conditions
+func getWhereConditions(params *BookQueryParams) (query string, args []interface{}) {
+	args = make([]interface{}, 0)
+	sql := []string{}
+	q := params.Q
+	if q != "" {
+		key := "%" + q + "%"
+		str := fmt.Sprintf("(%s LIKE ? OR %s LIKE ?)", bookName, bookAuthor)
+		sql = append(sql, str)
+		args = append(args, key)
+		args = append(args, key)
+	}
+	category := params.Category
+	if category != "" {
+		sql = append(sql, "? = ANY("+bookCategory+")")
+		args = append(args, category)
+	}
+	status := params.Status
+	if status != "" {
+		sql = append(sql, bookStatus+" = ?")
+		args = append(args, status)
+	}
+	query = strings.Join(sql, " AND ")
+	return
+}
+
 // bookCategorySearch the category search
 func bookCategorySearch(client *gorm.DB, category string) *gorm.DB {
 	if category != "" {
@@ -307,8 +336,10 @@ func (b *Book) List(params *BookQueryParams) (books []*model.Book, err error) {
 	}
 	books = make([]*model.Book, 0)
 	client := getClientByOptions(options, nil)
-	client = bookKeywordSearch(client, params.Q)
-	client = bookCategorySearch(client, params.Category)
+
+	query, args := getWhereConditions(params)
+	client = client.Where(query, args...)
+
 	err = client.Find(&books).Error
 	return
 }
@@ -316,8 +347,10 @@ func (b *Book) List(params *BookQueryParams) (books []*model.Book, err error) {
 // Count count the book
 func (b *Book) Count(params *BookQueryParams) (count int, err error) {
 	client := getClient().Model(&model.Book{})
-	client = bookKeywordSearch(client, params.Q)
-	client = bookCategorySearch(client, params.Category)
+
+	query, args := getWhereConditions(params)
+	client = client.Where(query, args...)
+
 	err = client.Count(&count).Error
 	return
 }
