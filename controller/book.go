@@ -178,7 +178,13 @@ func (bc *BookCtrl) updateCover(c echo.Context) (err error) {
 	if err != nil {
 		return
 	}
-	err = bookService.UpdateCover(id)
+	cover, err := bookService.UpdateCover(id)
+	if err != nil {
+		return
+	}
+	res(c, map[string]string{
+		"cover": cover,
+	})
 	return
 }
 

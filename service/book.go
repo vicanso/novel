@@ -254,7 +254,7 @@ func (b *Book) AddChapter(category string, id, latestChapter int) (err error) {
 }
 
 // UpdateCover update cover
-func (b *Book) UpdateCover(id int) (err error) {
+func (b *Book) UpdateCover(id int) (file string, err error) {
 	book := &model.Book{}
 	book.ID = uint(id)
 	err = getClient().Where(book).First(book).Error
@@ -273,7 +273,7 @@ func (b *Book) UpdateCover(id int) (err error) {
 	if err != nil {
 		return
 	}
-	file := json.Get(res, "file").ToString()
+	file = json.Get(res, "file").ToString()
 	err = getClient().Model(book).Update(&model.Book{
 		Cover: file,
 	}).Error
