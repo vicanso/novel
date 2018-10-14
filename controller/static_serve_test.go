@@ -8,7 +8,6 @@ import (
 	"github.com/vicanso/novel/xerror"
 
 	"github.com/labstack/echo"
-	"github.com/vicanso/novel/context"
 )
 
 func TestServe(t *testing.T) {
@@ -17,16 +16,10 @@ func TestServe(t *testing.T) {
 		w := httptest.NewRecorder()
 		c := e.NewContext(nil, w)
 		c.SetParamNames("*")
-		c.SetParamValues("normalize.css")
+		c.SetParamValues("index.html")
 		err := serve(c)
 		if err != nil {
 			t.Fatalf("static serve fail, %v", err)
-		}
-		if w.Header()["Content-Encoding"][0] != "gzip" {
-			t.Fatalf("the data should be gzip")
-		}
-		if len(context.GetBody(c).([]byte)) != 1702 {
-			t.Fatalf("gzip data fail")
 		}
 	})
 
