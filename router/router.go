@@ -6,6 +6,7 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/vicanso/novel/context"
+	"github.com/vicanso/novel/cs"
 )
 
 type (
@@ -29,7 +30,7 @@ var (
 )
 
 func init() {
-	Add(http.MethodGet, "/ping", func(c echo.Context) (err error) {
+	Add(http.MethodGet, cs.PingRoute, func(c echo.Context) (err error) {
 		context.Res(c, "pong")
 		return
 	})

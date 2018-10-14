@@ -19,4 +19,7 @@ const (
 
 	// ContentBinaryHeaderValue binary data header
 	ContentBinaryHeaderValue = "application/octet-stream"
+
+	// PingRoute ping route
+	PingRoute = "/ping"
 )

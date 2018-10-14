@@ -116,7 +116,10 @@ func main() {
 			"path":   r.Path,
 		}
 		routeInfos = append(routeInfos, m)
-		routePath := urlPrefix + r.Path
+		routePath := r.Path
+		if r.Path != cs.PingRoute {
+			routePath = urlPrefix + r.Path
+		}
 		e.Add(r.Method, routePath, r.Handler, r.Mids...)
 	}
 
