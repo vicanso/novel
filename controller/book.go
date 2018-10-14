@@ -74,7 +74,7 @@ func init() {
 	// update the book's chapters
 	books.Add(
 		"PATCH",
-		"/v1/:id/chapters",
+		"/v1/chapters/:id",
 		ctrl.updateChapters,
 		createTracker(cs.ActionBookUpdateChapters),
 		userSession,
@@ -92,14 +92,14 @@ func init() {
 	// list the book's chapters
 	books.Add(
 		"GET",
-		"/v1/:id/chapters",
+		"/v1/chapters/:id",
 		ctrl.listChapaters,
 	)
 
 	// update the book's cover
 	books.Add(
 		"PATCH",
-		"/v1/:id/cover",
+		"/v1/cover/:id",
 		ctrl.updateCover,
 		userSession,
 		isSu,
@@ -109,7 +109,7 @@ func init() {
 	// TODO 如果支持登录后，需要增加登录状态的判断
 	books.Add(
 		"POST",
-		"/v1/:id/action",
+		"/v1/action/:id",
 		ctrl.userAction,
 		createTracker(cs.ActionUserBookAction),
 		userSession,
