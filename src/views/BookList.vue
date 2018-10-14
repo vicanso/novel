@@ -57,7 +57,13 @@ mixin BookUpdate
   .bookUpdate(
     v-if="currentUpdateBoook"
   )
-    h5 编辑内容
+    h5
+      a.pullRight.close(
+        href='javascript:;'
+        @click="closeUpdate()"
+      )
+        i.el-icon-close
+      | 编辑内容
     el-form.form(
       label-width="90px"
     )
@@ -93,7 +99,7 @@ mixin BookUpdate
       )
         img(
           :src="currentUpdateBoook.sourceCover"
-          height="90px"
+          height="60px"
         ) 
       el-form-item(
         label="简介"
@@ -107,12 +113,45 @@ mixin BookUpdate
         el-button(
           type="primary"
           style="width:100%"
+          @click.native="update"
         ) 保存
 
-
+mixin BookFilter
+  .bookFilter
+    el-input(
+      v-model="filters.q"
+      placeholder="请输入关键字"
+      clearable
+    )
+      el-select.categorySelector(
+        slot="prepend"
+        placeholder="分类"
+        v-model="filters.category"
+      )
+        el-option(
+          v-for="category in bookCategories"
+          :key="category"
+          :label="category"
+          :value="category"
+        )
+      div(
+        slot="append"
+      )
+        el-radio.status(
+          v-model="filters.status"
+          v-for="status, index in bookStatusList"
+          :key="status"
+          :label="index"
+        ) {{status}}
+        span.divide |
+        el-button.search(
+          icon="el-icon-search"
+          @click.native="search"
+        )
 .bookList(
   ref="bookList"
 )
+  +BookFilter
   .tableWrapper(
     v-if="!loading"
   )
@@ -128,7 +167,7 @@ mixin BookUpdate
   left: $MAIN_NAV_WIDTH
   right: 0
   bottom: 0
-  padding: 15px
+  padding: 10px
 .bookUpdate
   position: absolute
   top: 50%
@@ -147,17 +186,38 @@ mixin BookUpdate
     padding-left: 10px
     background-color: $COLOR_BLACK
     color: $COLOR_WHITE
+    .close
+      color: $COLOR_WHITE
+      display: block
+      width: 40px
+      text-align: center
+      font-size: 16px
+      &:hover
+        color: $COLOR_BLUE
   .form
     padding: 30px
+.bookFilter
+  margin-bottom: 10px
+  .categorySelector
+    width: 110px
+  .status
+    width: 60px
+  .divide
+    padding-left: 30px
+  .search
+    padding-left: 40px
 .table
   width: 100%
 .pagination
-  padding: 15px 0
+  padding-top: 10px
   text-align: right
 </style>
 <script>
 import { mapActions, mapState } from "vuex";
 import { getListBookPageSize, saveListBookPageSize } from "@/helpers/storage";
+import { find } from "lodash-es";
+
+const allCategory = "全部类别";
 export default {
   name: "book-list",
   data() {
@@ -165,7 +225,16 @@ export default {
       currentBooks: null,
       loading: true,
       tableHeight: 0,
-      field: ["name", "author", "brief", "status", "updatedAt", "sourceCover"].join(","),
+      field: [
+        "id",
+        "name",
+        "author",
+        "brief",
+        "status",
+        "updatedAt",
+        "sourceCover"
+      ].join(","),
+      filters: {},
       currentPage: 1,
       order: "-updatedAt",
       offset: 0,
@@ -177,11 +246,24 @@ export default {
     ...mapState({
       books: ({ book }) => book.list,
       bookCount: ({ book }) => book.count,
-      bookStatusList: ( { book }) => book.statusList,
+      bookStatusList: ({ book }) => book.statusList,
+      bookCategories: ({ book }) => {
+        if (!book || !book.categories) {
+          return null;
+        }
+        const result = Object.keys(book.categories);
+        result.unshift(allCategory);
+        return result;
+      }
     })
   },
   methods: {
-    ...mapActions(["bookList", "bookCacheRemove"]),
+    ...mapActions([
+      "bookList",
+      "bookCacheRemove",
+      "bookUpdate",
+      "bookListCategory"
+    ]),
     reset() {
       this.bookCacheRemove();
       this.offset = 0;
@@ -199,17 +281,30 @@ export default {
       this.reset();
       this.fetch();
     },
+    search() {
+      this.reset();
+      this.fetch();
+    },
     async fetch() {
       const { field, order, offset, limit } = this;
+      const { q, category, status } = this.filters;
       const close = this.xLoading();
       this.loading = true;
       try {
-        await this.bookList({
+        const params = {
           field,
           order,
           offset,
-          limit
-        });
+          limit,
+          q
+        };
+        if (category && category != allCategory) {
+          params.category = category;
+        }
+        if (Number.isInteger(status)) {
+          params.status = status;
+        }
+        await this.bookList(params);
         this.currentBooks = this.books.slice(offset, offset + limit);
       } catch (err) {
         this.xError(err);
@@ -218,12 +313,53 @@ export default {
         close();
       }
     },
-    async edit(book) {
-      this.currentUpdateBoook = book;
+    edit(book) {
+      this.currentUpdateBoook = Object.assign({}, book);
     },
+    closeUpdate() {
+      this.currentUpdateBoook = null;
+    },
+    async update() {
+      const { id, statusDesc, brief } = this.currentUpdateBoook;
+      const found = find(this.currentBooks, item => item.id === id);
+      if (!found) {
+        return;
+      }
+      const updateData = {};
+      if (found.brief !== brief) {
+        updateData.brief = brief;
+      }
+      if (found.statusDesc !== statusDesc) {
+        updateData.status = this.bookStatusList.indexOf(statusDesc);
+      }
+      const close = this.xLoading();
+      try {
+        await this.bookUpdate({
+          id,
+          update: updateData
+        });
+      } catch (err) {
+        this.xError(err);
+      } finally {
+        this.currentUpdateBoook = null;
+        close();
+      }
+    }
   },
-  mounted() {
-    this.tableHeight = this.$refs.bookList.clientHeight - 80;
+  async mounted() {
+    const paginationHeight = 60;
+    const filterHeight = 50;
+    this.tableHeight =
+      this.$refs.bookList.clientHeight - paginationHeight - filterHeight;
+
+    const close = this.xLoading();
+    try {
+      this.bookListCategory();
+    } catch (err) {
+      this.xError(err);
+    } finally {
+      close();
+    }
   },
   beforeMount() {
     this.fetch();
