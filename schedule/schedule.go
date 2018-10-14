@@ -9,11 +9,15 @@ import (
 	"github.com/vicanso/novel/global"
 	"github.com/vicanso/novel/model"
 	"github.com/vicanso/novel/service"
+	"github.com/vicanso/novel/util"
 	"github.com/vicanso/novel/xlog"
 	"go.uber.org/zap"
 )
 
 func init() {
+	if util.IsDevelopment() {
+		return
+	}
 	go initRouteCountTicker()
 	go initRedisCheckTicker()
 	go initInfluxdbCheckTicker()
