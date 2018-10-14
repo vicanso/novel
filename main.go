@@ -4,7 +4,9 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo"
+	"github.com/vicanso/novel/asset"
 	"github.com/vicanso/novel/config"
+	"github.com/vicanso/novel/context"
 	_ "github.com/vicanso/novel/controller"
 	"github.com/vicanso/novel/cs"
 	"github.com/vicanso/novel/global"
@@ -85,6 +87,13 @@ func main() {
 
 	// TODO 是否需要增加ETag
 	// 因为我使用的前置缓存Pike有ETag的处理，因此不需要添加
+
+	e.GET("/", func(c echo.Context) (err error) {
+		buf := asset.Get("index.html")
+		context.SetContentType(c, "text/html")
+		context.Res(c, buf)
+		return
+	})
 
 	routes := router.List()
 	routeInfos := make([]map[string]string, 0, 20)
