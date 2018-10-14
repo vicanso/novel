@@ -1,11 +1,9 @@
 package router
 
 import (
-	"net/http"
 	"strings"
 
 	"github.com/labstack/echo"
-	"github.com/vicanso/novel/context"
 )
 
 type (
@@ -27,13 +25,6 @@ var (
 	// routerList 路由列表
 	routerList = make([]*Router, 0)
 )
-
-func init() {
-	Add(http.MethodGet, "/ping", func(c echo.Context) (err error) {
-		context.Res(c, "pong")
-		return
-	})
-}
 
 // Add add router config
 func Add(method, path string, handler echo.HandlerFunc, mids ...echo.MiddlewareFunc) {
