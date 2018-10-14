@@ -94,10 +94,6 @@ func main() {
 		context.Res(c, buf)
 		return
 	})
-	e.GET("/ping", func(c echo.Context) (err error) {
-		context.Res(c, "pong")
-		return
-	})
 
 	routes := router.List()
 	routeInfos := make([]map[string]string, 0, 20)
