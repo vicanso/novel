@@ -1,8 +1,8 @@
 import request from "axios";
 import { find } from "lodash-es";
 
-import { BOOKS, BOOKS_UPDATE_INFO, BOOKS_CATEGORIES } from "@/urls";
-import { BOOK_LIST, BOOK_UPDATE, BOOK_CATEGORY } from "@/store/types";
+import { BOOKS, BOOKS_UPDATE_INFO, BOOKS_CATEGORIES, BOOKS_UPDATE_COVEER } from "@/urls";
+import { BOOK_LIST, BOOK_UPDATE, BOOK_CATEGORY, BOOK_UPDATE_COVER } from "@/store/types";
 
 import { debug, formatDate } from "@/helpers/util";
 
@@ -84,11 +84,19 @@ const bookListCategory = async ({ commit }) => {
   commit(BOOK_CATEGORY, res.data);
 };
 
+const bookUpdateCover = async ({ commit }, { id }) => {
+  const res = await request.patch(BOOKS_UPDATE_COVEER.replace(":id", id));
+  commit(BOOK_UPDATE_COVER, Object.assign({
+    id,
+  }, res.data));
+};
+
 const actions = {
   bookList,
   bookCacheRemove,
   bookUpdate,
-  bookListCategory
+  bookListCategory,
+  bookUpdateCover
 };
 
 const mutations = {
@@ -122,6 +130,12 @@ const mutations = {
   },
   [BOOK_CATEGORY](state, { categories }) {
     state.book.categories = categories;
+  },
+  [BOOK_UPDATE_COVER](state, { id, cover }) {
+    const found = find(state.book.list, item => item.id === id);
+    if (found) {
+      found.cover = cover;
+    }
   }
 };
 

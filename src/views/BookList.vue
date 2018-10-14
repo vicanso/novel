@@ -101,6 +101,11 @@ mixin BookUpdate
           :src="currentUpdateBoook.sourceCover"
           height="60px"
         ) 
+        el-button.mleft10(
+          type="text"
+          v-if="!currentUpdateBoook.cover"
+          @click.native="updateCover"
+        ) 更新
       el-form-item(
         label="简介"
       )
@@ -231,6 +236,7 @@ export default {
         "author",
         "brief",
         "status",
+        "cover",
         "updatedAt",
         "sourceCover"
       ].join(","),
@@ -262,7 +268,8 @@ export default {
       "bookList",
       "bookCacheRemove",
       "bookUpdate",
-      "bookListCategory"
+      "bookListCategory",
+      "bookUpdateCover"
     ]),
     reset() {
       this.bookCacheRemove();
@@ -342,6 +349,21 @@ export default {
         this.xError(err);
       } finally {
         this.currentUpdateBoook = null;
+        close();
+      }
+    },
+    async updateCover() {
+      const {
+        id
+      } = this.currentUpdateBoook;
+      const close = this.xLoading();
+      try {
+        await this.bookUpdateCover({
+          id,
+        });
+      } catch (err) {
+        this.xError(err);
+      } finally {
         close();
       }
     }
