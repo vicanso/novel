@@ -57,6 +57,7 @@ type (
 	}
 	// BookUpdateParams params for update
 	BookUpdateParams struct {
+		Name     string `json:"name,omitempty" valid:"runelength(1|20),optional"`
 		Brief    string `json:"brief,omitempty" valid:"runelength(5|2000),optional"`
 		Status   int    `json:"status,omitempty" valid:"xIntIn(1|2),optional"`
 		Category string `json:"category,omitempty" valid:"runelength(2|32),optional"`
@@ -364,6 +365,9 @@ func (b *Book) UpdateInfo(id int, params *BookUpdateParams) (err error) {
 	}
 	if params.Status != 0 {
 		updateInfo.Status = params.Status
+	}
+	if params.Name != "" {
+		updateInfo.Name = params.Name
 	}
 	err = getClient().Model(book).Updates(updateInfo).Error
 	return
