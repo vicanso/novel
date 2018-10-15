@@ -117,7 +117,7 @@ func initBookUpdateChaptersTicker() {
 			if !ok {
 				return
 			}
-			b.UpdateChapters(id, 10)
+			b.UpdateChapters(id)
 		}
 		return
 	}, initBookUpdateChaptersTicker)

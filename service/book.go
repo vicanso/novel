@@ -196,7 +196,7 @@ func (b *Book) Add(category string, id int) (err error) {
 }
 
 // UpdateChapters update book's chapters
-func (b *Book) UpdateChapters(id, limit int) (err error) {
+func (b *Book) UpdateChapters(id int) (err error) {
 	book := &model.Book{}
 	book.ID = uint(id)
 	err = getClient().
@@ -209,8 +209,7 @@ func (b *Book) UpdateChapters(id, limit int) (err error) {
 	chapters := make([]*model.Chapter, 0)
 	err = getClientByOptions(&model.QueryOptions{
 		Field: "index,id",
-		Order: "-id",
-		Limit: limit,
+		Order: "index",
 	}, nil).
 		Where(&model.Chapter{
 			BookID: book.ID,
@@ -220,36 +219,43 @@ func (b *Book) UpdateChapters(id, limit int) (err error) {
 	if err != nil {
 		return
 	}
-
-	start := 0
-	if len(chapters) != 0 {
-		for i, j := 0, len(chapters)-1; i < j; i, j = i+1, j-1 {
-			chapters[i], chapters[j] = chapters[j], chapters[i]
-		}
-		for _, chapter := range chapters {
-			if start == 0 {
-				start = chapter.Index
-				continue
-			}
-			// 如果下一章也存在，最新章节修改为下一章
-			if chapter.Index-start == 1 {
-				start = chapter.Index
+	index := 0
+	for _, chapter := range chapters {
+		if chapter.Index > index {
+			// 对缺失的章节更新
+			for i := index; i < chapter.Index; i++ {
+				b.AddChapter(book.Source, book.SourceID, i)
 			}
 		}
-		// 需要更新的章节为下一章
-		start++
+		index = chapter.Index + 1
 	}
-
-	err = b.AddChapter(book.Source, book.SourceID, start)
+	latestChapter := 0
+	chapterCount := len(chapters)
+	if chapterCount != 0 {
+		latestChapter = chapters[chapterCount-1].Index + 1
+	}
+	// 更新最新章节
+	err = b.AddLatestChapter(book.Source, book.SourceID, latestChapter)
 	return
 }
 
 // AddChapter add chapter
-func (b *Book) AddChapter(category string, id, latestChapter int) (err error) {
+func (b *Book) AddChapter(category string, id, index int) (err error) {
 	return mqClient.Pub(mq.TopicUpdateChapter, &novel.Source{
-		Category:      category,
-		ID:            id,
-		LatestChapter: latestChapter,
+		Category:   category,
+		ID:         id,
+		Chapter:    index,
+		UpdateType: novel.UpdateTypeCurrent,
+	})
+}
+
+// AddLatestChapter add latest chapter
+func (b *Book) AddLatestChapter(category string, id, index int) (err error) {
+	return mqClient.Pub(mq.TopicUpdateChapter, &novel.Source{
+		Category:   category,
+		ID:         id,
+		Chapter:    index,
+		UpdateType: novel.UpdateTypeLatest,
 	})
 }
 

@@ -168,7 +168,7 @@ func (bc *BookCtrl) updateChapters(c echo.Context) (err error) {
 	if err != nil {
 		return
 	}
-	err = bookService.UpdateChapters(id, params.Limit)
+	err = bookService.UpdateChapters(id)
 	return
 }
 
