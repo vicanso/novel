@@ -78,7 +78,6 @@ mixin BookUpdate
         label="书名"
       )
         el-input(
-          :disabled="true"
           v-model="currentUpdateBoook.name"
         )
       el-form-item(
@@ -93,6 +92,21 @@ mixin BookUpdate
             :key="status"
             :label="status"
             :value="status"
+          )
+      el-form-item(
+        label="分类"
+      )
+        el-select(
+          style="width:100%"
+          placeholder="请选择分类"
+          multiple
+          v-model="currentUpdateBoook.category"
+        )
+          el-option(
+            v-for="item in bookCategories"
+            :key="item"
+            :label="item"
+            :value="item"
           )
       el-form-item(
         label="原始封面"
@@ -134,7 +148,7 @@ mixin BookFilter
         v-model="filters.category"
       )
         el-option(
-          v-for="category in bookCategories"
+          v-for="category in filterCategories"
           :key="category"
           :label="category"
           :value="category"
@@ -238,6 +252,7 @@ export default {
         "status",
         "cover",
         "updatedAt",
+        "category",
         "sourceCover"
       ].join(","),
       filters: {},
@@ -253,14 +268,13 @@ export default {
       books: ({ book }) => book.list,
       bookCount: ({ book }) => book.count,
       bookStatusList: ({ book }) => book.statusList,
-      bookCategories: ({ book }) => {
-        if (!book || !book.categories) {
-          return null;
+      bookCategories: ({ book }) => book.categories,
+      filterCategories: ({ book }) => {
+        if (!book.categories)  {
+          return [];
         }
-        const result = Object.keys(book.categories);
-        result.unshift(allCategory);
-        return result;
-      }
+        return [allCategory].concat(book.categories);
+      },
     })
   },
   methods: {
@@ -327,17 +341,32 @@ export default {
       this.currentUpdateBoook = null;
     },
     async update() {
-      const { id, statusDesc, brief } = this.currentUpdateBoook;
+      const {
+        currentUpdateBoook,
+      } = this;
+      const { id, statusDesc } = currentUpdateBoook;
       const found = find(this.currentBooks, item => item.id === id);
       if (!found) {
         return;
       }
       const updateData = {};
-      if (found.brief !== brief) {
-        updateData.brief = brief;
-      }
+      const updateFields = [
+        'brief',
+        'name',
+      ];
+      updateFields.forEach((k) => {
+        const v = currentUpdateBoook[k];
+        if (found[k] !== v) {
+          updateData[k] = v;
+        }
+      });
       if (found.statusDesc !== statusDesc) {
         updateData.status = this.bookStatusList.indexOf(statusDesc);
+      }
+      const currentCatgory = found.category.sort().join(',');
+      const newCategory = currentUpdateBoook.category.sort().join(',');
+      if (currentCatgory != newCategory) {
+        updateData.category = newCategory;
       }
       const close = this.xLoading();
       try {
@@ -373,15 +402,6 @@ export default {
     const filterHeight = 50;
     this.tableHeight =
       this.$refs.bookList.clientHeight - paginationHeight - filterHeight;
-
-    const close = this.xLoading();
-    try {
-      this.bookListCategory();
-    } catch (err) {
-      this.xError(err);
-    } finally {
-      close();
-    }
   },
   beforeMount() {
     this.fetch();

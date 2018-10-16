@@ -1,8 +1,8 @@
 import request from "axios";
 import { find } from "lodash-es";
 
-import { BOOKS, BOOKS_UPDATE_INFO, BOOKS_CATEGORIES, BOOKS_UPDATE_COVEER } from "@/urls";
-import { BOOK_LIST, BOOK_UPDATE, BOOK_CATEGORY, BOOK_UPDATE_COVER } from "@/store/types";
+import { BOOKS, BOOKS_UPDATE_INFO, BOOKS_UPDATE_COVEER } from "@/urls";
+import { BOOK_LIST, BOOK_UPDATE, BOOK_UPDATE_COVER } from "@/store/types";
 
 import { debug, formatDate } from "@/helpers/util";
 
@@ -13,7 +13,16 @@ const state = {
     list: [],
     count: 0,
     statusList,
-    categories: null
+    categories: [
+      '今日必读',
+      '玄幻奇幻',
+      '女频频道',
+      '都市言情',
+      '武侠仙侠',
+      '历史军事',
+      '科幻灵异',
+      '网游竞技',
+    ],
   }
 };
 
@@ -78,11 +87,6 @@ const bookCacheRemove = async ({ commit }) => {
   commit(BOOK_LIST, null);
 };
 
-const bookListCategory = async ({ commit }) => {
-  const res = await request.get(BOOKS_CATEGORIES);
-  debug(res);
-  commit(BOOK_CATEGORY, res.data);
-};
 
 const bookUpdateCover = async ({ commit }, { id }) => {
   const res = await request.patch(BOOKS_UPDATE_COVEER.replace(":id", id));
@@ -95,7 +99,6 @@ const actions = {
   bookList,
   bookCacheRemove,
   bookUpdate,
-  bookListCategory,
   bookUpdateCover
 };
 
@@ -127,9 +130,6 @@ const mutations = {
       Object.assign(found, update);
       found.statusDesc = getStatusDesc(update.status);
     }
-  },
-  [BOOK_CATEGORY](state, { categories }) {
-    state.book.categories = categories;
   },
   [BOOK_UPDATE_COVER](state, { id, cover }) {
     const found = find(state.book.list, item => item.id === id);
