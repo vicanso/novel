@@ -14,15 +14,15 @@ const state = {
     count: 0,
     statusList,
     categories: [
-      '今日必读',
-      '玄幻奇幻',
-      '女频频道',
-      '都市言情',
-      '武侠仙侠',
-      '历史军事',
-      '科幻灵异',
-      '网游竞技',
-    ],
+      "今日必读",
+      "玄幻奇幻",
+      "女频频道",
+      "都市言情",
+      "武侠仙侠",
+      "历史军事",
+      "科幻灵异",
+      "网游竞技"
+    ]
   }
 };
 
@@ -78,10 +78,10 @@ const bookUpdate = async ({ commit }, { id, update }) => {
   const res = await request.patch(url, update);
   debug(res);
   const data = Object.assign({}, update);
-  data.category = update.category.split(',');
+  data.category = update.category.split(",");
   commit(BOOK_UPDATE, {
     id,
-    update: data,
+    update: data
   });
 };
 
@@ -89,12 +89,17 @@ const bookCacheRemove = async ({ commit }) => {
   commit(BOOK_LIST, null);
 };
 
-
 const bookUpdateCover = async ({ commit }, { id }) => {
   const res = await request.patch(BOOKS_UPDATE_COVEER.replace(":id", id));
-  commit(BOOK_UPDATE_COVER, Object.assign({
-    id,
-  }, res.data));
+  commit(
+    BOOK_UPDATE_COVER,
+    Object.assign(
+      {
+        id
+      },
+      res.data
+    )
+  );
 };
 
 const actions = {

@@ -210,7 +210,7 @@ func (bc *BookCtrl) list(c echo.Context) (err error) {
 		}
 		m["count"] = count
 	}
-	setCache(c, "1m")
+	setCache(c, "10s")
 	res(c, m)
 	return
 }

@@ -270,11 +270,11 @@ export default {
       bookStatusList: ({ book }) => book.statusList,
       bookCategories: ({ book }) => book.categories,
       filterCategories: ({ book }) => {
-        if (!book.categories)  {
+        if (!book.categories) {
           return [];
         }
         return [allCategory].concat(book.categories);
-      },
+      }
     })
   },
   methods: {
@@ -341,20 +341,15 @@ export default {
       this.currentUpdateBoook = null;
     },
     async update() {
-      const {
-        currentUpdateBoook,
-      } = this;
+      const { currentUpdateBoook } = this;
       const { id, statusDesc } = currentUpdateBoook;
       const found = find(this.currentBooks, item => item.id === id);
       if (!found) {
         return;
       }
       const updateData = {};
-      const updateFields = [
-        'brief',
-        'name',
-      ];
-      updateFields.forEach((k) => {
+      const updateFields = ["brief", "name"];
+      updateFields.forEach(k => {
         const v = currentUpdateBoook[k];
         if (found[k] !== v) {
           updateData[k] = v;
@@ -363,8 +358,8 @@ export default {
       if (found.statusDesc !== statusDesc) {
         updateData.status = this.bookStatusList.indexOf(statusDesc);
       }
-      const currentCatgory = found.category.sort().join(',');
-      const newCategory = currentUpdateBoook.category.sort().join(',');
+      const currentCatgory = found.category.sort().join(",");
+      const newCategory = currentUpdateBoook.category.sort().join(",");
       if (currentCatgory != newCategory) {
         updateData.category = newCategory;
       }
@@ -382,13 +377,11 @@ export default {
       }
     },
     async updateCover() {
-      const {
-        id
-      } = this.currentUpdateBoook;
+      const { id } = this.currentUpdateBoook;
       const close = this.xLoading();
       try {
         await this.bookUpdateCover({
-          id,
+          id
         });
       } catch (err) {
         this.xError(err);

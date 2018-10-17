@@ -1,9 +1,12 @@
 package main
 
 import (
+	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/labstack/echo"
+	"github.com/labstack/gommon/log"
 	"github.com/vicanso/novel/asset"
 	"github.com/vicanso/novel/config"
 	"github.com/vicanso/novel/context"
@@ -14,11 +17,35 @@ import (
 	"github.com/vicanso/novel/router"
 	_ "github.com/vicanso/novel/schedule"
 	"github.com/vicanso/novel/service"
+	"github.com/vicanso/novel/util"
 	"github.com/vicanso/novel/xlog"
 	"go.uber.org/zap"
 )
 
+func healthCheck(listen string) {
+	url := "http://127.0.0.1" + listen + cs.PingRoute
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Error("health check fail, ", err)
+		os.Exit(1)
+		return
+	}
+	statusCode := resp.StatusCode
+	if statusCode < 200 || statusCode >= 400 {
+		log.Errorf("helth check fail, status:%d", statusCode)
+		os.Exit(1)
+		return
+	}
+	os.Exit(0)
+}
+
 func main() {
+	listen := config.GetString("listen")
+	if util.ContainsString(os.Args, "--check=true") {
+		healthCheck(listen)
+		return
+	}
+
 	logger := xlog.Logger()
 	influxdbClient := service.GetInfluxdbClient()
 	if influxdbClient != nil {
@@ -131,7 +158,7 @@ func main() {
 	defer logger.Sync()
 
 	// Start server
-	err := e.Start(config.GetString("listen"))
+	err := e.Start(listen)
 	logger.Error("start server fail",
 		zap.Error(err),
 	)

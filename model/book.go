@@ -28,7 +28,7 @@ type (
 		Source      string         `json:"source,omitempty" gorm:"not null;index:book_source_source_id"`
 		SourceID    int            `json:"sourceId,omitempty" gorm:"not null;index:book_source_source_id"`
 		SourceCover string         `json:"sourceCover,omitempty"`
-		Status      int            `json:"status,omitempty" gorm:"not null;"`
+		Status      int            `json:"status,omitempty" gorm:"not null;index:idx_books_status;"`
 		WordCount   int            `json:"wordCount,omitempty"`
 		ViewCount   int            `json:"viewCount,omitempty"`
 		LikeCount   int            `json:"likeCount,omitempty"`
