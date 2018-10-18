@@ -347,14 +347,14 @@
 
 [[projects]]
   branch = "go"
-  digest = "1:8993d48578c9348df18efb6fabc234bebc8e2887c324779f0031f0ebd006f3e2"
+  digest = "1:0ea282aae51a968a9264d129f89886fcc02f6fb326de5ecf978a3ec3b16c17e6"
   name = "github.com/vicanso/novel-spider"
   packages = [
     "mq",
     "novel",
   ]
   pruneopts = "UT"
-  revision = "4b54686afafd0b7342fd0d0b25dcbee51f3238db"
+  revision = "a5dfa98491c39d12ff3db82a2b868b1c6cbc691c"
 
 [[projects]]
   digest = "1:6fe30b099b0d34f0227ddc39d9eadf2bb03a448694454e56647c8589eb7c5bda"

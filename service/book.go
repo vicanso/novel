@@ -137,8 +137,8 @@ func initReceiveChapterEvent(c *mq.MQ) (err error) {
 		b := &model.Book{}
 		err := getClient().
 			Where(&model.Book{
-				Name:   c.Name,
-				Author: c.Author,
+				Source:   c.Source,
+				SourceID: c.SourceID,
 			}).
 			First(b).Error
 		if err != nil || b.ID == 0 {
