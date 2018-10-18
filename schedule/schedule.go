@@ -37,14 +37,17 @@ func runTicker(ticker *time.Ticker, message string, do func() error, restart fun
 		// 如果退出了，重新启动
 		go restart()
 	}()
+	logger := xlog.Logger()
 	for range ticker.C {
+		logger.Info(message + " schedule start")
 		err := do()
 		// TODO 检测不通过时，发送告警
 		if err != nil {
-			xlog.Logger().Error(message+" fail",
+			logger.Error(message+" fail",
 				zap.Error(err),
 			)
 		}
+		logger.Info(message + " schedule end")
 	}
 }
 
