@@ -113,7 +113,7 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:18f8bac7ae238f1d06b347d40fea2a37d029e11ddeac57163182a08c780955f2"
+  digest = "1:65b0a07f85f7b5cc019c26775efc278a155a5dea0a8aa617c980e8308d16bc55"
   name = "github.com/influxdata/influxdb"
   packages = [
     "client/v2",
@@ -121,8 +121,8 @@
     "pkg/escape",
   ]
   pruneopts = "UT"
-  revision = "389de31c961831de0a9f4172173337d4a6193909"
-  version = "v1.6.3"
+  revision = "c75cdfdfa6f71a08473fefcec71f6cbcbdef1ff4"
+  version = "v1.6.4"
 
 [[projects]]
   digest = "1:6895fbe5a10c5aebd1965cac6f6905dcdb21bee01e08912d3ba6a805c2485f6a"
@@ -347,14 +347,14 @@
 
 [[projects]]
   branch = "go"
-  digest = "1:341e38a0f33cf2d65a35a6217a257935baf5327ace63ed90fe5e9cbe2fef97c9"
+  digest = "1:8993d48578c9348df18efb6fabc234bebc8e2887c324779f0031f0ebd006f3e2"
   name = "github.com/vicanso/novel-spider"
   packages = [
     "mq",
     "novel",
   ]
   pruneopts = "UT"
-  revision = "09f89c763cddab330709d46ab2e9b5298ae5c792"
+  revision = "4b54686afafd0b7342fd0d0b25dcbee51f3238db"
 
 [[projects]]
   digest = "1:6fe30b099b0d34f0227ddc39d9eadf2bb03a448694454e56647c8589eb7c5bda"
@@ -408,7 +408,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:641a79bdc478e594ae335783eb334810c08287ff281baed37c74c5e028e94fca"
+  digest = "1:a129a4d3ca5795aa10a0fe8fea58d7428e1517be8fa5893cc9090f0c069038d0"
   name = "golang.org/x/net"
   packages = [
     "html",
@@ -419,7 +419,7 @@
     "publicsuffix",
   ]
   pruneopts = "UT"
-  revision = "49bb7cea24b1df9410e1712aa6433dae904ff66a"
+  revision = "04a2e542c03f1d053ab3e4d6e5abcd4b66e2be8e"
 
 [[projects]]
   branch = "master"

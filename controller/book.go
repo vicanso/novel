@@ -99,7 +99,7 @@ func init() {
 	// update the book's cover
 	books.Add(
 		"PATCH",
-		"/v1/cover/:id",
+		"/v1/covers/:id",
 		ctrl.updateCover,
 		userSession,
 		isSu,
@@ -109,7 +109,7 @@ func init() {
 	// TODO 如果支持登录后，需要增加登录状态的判断
 	books.Add(
 		"POST",
-		"/v1/action/:id",
+		"/v1/actions/:id",
 		ctrl.userAction,
 		createTracker(cs.ActionUserBookAction),
 		userSession,

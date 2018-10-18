@@ -24,14 +24,16 @@ type (
 		Brief  string `json:"brief,omitempty"`
 		Cover  string `json:"cover,omitempty"`
 		// Category 书籍分类
-		Category    pq.StringArray `json:"category,omitempty" gorm:"type:text[]"`
-		Source      string         `json:"source,omitempty" gorm:"not null;index:book_source_source_id"`
-		SourceID    int            `json:"sourceId,omitempty" gorm:"not null;index:book_source_source_id"`
-		SourceCover string         `json:"sourceCover,omitempty"`
-		Status      int            `json:"status,omitempty" gorm:"not null;index:idx_books_status;"`
-		WordCount   int            `json:"wordCount,omitempty"`
-		ViewCount   int            `json:"viewCount,omitempty"`
-		LikeCount   int            `json:"likeCount,omitempty"`
+		Category        pq.StringArray `json:"category,omitempty" gorm:"type:text[]"`
+		Source          string         `json:"source,omitempty" gorm:"not null;index:idx_books_source_source_id"`
+		SourceID        int            `json:"sourceId,omitempty" gorm:"not null;index:idx_books_source_source_id"`
+		SourceCover     string         `json:"sourceCover,omitempty"`
+		Status          int            `json:"status,omitempty" gorm:"not null;index:idx_books_status;"`
+		WordCount       int            `json:"wordCount,omitempty"`
+		ViewCount       int            `json:"viewCount,omitempty" gorm:"index:idx_books_view_count"`
+		LatestViewCount int            `json:"latestViewCount,omitempty" gorm:"index:idx_books_latest_view_count"`
+		LikeCount       int            `json:"likeCount,omitempty" gorm:"index:idx_books_like_count"`
+		LatestLikeCount int            `json:"latestLikeCount,omitempty" gorm:"index:idx_books_latest_like_count"`
 	}
 	// Chapter chapter struct
 	Chapter struct {

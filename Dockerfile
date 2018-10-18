@@ -17,3 +17,6 @@ COPY --from=builder /go/src/github.com/vicanso/novel/novel /usr/local/bin/novel
 COPY --from=builder /go/src/github.com/vicanso/novel/configs /configs
 
 CMD [ "novel" ]
+
+HEALTHCHECK --interval=10s --timeout=3s \
+  CMD novel --check=true || exit 1

@@ -7,4 +7,6 @@ const (
 	CacheBookCategoriesLock = "book-categories-lock"
 	// CacheBookUpdateChaptersLock update chapter lock
 	CacheBookUpdateChaptersLock = "book-update-chapters-lock"
+	// CacheBookLatestCountRestLock latest count reset lock
+	CacheBookLatestCountRestLock = "book-latest-count-rest-lock"
 )

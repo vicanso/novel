@@ -26,14 +26,16 @@ var (
 )
 
 const (
-	bookCoverCategory = "book-cover"
-	bookViewCount     = "view_count"
-	bookLikeCount     = "like_count"
-	bookWordCount     = "word_count"
-	bookCategory      = "category"
-	bookAuthor        = "author"
-	bookName          = "name"
-	bookStatus        = "status"
+	bookCoverCategory   = "book-cover"
+	bookViewCount       = "view_count"
+	bookLatestViewCount = "latest_view_count"
+	bookLikeCount       = "like_count"
+	bookLatestLikeCount = "latest_like_count"
+	bookWordCount       = "word_count"
+	bookCategory        = "category"
+	bookAuthor          = "author"
+	bookName            = "name"
+	bookStatus          = "status"
 )
 
 type (
@@ -430,23 +432,45 @@ func (b *Book) CountChapters(bookID int) (count int, err error) {
 }
 
 // incCount inc the count of book
-func (b *Book) incCount(id int, field string) (err error) {
+func (b *Book) incCount(id int, fields []string) (err error) {
 	book := &model.Book{}
 	book.ID = uint(id)
 	m := make(map[string]interface{})
-	m[field] = gorm.Expr(field + " + 1")
+	for _, field := range fields {
+		m[field] = gorm.Expr(field + " + 1")
+	}
 	err = getClient().Model(book).Updates(m).Error
 	return
 }
 
 // Like like the book
 func (b *Book) Like(id int) (err error) {
-	return b.incCount(id, bookLikeCount)
+	return b.incCount(id, []string{
+		bookLikeCount,
+		bookLatestLikeCount,
+	})
 }
 
 // View view the book
 func (b *Book) View(id int) (err error) {
-	return b.incCount(id, bookViewCount)
+	return b.incCount(id, []string{
+		bookViewCount,
+		bookLatestViewCount,
+	})
+}
+
+// ResetLatestCount reset latest count
+func (b *Book) ResetLatestCount() (err error) {
+	err = getClient().
+		Model(&model.Book{}).
+		Where(&model.Book{
+			Status: model.BookStatusPassed,
+		}).
+		Updates(map[string]interface{}{
+			bookLatestLikeCount: 0,
+			bookLatestViewCount: 0,
+		}).Error
+	return
 }
 
 // UpdateCategories get category list

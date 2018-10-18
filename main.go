@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo"
-	"github.com/labstack/gommon/log"
 	"github.com/vicanso/novel/asset"
 	"github.com/vicanso/novel/config"
 	"github.com/vicanso/novel/context"
@@ -23,16 +22,21 @@ import (
 )
 
 func healthCheck(listen string) {
+	logger := xlog.Logger()
 	url := "http://127.0.0.1" + listen + cs.PingRoute
 	resp, err := http.Get(url)
 	if err != nil {
-		log.Error("health check fail, ", err)
+		logger.Error("health check fail",
+			zap.Error(err),
+		)
 		os.Exit(1)
 		return
 	}
 	statusCode := resp.StatusCode
 	if statusCode < 200 || statusCode >= 400 {
-		log.Errorf("helth check fail, status:%d", statusCode)
+		logger.Errorf("helth check fail",
+			zap.Int("status", statusCode),
+		)
 		os.Exit(1)
 		return
 	}

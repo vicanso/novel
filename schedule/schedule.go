@@ -23,6 +23,7 @@ func init() {
 	go initInfluxdbCheckTicker()
 	go initBookCategoryTicker()
 	go initBookUpdateChaptersTicker()
+	go initLatestCountResetTicker()
 }
 
 func runTicker(ticker *time.Ticker, message string, do func() error, restart func()) {
@@ -47,6 +48,7 @@ func runTicker(ticker *time.Ticker, message string, do func() error, restart fun
 	}
 }
 
+// 重置route count
 func initRouteCountTicker() {
 	// 每5分钟重置route count
 	ticker := time.NewTicker(300 * time.Second)
@@ -56,6 +58,7 @@ func initRouteCountTicker() {
 	}, initRedisCheckTicker)
 }
 
+// redis health check
 func initRedisCheckTicker() {
 	client := service.GetRedisClient()
 	// 未使用redis，则不需要检测
@@ -70,6 +73,7 @@ func initRedisCheckTicker() {
 	}, initRedisCheckTicker)
 }
 
+// influxdb health check
 func initInfluxdbCheckTicker() {
 	clinet := service.GetInfluxdbClient()
 	if clinet == nil {
@@ -84,6 +88,7 @@ func initInfluxdbCheckTicker() {
 	}, initInfluxdbCheckTicker)
 }
 
+// 定时更新book分类信息
 func initBookCategoryTicker() {
 	ticker := time.NewTicker(600 * time.Second)
 	runTicker(ticker, "update book category", func() error {
@@ -97,6 +102,7 @@ func initBookCategoryTicker() {
 	}, initBookCategoryTicker)
 }
 
+// 定时更新章节信息
 func initBookUpdateChaptersTicker() {
 	ticker := time.NewTicker(3600 * time.Second)
 	runTicker(ticker, "update book chapter", func() (err error) {
@@ -121,4 +127,19 @@ func initBookUpdateChaptersTicker() {
 		}
 		return
 	}, initBookUpdateChaptersTicker)
+}
+
+// 定时重置最新用户行为count的信息
+func initLatestCountResetTicker() {
+	// 每小时重置一次
+	ticker := time.NewTicker(3600 * time.Second)
+	runTicker(ticker, "reset latest count", func() (err error) {
+		ok, _ := service.Lock(cs.CacheBookLatestCountRestLock, 1800*time.Second)
+		if !ok {
+			return
+		}
+		b := service.Book{}
+		err = b.ResetLatestCount()
+		return
+	}, initLatestCountResetTicker)
 }
