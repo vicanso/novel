@@ -34,7 +34,7 @@ func healthCheck(listen string) {
 	}
 	statusCode := resp.StatusCode
 	if statusCode < 200 || statusCode >= 400 {
-		logger.Errorf("helth check fail",
+		logger.Error("helth check fail",
 			zap.Int("status", statusCode),
 		)
 		os.Exit(1)

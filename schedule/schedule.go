@@ -134,6 +134,7 @@ func initLatestCountResetTicker() {
 	// 每小时重置一次
 	ticker := time.NewTicker(3600 * time.Second)
 	runTicker(ticker, "reset latest count", func() (err error) {
+		// 保证30分钟内只有一个实例重置
 		ok, _ := service.Lock(cs.CacheBookLatestCountRestLock, 1800*time.Second)
 		if !ok {
 			return
