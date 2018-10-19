@@ -18,6 +18,8 @@ var (
 	redisNoop     = func() error {
 		return nil
 	}
+	// ErrRedisNil redis nil error
+	ErrRedisNil = redis.Nil
 )
 
 type (
@@ -118,4 +120,13 @@ func RedisGet(key string, v interface{}) (ok bool, err error) {
 	}
 	ok = true
 	return
+}
+
+// IsRedisNil check the error is redis nil
+func IsRedisNil(err error) bool {
+	if err == nil {
+		return false
+	}
+	// 无法获取到RedisError对象
+	return err.Error() == redis.Nil.Error()
 }

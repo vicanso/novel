@@ -44,7 +44,7 @@ func NewRecover(config RecoverConfig) echo.MiddlewareFunc {
 				}
 				logger := context.GetLogger(c)
 				if logger != nil {
-					logger.Error("exception error",
+					logger.DPanic("exception error",
 						zap.String("uri", c.Request().RequestURI),
 						zap.Strings("stack", stack),
 						zap.String("error", message),

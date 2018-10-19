@@ -272,6 +272,7 @@ func (bc *BookCtrl) listChapaters(c echo.Context) (err error) {
 		}
 		m["count"] = count
 	}
+	setCache(c, "5m")
 	res(c, m)
 	return
 }
@@ -299,9 +300,11 @@ func (bc *BookCtrl) userAction(c echo.Context) (err error) {
 func (bc *BookCtrl) getCategories(c echo.Context) (err error) {
 	categories := make(map[string]int)
 	_, err = service.RedisGet(cs.CacheBookCategories, &categories)
-	if err != nil {
+	if err != nil && !service.IsRedisNil(err) {
 		return
 	}
+	// 因为有可能为redis nil error，所以重置
+	err = nil
 	setCache(c, "5m")
 	res(c, map[string]interface{}{
 		"categories": categories,
