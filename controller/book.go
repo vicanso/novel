@@ -233,10 +233,27 @@ func (bc *BookCtrl) getInfo(c echo.Context) (err error) {
 	if err != nil {
 		return
 	}
-	setCache(c, "10s")
-	res(c, map[string]interface{}{
-		"book": book,
+	chapters, err := bookService.ListChapters(id, &service.BookChapterQueryParams{
+		Limit: "1",
+		Order: "-index",
+		Field: "title,updatedAt",
 	})
+	if err != nil {
+		return
+	}
+	chapterCount, err := bookService.CountChapters(id)
+	if err != nil {
+		return
+	}
+	data := map[string]interface{}{
+		"book":         book,
+		"chapterCount": chapterCount,
+	}
+	if len(chapters) != 0 {
+		data["latestChapter"] = chapters[0]
+	}
+	setCache(c, "10s")
+	res(c, data)
 	return
 }
 
