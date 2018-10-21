@@ -55,6 +55,7 @@ type (
 		Order    string `json:"order,omitempty" valid:"runelength(2|32)"`
 		Q        string `json:"q,omitempty" valid:"runelength(1|32),optional"`
 		Category string `json:"category,omitempty" valid:"runelength(2|8),optional"`
+		Author   string `json:"author,omitempty" valid:"runelength(2|20),optional"`
 		Status   string `json:"status,omitempty" valid:"in(0|1|2),optional"`
 	}
 	// BookUpdateParams params for update
@@ -310,6 +311,11 @@ func getWhereConditions(params *BookQueryParams) (query string, args []interface
 	if status != "" {
 		sql = append(sql, bookStatus+" = ?")
 		args = append(args, status)
+	}
+	author := params.Author
+	if author != "" {
+		sql = append(sql, bookAuthor+" = ?")
+		args = append(args, author)
 	}
 	query = strings.Join(sql, " AND ")
 	return

@@ -1,12 +1,14 @@
 package controller
 
 import (
+	"math/rand"
 	"strconv"
 	"time"
 
 	"github.com/labstack/echo"
 	"github.com/vicanso/novel/cs"
 	"github.com/vicanso/novel/middleware"
+	"github.com/vicanso/novel/model"
 	"github.com/vicanso/novel/router"
 	"github.com/vicanso/novel/service"
 	"github.com/vicanso/novel/validate"
@@ -113,6 +115,12 @@ func init() {
 		ctrl.userAction,
 		createTracker(cs.ActionUserBookAction),
 		userSession,
+	)
+
+	books.Add(
+		"GET",
+		"/v1/recommends/:id",
+		ctrl.getRecommendByID,
 	)
 
 	// get the book's info
@@ -308,6 +316,63 @@ func (bc *BookCtrl) getCategories(c echo.Context) (err error) {
 	setCache(c, "5m")
 	res(c, map[string]interface{}{
 		"categories": categories,
+	})
+	return
+}
+
+// getRecommendByID get the recommend by book's id
+func (bc *BookCtrl) getRecommendByID(c echo.Context) (err error) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return
+	}
+	parmas := &service.BookQueryParams{}
+	err = validate.Do(parmas, getRequestQuery(c))
+	if err != nil {
+		return
+	}
+	info, err := bookService.GetInfo(id)
+	if err != nil {
+		return
+	}
+	rand.Seed(time.Now().UnixNano())
+	category := info.Category[rand.Intn(len(info.Category))]
+
+	parmas.Author = info.Author
+	authorResult, err := bookService.List(parmas)
+	if err != nil {
+		return
+	}
+
+	parmas.Author = ""
+	parmas.Category = category
+	catResult, err := bookService.List(parmas)
+	if err != nil {
+		return
+	}
+	result := make([]*model.Book, 0)
+	for _, item := range authorResult {
+		if item.ID != uint(id) {
+			result = append(result, item)
+		}
+	}
+	for _, item := range catResult {
+		if item.ID != uint(id) {
+			// 有可能与通过作者查询的重复
+			found := false
+			for _, tmp := range result {
+				if tmp.ID == item.ID {
+					found = true
+				}
+			}
+			if !found {
+				result = append(result, item)
+			}
+		}
+	}
+	setCache(c, "1m")
+	res(c, map[string]interface{}{
+		"books": result,
 	})
 	return
 }
