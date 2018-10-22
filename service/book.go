@@ -67,7 +67,7 @@ type (
 	}
 	// BookChapterQueryParams params for the query
 	BookChapterQueryParams struct {
-		Limit  string `json:"limit,omitempty" valid:"range(1|20)"`
+		Limit  string `json:"limit,omitempty" valid:"range(1|100)"`
 		Offset string `json:"offset,omitempty" valid:"numeric"`
 		Field  string `json:"field,omitempty" valid:"runelength(2|64)"`
 		Order  string `json:"order,omitempty" valid:"runelength(2|32)"`

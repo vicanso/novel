@@ -252,7 +252,7 @@ func (bc *BookCtrl) getInfo(c echo.Context) (err error) {
 	if len(chapters) != 0 {
 		data["latestChapter"] = chapters[0]
 	}
-	setCache(c, "10s")
+	setCacheWithSMaxAge(c, "5m", "30s")
 	res(c, data)
 	return
 }
