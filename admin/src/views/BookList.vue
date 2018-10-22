@@ -187,16 +187,14 @@ mixin BookFilter
   right: 0
   bottom: 0
   padding: 10px
+  z-index: 1
 .bookUpdate
-  position: absolute
-  top: 50%
-  left: 50%
-  width: 600px
-  margin-left: -300px
-  margin-top: -300px
-  border: $GRAY_BORDER
+  position: fixed 
+  top: 0
+  left: 0
+  right: 0
+  bottom: 0
   background-color: $COLOR_WHITE
-  border-radius: 3px
   z-index: 9
   h5
     margin: 0

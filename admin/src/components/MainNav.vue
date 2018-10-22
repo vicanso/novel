@@ -19,7 +19,7 @@ nav.nav
   bottom: 0
   width: $MAIN_NAV_WIDTH
   background-color: $COLOR_BLACK
-  z-index: 9
+  z-index: 1
 ul
   $height: 50px
   margin: 0

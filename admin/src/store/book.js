@@ -78,7 +78,9 @@ const bookUpdate = async ({ commit }, { id, update }) => {
   const res = await request.patch(url, update);
   debug(res);
   const data = Object.assign({}, update);
-  data.category = update.category.split(",");
+  if (update.category) {
+    data.category = update.category.split(",");
+  }
   commit(BOOK_UPDATE, {
     id,
     update: data

@@ -52,7 +52,7 @@ header.header
   height: $MAIN_HEADER_HEIGHT
   background-color: $COLOR_WHITE
   border-bottom: $GRAY_BORDER
-  z-index: 9
+  z-index: 1
   line-height: $MAIN_HEADER_HEIGHT
   overflow: hidden
 .logo
