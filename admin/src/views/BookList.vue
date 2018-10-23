@@ -117,9 +117,11 @@ mixin BookUpdate
         ) 
         el-button.mleft10(
           type="text"
-          v-if="!currentUpdateBoook.cover"
           @click.native="updateCover"
         ) 更新
+        el-input(
+          v-model="currentUpdateBoook.sourceCover"
+        )
       el-form-item(
         label="简介"
       )
@@ -346,7 +348,7 @@ export default {
         return;
       }
       const updateData = {};
-      const updateFields = ["brief", "name"];
+      const updateFields = ["brief", "name", "sourceCover"];
       updateFields.forEach(k => {
         const v = currentUpdateBoook[k];
         if (found[k] !== v) {
