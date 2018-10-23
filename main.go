@@ -119,8 +119,17 @@ func main() {
 	// TODO 是否需要增加ETag
 	// 因为我使用的前置缓存Pike有ETag的处理，因此不需要添加
 
-	e.GET("/", func(c echo.Context) (err error) {
-		buf := asset.Get("index.html")
+	adminAsset := asset.GetAdminAsset()
+	e.GET("/admin/", func(c echo.Context) (err error) {
+		buf := adminAsset.Get("index.html")
+		context.SetContentType(c, "text/html")
+		context.Res(c, buf)
+		return
+	})
+
+	webAsset := asset.GetWebAsset()
+	e.GET("/web/", func(c echo.Context) (err error) {
+		buf := webAsset.Get("index.html")
 		context.SetContentType(c, "text/html")
 		context.Res(c, buf)
 		return

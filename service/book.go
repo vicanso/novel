@@ -60,10 +60,11 @@ type (
 	}
 	// BookUpdateParams params for update
 	BookUpdateParams struct {
-		Name     string `json:"name,omitempty" valid:"runelength(1|20),optional"`
-		Brief    string `json:"brief,omitempty" valid:"runelength(5|2000),optional"`
-		Status   int    `json:"status,omitempty" valid:"xIntIn(1|2),optional"`
-		Category string `json:"category,omitempty" valid:"runelength(2|32),optional"`
+		Name        string `json:"name,omitempty" valid:"runelength(1|20),optional"`
+		Brief       string `json:"brief,omitempty" valid:"runelength(5|2000),optional"`
+		Status      int    `json:"status,omitempty" valid:"xIntIn(1|2),optional"`
+		Category    string `json:"category,omitempty" valid:"runelength(2|32),optional"`
+		SourceCover string `json:"sourceCover" valid:"runelength(10|200),optional"`
 	}
 	// BookChapterQueryParams params for the query
 	BookChapterQueryParams struct {
@@ -376,6 +377,9 @@ func (b *Book) UpdateInfo(id int, params *BookUpdateParams) (err error) {
 	}
 	if params.Name != "" {
 		updateInfo.Name = params.Name
+	}
+	if params.SourceCover != "" {
+		updateInfo.SourceCover = params.SourceCover
 	}
 	err = getClient().Model(book).Updates(updateInfo).Error
 	return

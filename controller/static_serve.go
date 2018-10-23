@@ -16,9 +16,10 @@ import (
 )
 
 const (
-	staticURLPrefix   = "/static/"
-	staticErrCategory = "staticServe"
-	minCompressSize   = 1024
+	staticAdminURLPrefix = "/admin/static/"
+	staticWebURLPrefix   = "/web/static/"
+	staticErrCategory    = "staticServe"
+	minCompressSize      = 1024
 )
 
 var (
@@ -28,8 +29,13 @@ var (
 func init() {
 	router.Add(
 		"GET",
-		staticURLPrefix+"*",
-		serve,
+		staticAdminURLPrefix+"*",
+		createServe(asset.GetAdminAsset()),
+	)
+	router.Add(
+		"GET",
+		staticWebURLPrefix+"*",
+		createServe(asset.GetWebAsset()),
 	)
 }
 
@@ -41,25 +47,27 @@ func getNotFoundError(file string) error {
 	}
 }
 
-// serve static serve
-func serve(c echo.Context) (err error) {
-	file := c.Param("*")
-	buf := asset.Get(file)
-	bufSize := len(buf)
-	if bufSize == 0 {
-		err = getNotFoundError(file)
-		return
-	}
-	contentType := mime.TypeByExtension(filepath.Ext(file))
-	// 如果是文本类，而且数据大于最小压缩长度，则执行压缩
-	if textRegexp.MatchString(contentType) && bufSize > minCompressSize {
-		buf, err = util.Gzip(buf, 0)
-		if err != nil {
+func createServe(as *asset.Asset) echo.HandlerFunc {
+	// serve static serve
+	return func(c echo.Context) (err error) {
+		file := c.Param("*")
+		buf := as.Get(file)
+		bufSize := len(buf)
+		if bufSize == 0 {
+			err = getNotFoundError(file)
 			return
 		}
-		context.SetHeader(c, echo.HeaderContentEncoding, cs.Gzip)
+		contentType := mime.TypeByExtension(filepath.Ext(file))
+		// 如果是文本类，而且数据大于最小压缩长度，则执行压缩
+		if textRegexp.MatchString(contentType) && bufSize > minCompressSize {
+			buf, err = util.Gzip(buf, 0)
+			if err != nil {
+				return
+			}
+			context.SetHeader(c, echo.HeaderContentEncoding, cs.Gzip)
+		}
+		context.SetContentType(c, contentType)
+		context.Res(c, buf)
+		return
 	}
-	context.SetContentType(c, contentType)
-	context.Res(c, buf)
-	return
 }

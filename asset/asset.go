@@ -6,23 +6,44 @@ import (
 	"github.com/gobuffalo/packr"
 )
 
-var box packr.Box
+var adminAsset *Asset
+var webAsset *Asset
 
 func init() {
-	box = packr.NewBox("../assets")
+	adminAsset = &Asset{
+		box: packr.NewBox("../admin/dist"),
+	}
+	webAsset = &Asset{
+		box: packr.NewBox("../assets"),
+	}
+}
+
+// GetAdminAsset get admin asset
+func GetAdminAsset() *Asset {
+	return adminAsset
+}
+
+// GetWebAsset get web asset
+func GetWebAsset() *Asset {
+	return webAsset
+}
+
+// Asset asset
+type Asset struct {
+	box packr.Box
 }
 
 // Open open the file
-func Open(filename string) (http.File, error) {
-	return box.Open(filename)
+func (a *Asset) Open(filename string) (http.File, error) {
+	return a.box.Open(filename)
 }
 
 // Get the the data of file
-func Get(filename string) []byte {
-	return box.Bytes(filename)
+func (a *Asset) Get(filename string) []byte {
+	return a.box.Bytes(filename)
 }
 
 // Exists check the file exists
-func Exists(filename string) bool {
-	return box.Has(filename)
+func (a *Asset) Exists(filename string) bool {
+	return a.box.Has(filename)
 }
