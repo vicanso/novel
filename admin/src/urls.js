@@ -6,3 +6,4 @@ export const BOOKS = "/books/v1";
 export const BOOKS_CATEGORIES = "/books/v1/categories";
 export const BOOKS_UPDATE_INFO = "/books/v1/:id";
 export const BOOKS_UPDATE_COVEER = "/books/v1/covers/:id";
+export const BOOKS_CHAPTERS = "/books/v1/chapters/:id";

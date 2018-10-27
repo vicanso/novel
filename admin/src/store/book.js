@@ -1,10 +1,15 @@
 import request from "axios";
 import { find } from "lodash-es";
 
-import { BOOKS, BOOKS_UPDATE_INFO, BOOKS_UPDATE_COVEER } from "@/urls";
+import {
+  BOOKS,
+  BOOKS_UPDATE_INFO,
+  BOOKS_UPDATE_COVEER,
+  BOOKS_CHAPTERS
+} from "@/urls";
 import { BOOK_LIST, BOOK_UPDATE, BOOK_UPDATE_COVER } from "@/store/types";
 
-import { debug, formatDate } from "@/helpers/util";
+import { formatDate } from "@/helpers/util";
 
 const statusList = ["待审核", "已拒绝", "已通过"];
 
@@ -21,7 +26,8 @@ const state = {
       "武侠仙侠",
       "历史军事",
       "科幻灵异",
-      "网游竞技"
+      "网游竞技",
+      "完结"
     ]
   }
 };
@@ -56,11 +62,9 @@ const bookList = async (
   if (list[offset]) {
     return;
   }
-  debug(params);
   const res = await request.get(BOOKS, {
     params
   });
-  debug(res);
   commit(
     BOOK_LIST,
     Object.assign(
@@ -73,10 +77,8 @@ const bookList = async (
 };
 
 const bookUpdate = async ({ commit }, { id, update }) => {
-  debug("id:%s, data:%j", id, update);
   const url = BOOKS_UPDATE_INFO.replace(":id", id);
-  const res = await request.patch(url, update);
-  debug(res);
+  await request.patch(url, update);
   const data = Object.assign({}, update);
   if (update.category) {
     data.category = update.category.split(",");
@@ -104,10 +106,24 @@ const bookUpdateCover = async ({ commit }, { id }) => {
   );
 };
 
+const bookGetChapters = async (tmp, { id, offset, limit, order, field }) => {
+  const url = BOOKS_CHAPTERS.replace(":id", id);
+  const res = await request.get(url, {
+    params: {
+      limit,
+      offset,
+      field,
+      order
+    }
+  });
+  return res;
+};
+
 const actions = {
   bookList,
   bookCacheRemove,
   bookUpdate,
+  bookGetChapters,
   bookUpdateCover
 };
 

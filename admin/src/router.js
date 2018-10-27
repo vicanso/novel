@@ -3,7 +3,7 @@ import Router from "vue-router";
 import Home from "@/views/Home.vue";
 import Login from "@/views/Login.vue";
 import Register from "@/views/Register.vue";
-import BookList from "@/views/BookList.vue";
+import BookList from "@/views/BookList";
 import { routeLogin, routeHome, routeRegister, routeBookList } from "@/routes";
 
 Vue.use(Router);
