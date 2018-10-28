@@ -34,12 +34,13 @@ func NewSession(client *redis.Client, config SessionConfig) echo.MiddlewareFunc 
 		store, _ = session.NewMemoryStore(defaultMemoryStoreSize)
 	}
 	opts := &session.Options{
-		Store:        store,
-		Key:          config.Cookie,
-		MaxAge:       int(config.Expires.Seconds()),
-		CookieKeys:   config.Keys,
-		CookieMaxAge: int(config.CookieMaxAge.Seconds()),
-		CookiePath:   config.CookiePath,
+		Store:          store,
+		Key:            config.Cookie,
+		MaxAge:         int(config.Expires.Seconds()),
+		CookieKeys:     config.Keys,
+		CookieMaxAge:   int(config.CookieMaxAge.Seconds()),
+		CookiePath:     config.CookiePath,
+		CookieHttpOnly: true,
 	}
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) (err error) {
