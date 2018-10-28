@@ -159,10 +159,10 @@ export default {
           id,
           update: updateData
         });
+        this.currentUpdateBoook = null;
       } catch (err) {
         this.xError(err);
       } finally {
-        this.currentUpdateBoook = null;
         close();
       }
     },
