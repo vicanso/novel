@@ -99,7 +99,7 @@ func NewUserSession(sess *session.Session) *UserSession {
 }
 
 // Register register
-func (u *User) Register(account, password string) (user *model.User, err error) {
+func (u *User) Register(account, password, email string) (user *model.User, err error) {
 	user = &model.User{}
 	err = getClient().Where(&model.User{
 		Account: account,
@@ -115,6 +115,7 @@ func (u *User) Register(account, password string) (user *model.User, err error) 
 	user = &model.User{
 		Account:  account,
 		Password: password,
+		Email:    email,
 	}
 	err = getClient().Create(user).Error
 	// TODO 对于第一个注册用户增加su权限

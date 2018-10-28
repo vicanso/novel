@@ -17,6 +17,7 @@ type (
 		BaseModel
 		Account  string         `json:"account,omitempty" gorm:"type:varchar(20);not null;unique_index:idx_users_account"`
 		Password string         `json:"password,omitempty" gorm:"type:varchar(128);not null;"`
+		Email    string         `json:"email,omitempty" gorm:"type:varchar(128);"`
 		Roles    pq.StringArray `json:"roles,omitempty" gorm:"type:text[]"`
 	}
 	// UserLogin user login

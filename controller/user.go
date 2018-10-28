@@ -52,8 +52,8 @@ type (
 		LoginedAt string   `json:"loginedAt,omitempty"`
 		Roles     []string `json:"roles,omitempty"`
 	}
-	// UserLoginOrRegParams the params of user login
-	UserLoginOrRegParams struct {
+	// UserLoginParams the params of user login
+	UserLoginParams struct {
 		Account  string `valid:"ascii,runelength(4|10)"`
 		Password string `valid:"runelength(6|64)"`
 	}
@@ -61,6 +61,7 @@ type (
 	UserRegisterParams struct {
 		Account  string `valid:"ascii,runelength(4|10)"`
 		Password string `valid:"runelength(6|64)"`
+		Email    string `valid:"email,optional"`
 	}
 	// UserUpdateRolesParams the params of user update roles
 	UserUpdateRolesParams struct {
@@ -182,12 +183,12 @@ func (uc *UserCtrl) getInfo(c echo.Context) (err error) {
 // register register user ctrl
 func (uc *UserCtrl) register(c echo.Context) (err error) {
 	buf := getRequestBody(c)
-	params := &UserLoginOrRegParams{}
+	params := &UserRegisterParams{}
 	err = validate.Do(params, buf)
 	if err != nil {
 		return
 	}
-	user, err := userService.Register(params.Account, params.Password)
+	user, err := userService.Register(params.Account, params.Password, params.Email)
 	if err != nil {
 		return
 	}
@@ -215,7 +216,7 @@ func (uc *UserCtrl) getLoginToken(c echo.Context) (err error) {
 // doLogin user login
 func (uc *UserCtrl) doLogin(c echo.Context) (err error) {
 	buf := getRequestBody(c)
-	params := &UserLoginOrRegParams{}
+	params := &UserLoginParams{}
 	err = validate.Do(params, buf)
 	if err != nil {
 		return

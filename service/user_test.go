@@ -60,11 +60,11 @@ func TestUserService(t *testing.T) {
 	token := "abcd"
 
 	t.Run("register", func(t *testing.T) {
-		_, err := userService.Register(account, pwd)
+		_, err := userService.Register(account, pwd, "")
 		if err != nil {
 			t.Fatalf("register fail, %v", err)
 		}
-		_, err = userService.Register(account, pwd)
+		_, err = userService.Register(account, pwd, "")
 		if err != errUserAccountExists {
 			t.Fatalf("the account exists should return error")
 		}

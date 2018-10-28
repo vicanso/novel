@@ -118,7 +118,6 @@ export default {
         if (chapters) {
           latestChapter = chapters[0]
         }
-        console.dir(res);
       } catch (err) {
         this.xError(err);
       } finally {
