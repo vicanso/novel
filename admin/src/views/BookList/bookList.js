@@ -173,6 +173,7 @@ export default {
         await this.bookUpdateCover({
           id
         });
+        this.$message.info("已成功更新!");
       } catch (err) {
         this.xError(err);
       } finally {

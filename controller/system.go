@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo"
+	"github.com/vicanso/novel/asset"
 	"github.com/vicanso/novel/global"
 	"github.com/vicanso/novel/router"
 )
@@ -46,6 +47,7 @@ func init() {
 	system.Add("GET", "/stats", ctrl.getStats)
 	system.Add("GET", "/routes", ctrl.getRoutes)
 	system.Add("GET", "/route-counts", ctrl.getRouteCounts)
+	system.Add("GET", "/assets", ctrl.getAssets)
 }
 
 // getStatus get status info
@@ -97,5 +99,17 @@ func (sc *SystemCtrl) getRouteCounts(c echo.Context) (err error) {
 	routeCountInfo := global.GetRouteCount()
 	setCache(c, "1m")
 	res(c, routeCountInfo)
+	return
+}
+
+// getAssets get assets
+func (sc *SystemCtrl) getAssets(c echo.Context) (err error) {
+	adminAsset := asset.GetAdminAsset()
+	webAsset := asset.GetWebAsset()
+	setCache(c, "1m")
+	res(c, map[string]interface{}{
+		"admin": adminAsset.List(),
+		"web": webAsset.List(),
+	})
 	return
 }

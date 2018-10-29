@@ -19,4 +19,6 @@ const (
 
 	// ActionUserBookAction action user book action
 	ActionUserBookAction = "user-book-action"
+	// ActionUserFavToggle user fav toggle
+	ActionUserFavToggle = "user-fav-toggle"
 )

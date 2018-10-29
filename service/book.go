@@ -73,6 +73,16 @@ type (
 		Field  string `json:"field,omitempty" valid:"runelength(2|64)"`
 		Order  string `json:"order,omitempty" valid:"runelength(2|32)"`
 	}
+	// BookFavorite book favorite
+	BookFavorite struct {
+		ID        uint       `json:"id,omitempty"`
+		Name      string     `json:"name,omitempty"`
+		Author    string     `json:"author,omitempty"`
+		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+		// 收藏时间
+		CreatedAt          *time.Time `json:"createdAt,omitempty"`
+		LatestChapterTitle string     `json:"latestChapterTitle,omitempty"`
+	}
 )
 
 func init() {
@@ -497,5 +507,93 @@ func (b *Book) UpdateCategories() (err error) {
 		}
 	}
 	_, err = RedisSet(cs.CacheBookCategories, categoriesInfo, time.Hour)
+	return
+}
+
+// GetLatestChapter get latest chapter
+func (b *Book) GetLatestChapter(bookID int, field string) (chapter *model.Chapter, err error) {
+	chapters, err := b.ListChapters(bookID, &BookChapterQueryParams{
+		Limit: "1",
+		Order: "-index",
+		Field: field,
+	})
+	if err != nil || len(chapters) == 0 {
+		return
+	}
+	chapter = chapters[0]
+	return
+}
+
+// AddFav add fav book
+func (b *Book) AddFav(account string, bookID int) (err error) {
+	result := &model.Book{}
+	result.ID = uint(bookID)
+	err = getClient().First(result).Error
+	if err != nil {
+		return
+	}
+	fav := &model.Favorite{
+		Account: account,
+		BookID:  uint(bookID),
+	}
+	err = getClient().Create(fav).Error
+	return
+}
+
+// RemoveFav remove fav book
+func (b *Book) RemoveFav(account string, bookID int) (err error) {
+	err = getClient().Unscoped().Delete(&model.Favorite{
+		Account: account,
+		BookID:  uint(bookID),
+	}).Error
+	return
+}
+
+// ListFav list fav books
+func (b *Book) ListFav(account string) (bookFavs []*BookFavorite, err error) {
+	favs := make([]*model.Favorite, 0)
+	err = getClient().Where(&model.Favorite{
+		Account: account,
+	}).Find(&favs).Error
+	if err != nil {
+		return
+	}
+
+	books := make([]*model.Book, 0)
+	ids := []uint{}
+	for _, item := range favs {
+		ids = append(ids, item.BookID)
+	}
+	err = getClientByOptions(&model.QueryOptions{
+		Field: "id,name,author,updatedAt",
+	}, nil).Where("id in (?)", ids).
+		Find(&books).Error
+	if err != nil {
+		return
+	}
+	bookFavs = make([]*BookFavorite, len(books))
+	waitChans := make(chan bool, 5)
+	for index, item := range books {
+		bookFav := &BookFavorite{
+			ID:        item.ID,
+			Name:      item.Name,
+			Author:    item.Author,
+			UpdatedAt: item.UpdatedAt,
+		}
+		for _, fav := range favs {
+			if fav.BookID == item.ID {
+				bookFav.CreatedAt = fav.CreatedAt
+			}
+		}
+		go func() {
+			latestChapter, _ := b.GetLatestChapter(int(bookFav.ID), "title,updatedAt")
+			if latestChapter != nil {
+				bookFav.LatestChapterTitle = latestChapter.Title
+			}
+			waitChans <- true
+		}()
+		<-waitChans
+		bookFavs[index] = bookFav
+	}
 	return
 }

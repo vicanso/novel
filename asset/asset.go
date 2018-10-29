@@ -47,3 +47,8 @@ func (a *Asset) Get(filename string) []byte {
 func (a *Asset) Exists(filename string) bool {
 	return a.box.Has(filename)
 }
+
+// List list the asset's file
+func (a *Asset) List() []string {
+	return a.box.List()
+}

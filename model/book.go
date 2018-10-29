@@ -44,4 +44,11 @@ type (
 		WordCount int    `json:"wordCount,omitempty"`
 		BookID    uint   `json:"bookId,omitempty" gorm:"not null;unique_index:idx_chapters_book_id_index"`
 	}
+	// Favorite user's favorite
+	Favorite struct {
+		BaseModel
+		BookID          uint   `json:"bookId,omitempty" gorm:"not null;unique_index:idx_favorites_book_id_account"`
+		Account         string `json:"account,omitempty" gorm:"not null;unique_index:idx_favorites_book_id_account"`
+		ReaddingChapter int    `json:"readdingChapter"`
+	}
 )

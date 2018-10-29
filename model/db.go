@@ -75,6 +75,7 @@ func initModels() {
 	db.AutoMigrate(&User{}).
 		AutoMigrate(&UserLogin{}).
 		AutoMigrate(&Book{}).
+		AutoMigrate(&Favorite{}).
 		AutoMigrate(&Chapter{})
 }
 

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo"
+	"github.com/vicanso/novel/context"
 	"github.com/vicanso/novel/cs"
 	"github.com/vicanso/novel/middleware"
 	"github.com/vicanso/novel/model"
@@ -13,6 +14,10 @@ import (
 	"github.com/vicanso/novel/service"
 	"github.com/vicanso/novel/validate"
 	"go.uber.org/zap"
+)
+
+const (
+	bookAddFavCategory = "add"
 )
 
 type (
@@ -31,6 +36,10 @@ type (
 	// UserActionParams user action params
 	UserActionParams struct {
 		Type string `valid:"in(like|view)"`
+	}
+	// BookFavToggleParams params for book fav toggle
+	BookFavToggleParams struct {
+		Category string `valid:"in(add|remove)"`
 	}
 )
 
@@ -108,19 +117,37 @@ func init() {
 	)
 
 	// userAction the book
-	// TODO 如果支持登录后，需要增加登录状态的判断
 	books.Add(
 		"POST",
 		"/v1/actions/:id",
 		ctrl.userAction,
 		createTracker(cs.ActionUserBookAction),
 		userSession,
+		middleware.IsLogined,
 	)
 
 	books.Add(
 		"GET",
 		"/v1/recommends/:id",
 		ctrl.getRecommendByID,
+	)
+
+	// 用户收藏
+	books.Add(
+		"GET",
+		"/v1/favorites",
+		ctrl.listFav,
+		userSession,
+		middleware.IsLogined,
+	)
+	// 用户收藏切换（添加删除）
+	books.Add(
+		"POST",
+		"/v1/favorites/:id",
+		ctrl.toggleFav,
+		createTracker(cs.ActionUserFavToggle),
+		userSession,
+		middleware.IsLogined,
 	)
 
 	// get the book's info
@@ -233,11 +260,7 @@ func (bc *BookCtrl) getInfo(c echo.Context) (err error) {
 	if err != nil {
 		return
 	}
-	chapters, err := bookService.ListChapters(id, &service.BookChapterQueryParams{
-		Limit: "1",
-		Order: "-index",
-		Field: "title,updatedAt",
-	})
+	latestChapter, err := bookService.GetLatestChapter(id, "title,updatedAt")
 	if err != nil {
 		return
 	}
@@ -246,11 +269,9 @@ func (bc *BookCtrl) getInfo(c echo.Context) (err error) {
 		return
 	}
 	data := map[string]interface{}{
-		"book":         book,
-		"chapterCount": chapterCount,
-	}
-	if len(chapters) != 0 {
-		data["latestChapter"] = chapters[0]
+		"book":          book,
+		"chapterCount":  chapterCount,
+		"latestChapter": latestChapter,
 	}
 	setCacheWithSMaxAge(c, "5m", "30s")
 	res(c, data)
@@ -269,6 +290,9 @@ func (bc *BookCtrl) updateInfo(c echo.Context) (err error) {
 		return
 	}
 	err = bookService.UpdateInfo(id, params)
+	if err == nil && params.SourceCover != "" {
+		bookService.UpdateCover(id)
+	}
 	return
 }
 
@@ -390,6 +414,42 @@ func (bc *BookCtrl) getRecommendByID(c echo.Context) (err error) {
 	setCache(c, "1m")
 	res(c, map[string]interface{}{
 		"books": result,
+	})
+	return
+}
+
+// toggleFav toggle the user fav
+func (bc *BookCtrl) toggleFav(c echo.Context) (err error) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return
+	}
+	params := &BookFavToggleParams{}
+	err = validate.Do(params, getRequestBody(c))
+	if err != nil {
+		return
+	}
+	account := context.GetUserSession(c).GetAccount()
+	if params.Category == bookAddFavCategory {
+		err = bookService.AddFav(account, id)
+	} else {
+		err = bookService.RemoveFav(account, id)
+	}
+	if err != nil {
+		return
+	}
+	return
+}
+
+// listFav list the user fav
+func (bc *BookCtrl) listFav(c echo.Context) (err error) {
+	account := context.GetUserSession(c).GetAccount()
+	result, err := bookService.ListFav(account)
+	if err != nil {
+		return
+	}
+	res(c, map[string]interface{}{
+		"favs": result,
 	})
 	return
 }
