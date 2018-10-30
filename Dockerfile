@@ -2,10 +2,7 @@ FROM node:alpine as assets
 
 ADD ./ /novel
 
-RUN apk update \
-  && apk add git \
-  && git clone --depth=1 https://github.com/vicanso/novel-web /novel/web \
-  && cd /novel/admin \
+RUN cd /novel/admin \
   && yarn \
   && yarn build \
   && cd /novel/web \

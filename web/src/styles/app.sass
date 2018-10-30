@@ -1,0 +1,88 @@
+@import "./const.sass"
+
+*
+  box-sizing: border-box
+  &:before, &:after
+    box-sizing: border-box
+.clearfix:before, .clearfix:after
+  display: table
+  content: " "
+.clearfix:after
+  clear: both
+
+.contentBox
+  box-sizing: content-box
+  &:before, &:after
+    box-sizing: content-box
+
+body, html
+  margin: 0
+  font-family: "Open Sans", "Helvetica Neue", Arial, Verdana, sans-serif
+  color: $COLOR_LIGHT_BLACK
+  background-color: #f4f4f4
+  width: 100%
+  overflow: hidden
+body, html, #app, .fullHeight
+  height: 100%
+  overflow: hidden
+.fullHeightScroll
+  height: 100%
+  overflow: auto
+  -webkit-overflow-scrolling: touch
+.mainView, .childView
+  background-color: $COLOR_DARY_WHITE
+  position: absolute 
+  left: 0
+  top: 0
+  right: 0
+  height: 100%
+.childView
+  z-index: 1
+// 由于childView调整了z-index，因此需要调整loading的index
+.mint-indicator-wrapper, .mint-indicator-mask
+  z-index: 1
+
+.pullRight
+  float: right
+.pullLeft
+  float: left
+.mright10
+  margin-right: 10px
+.mright5
+  margin-right: 5px
+.mleft5
+  margin-left: 5px
+.mleft10
+  margin-left: 10px
+.mtop10
+  margin-top: 10px
+.font24
+  font-size: 24px
+.font12
+  font-size: 12px
+.font14
+  font-size: 14px
+.tac
+  text-align: center
+.loading
+  padding: 20px 0
+  text-align: center
+
+.rotate90
+  transform: rotate(90deg)
+.rotate180
+  transform: rotate(180deg)
+.rotate270
+  transform: rotate(270deg)
+
+// main header bar
+.mainHeader
+  height: $MAIN_HEADER_HEIGHT !important
+  box-sizing: content-box
+  padding: 0
+.mainHeaderFunction
+  display: inline-block
+  width: 50px
+  padding: 0 15px
+  height: $MAIN_HEADER_HEIGHT
+  line-height: $MAIN_HEADER_HEIGHT

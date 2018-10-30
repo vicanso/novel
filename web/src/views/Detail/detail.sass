@@ -1,0 +1,118 @@
+@import '@/styles/const.sass'
+
+
+.mainView
+  .refresh
+    font-weight: 600
+.contentWrapper
+  padding-bottom: $MAIN_HEADER_HEIGHT
+  padding-top: $MAIN_HEADER_HEIGHT
+  
+  .content
+    background-color: $COLOR_WHITE
+  .mainInfos
+    padding: 15px
+    $coverWidth: 80px
+    border-bottom: $GRAY_BORDER
+    .infos
+      margin-left: $coverWidth + 10
+      span
+        color: $COLOR_BLUE
+        margin-right: 5px
+      .wordCount
+        color: $COLOR_GRAY
+        margin: 5px 0
+    .latestChapter
+      color: $COLOR_DARK_GRAY
+      span
+        color: $COLOR_BLACK
+  .brief
+    padding: 15px
+    border-bottom: $GRAY_BORDER
+    line-height: 1.7em
+    text-indent: 2em
+  .chapters
+    line-height: 2em
+    padding: 5px 15px
+    border-bottom: $GRAY_BORDER
+    span, i
+      color: $COLOR_GRAY
+.recommends
+  background-color: $COLOR_WHITE
+  margin: 15px 0
+  padding-top: 10px
+  h3
+    margin: 0 0 0 10px
+    padding: 0
+    line-height: 2em
+    font-size: 16px
+  .book
+    border-bottom: $GRAY_BORDER
+
+.functions
+  position: fixed 
+  background-color: $COLOR_WHITE
+  left: 0
+  right: 0
+  bottom: 0
+  a
+    display: inline-block
+    height: 100%
+    width: 30%
+    text-decoration: none
+    color: $COLOR_BLUE
+    text-align: center
+    &.favAdded
+      color: $COLOR_DARK_GRAY
+    &.read
+      width: 40%
+      background-color: $COLOR_BLUE
+      color: $COLOR_WHITE
+    i
+      display: block
+      font-size: 20px
+      margin: 4px auto 2px auto
+    span
+      font-size: 12px
+      line-height: 20px
+    
+.chaptersView
+  .chaptersWrapper
+    padding-top: $MAIN_HEADER_HEIGHT
+  .chapterSection
+    margin: 0
+    padding: 10px
+    padding-bottom: 0
+    list-style: none
+    li
+      display: inline-block
+      padding: 3px 10px
+      border: $GRAY_BORDER
+      border-radius: 10px
+      background-color: $COLOR_WHITE
+      margin: 0 10px 10px 0
+      &.sortBy
+        padding: 3px 15px
+      a
+        text-decoration: none
+        color: $COLOR_DARK_BLUE
+        line-height: 20px
+        display: block
+        &.active
+          color: $COLOR_BLUE
+  .chapters
+    margin: 0
+    padding: 0
+    list-style: none
+    li
+      border: $GRAY_BORDER
+      &:nth-child(odd)
+        background-color: $COLOR_WHITE
+      a
+        display: block
+        padding: 10px 0 10px 15px
+        text-decoration: none
+        color: $COLOR_DARK_GRAY
+        span
+          color: $COLOR_DARK_BLUE
+          margin-right: 10px
