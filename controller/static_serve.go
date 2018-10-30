@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"bytes"
 	"mime"
 	"net/http"
 	"path/filepath"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/vicanso/novel/asset"
+	"github.com/vicanso/novel/config"
 	"github.com/vicanso/novel/context"
 	"github.com/vicanso/novel/cs"
 	"github.com/vicanso/novel/router"
@@ -20,6 +22,7 @@ const (
 	staticWebURLPrefix   = "/web/static/"
 	staticErrCategory    = "staticServe"
 	minCompressSize      = 1024
+	defaultIndexFile     = "index.html"
 )
 
 var (
@@ -36,6 +39,18 @@ func init() {
 		"GET",
 		staticWebURLPrefix+"*",
 		createServe(asset.GetWebAsset()),
+	)
+
+	router.Add(
+		"GET",
+		"/admin/",
+		createIndexHandler(asset.GetAdminAsset()),
+	)
+
+	router.Add(
+		"GET",
+		"/web/",
+		createIndexHandler(asset.GetWebAsset()),
 	)
 }
 
@@ -67,6 +82,19 @@ func createServe(as *asset.Asset) echo.HandlerFunc {
 			context.SetHeader(c, echo.HeaderContentEncoding, cs.Gzip)
 		}
 		context.SetContentType(c, contentType)
+		context.Res(c, buf)
+		return
+	}
+}
+
+func createIndexHandler(as *asset.Asset) echo.HandlerFunc {
+	return func(c echo.Context) (err error) {
+		file := defaultIndexFile
+		buf := as.Get(file)
+		context.SetContentType(c, mime.TypeByExtension(filepath.Ext(file)))
+		defaultEnv := []byte(`"development"`)
+		newEnv := []byte(`"` + config.GetENV() + `"`)
+		buf = bytes.Replace(buf, defaultEnv, newEnv, 1)
 		context.Res(c, buf)
 		return
 	}

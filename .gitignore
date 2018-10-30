@@ -17,3 +17,4 @@ tmp
 assets
 node_modules
 dist
+asset/a_asset-packr.go

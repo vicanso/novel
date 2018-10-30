@@ -1,12 +1,24 @@
+FROM node:alpine as assets
+
+ADD ./ /novel
+
+RUN cd /novel/admin \
+  && yarn \
+  && yarn build
+
 FROM golang:1.11-alpine as builder
 
 ADD ./ /go/src/github.com/vicanso/novel
 
+COPY --from=assets /novel/admin/dist /go/src/github.com/vicanso/novel/admin/dist
+
 RUN apk update \
   && apk add git \
   && go get -u github.com/golang/dep/cmd/dep \
+  && go get -u github.com/gobuffalo/packr/packr \
   && cd /go/src/github.com/vicanso/novel \
   && dep ensure \
+  && packr -z \
   && GOOS=linux GOARCH=amd64 go build -tags netgo -o novel
 
 FROM alpine

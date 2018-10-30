@@ -41,6 +41,10 @@ type (
 	BookFavToggleParams struct {
 		Category string `valid:"in(add|remove)"`
 	}
+	// BookFavUpdateParams params for book fav update
+	BookFavUpdateParams struct {
+		ReadingChapter int `valid:"xIntRange(1|10000)"`
+	}
 )
 
 func init() {
@@ -146,6 +150,15 @@ func init() {
 		"/v1/favorites/:id",
 		ctrl.toggleFav,
 		createTracker(cs.ActionUserFavToggle),
+		userSession,
+		middleware.IsLogined,
+	)
+	// 用户收藏更新
+	books.Add(
+		"PATCH",
+		"/v1/favorites/:id",
+		ctrl.updateFav,
+		createTracker(cs.ActionUserFavUpdate),
 		userSession,
 		middleware.IsLogined,
 	)
@@ -451,5 +464,21 @@ func (bc *BookCtrl) listFav(c echo.Context) (err error) {
 	res(c, map[string]interface{}{
 		"favs": result,
 	})
+	return
+}
+
+// updateFav update the fav
+func (bc *BookCtrl) updateFav(c echo.Context) (err error) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return
+	}
+	params := &BookFavUpdateParams{}
+	err = validate.Do(params, getRequestBody(c))
+	if err != nil {
+		return
+	}
+	account := context.GetUserSession(c).GetAccount()
+	err = bookService.UpdateFav(account, id, params.ReadingChapter)
 	return
 }

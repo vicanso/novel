@@ -47,8 +47,8 @@ type (
 	// Favorite user's favorite
 	Favorite struct {
 		BaseModel
-		BookID          uint   `json:"bookId,omitempty" gorm:"not null;unique_index:idx_favorites_book_id_account"`
-		Account         string `json:"account,omitempty" gorm:"not null;unique_index:idx_favorites_book_id_account"`
-		ReaddingChapter int    `json:"readdingChapter"`
+		BookID         uint   `json:"bookId,omitempty" gorm:"not null;unique_index:idx_favorites_book_id_account"`
+		Account        string `json:"account,omitempty" gorm:"not null;unique_index:idx_favorites_book_id_account"`
+		ReadingChapter int    `json:"readingChapter"`
 	}
 )

@@ -80,8 +80,9 @@ type (
 		Author    string     `json:"author,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		// 收藏时间
-		CreatedAt          *time.Time `json:"createdAt,omitempty"`
-		LatestChapterTitle string     `json:"latestChapterTitle,omitempty"`
+		CreatedAt      *time.Time     `json:"createdAt,omitempty"`
+		LatestChapter  *model.Chapter `json:"latestChapter,omitempty"`
+		ReadingChapter *model.Chapter `json:"readingChapter,omitempty"`
 	}
 )
 
@@ -580,20 +581,46 @@ func (b *Book) ListFav(account string) (bookFavs []*BookFavorite, err error) {
 			Author:    item.Author,
 			UpdatedAt: item.UpdatedAt,
 		}
-		for _, fav := range favs {
-			if fav.BookID == item.ID {
-				bookFav.CreatedAt = fav.CreatedAt
-			}
-		}
 		go func() {
-			latestChapter, _ := b.GetLatestChapter(int(bookFav.ID), "title,updatedAt")
+			var foundFav *model.Favorite
+			for _, fav := range favs {
+				if fav.BookID == item.ID {
+					bookFav.CreatedAt = fav.CreatedAt
+					foundFav = fav
+				}
+			}
+			chapterFields := "title,index,updatedAt"
+			latestChapter, _ := b.GetLatestChapter(int(bookFav.ID), chapterFields)
 			if latestChapter != nil {
-				bookFav.LatestChapterTitle = latestChapter.Title
+				bookFav.LatestChapter = latestChapter
+			}
+			if foundFav != nil {
+				bookFav.ReadingChapter = &model.Chapter{}
+				getClientByOptions(&model.QueryOptions{
+					Field: chapterFields,
+				}, nil).Where(&model.Chapter{
+					BookID: bookFav.ID,
+					Index:  foundFav.ReadingChapter,
+				}).First(bookFav.ReadingChapter)
 			}
 			waitChans <- true
 		}()
 		<-waitChans
 		bookFavs[index] = bookFav
 	}
+	return
+}
+
+// UpdateFav update the fav info
+func (b *Book) UpdateFav(account string, bookID, readingChapter int) (err error) {
+	err = getClient().
+		Model(&model.Favorite{}).
+		Where(&model.Favorite{
+			Account: account,
+			BookID:  uint(bookID),
+		}).
+		Updates(&model.Favorite{
+			ReadingChapter: readingChapter,
+		}).Error
 	return
 }
