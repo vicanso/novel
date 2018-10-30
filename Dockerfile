@@ -2,7 +2,13 @@ FROM node:alpine as assets
 
 ADD ./ /novel
 
-RUN cd /novel/admin \
+RUN apk update \
+  && apk add git \
+  && git clone --depth=1 https://github.com/vicanso/novel-web /novel/web \
+  && cd /novel/admin \
+  && yarn \
+  && yarn build \
+  && cd /novel/web \
   && yarn \
   && yarn build
 
@@ -11,6 +17,7 @@ FROM golang:1.11-alpine as builder
 ADD ./ /go/src/github.com/vicanso/novel
 
 COPY --from=assets /novel/admin/dist /go/src/github.com/vicanso/novel/admin/dist
+COPY --from=assets /novel/web/dist /go/src/github.com/vicanso/novel/assets
 
 RUN apk update \
   && apk add git \
