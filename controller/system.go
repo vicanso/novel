@@ -105,11 +105,9 @@ func (sc *SystemCtrl) getRouteCounts(c echo.Context) (err error) {
 // getAssets get assets
 func (sc *SystemCtrl) getAssets(c echo.Context) (err error) {
 	adminAsset := asset.GetAdminAsset()
-	webAsset := asset.GetWebAsset()
 	setCache(c, "1m")
 	res(c, map[string]interface{}{
 		"admin": adminAsset.List(),
-		"web": webAsset.List(),
 	})
 	return
 }

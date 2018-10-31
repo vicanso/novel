@@ -35,22 +35,11 @@ func init() {
 		staticAdminURLPrefix+"*",
 		createServe(asset.GetAdminAsset()),
 	)
-	router.Add(
-		"GET",
-		staticWebURLPrefix+"*",
-		createServe(asset.GetWebAsset()),
-	)
 
 	router.Add(
 		"GET",
 		"/admin/",
 		createIndexHandler(asset.GetAdminAsset()),
-	)
-
-	router.Add(
-		"GET",
-		"/web/",
-		createIndexHandler(asset.GetWebAsset()),
 	)
 }
 
