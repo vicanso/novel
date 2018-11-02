@@ -544,10 +544,13 @@ func (b *Book) AddFav(account string, bookID int) (err error) {
 
 // RemoveFav remove fav book
 func (b *Book) RemoveFav(account string, bookID int) (err error) {
-	err = getClient().Unscoped().Delete(&model.Favorite{
-		Account: account,
-		BookID:  uint(bookID),
-	}).Error
+	err = getClient().
+		Unscoped().
+		Where(&model.Favorite{
+			Account: account,
+			BookID:  uint(bookID),
+		}).
+		Delete(&model.Favorite{}).Error
 	return
 }
 
