@@ -1,4 +1,4 @@
-FROM node:alpine as assets
+FROM node as assets
 
 ADD ./ /novel
 
