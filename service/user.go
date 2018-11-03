@@ -91,6 +91,11 @@ func (u *UserSession) Refresh() error {
 	return u.Sess.Refresh()
 }
 
+// RefreshSessionCookie refres session's cookie
+func (u *UserSession) RefreshSessionCookie() {
+	u.Sess.RegenerateCookie()
+}
+
 // NewUserSession create a new user session
 func NewUserSession(sess *session.Session) *UserSession {
 	return &UserSession{

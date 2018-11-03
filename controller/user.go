@@ -207,6 +207,7 @@ func (uc *UserCtrl) getLoginToken(c echo.Context) (err error) {
 	token := util.RandomString(loginTokenLength)
 	us := getUserSession(c)
 	us.SetLoginToken(token)
+	us.RefreshSessionCookie()
 	res(c, map[string]string{
 		"token": token,
 	})

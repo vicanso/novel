@@ -65,7 +65,11 @@ func TestUserCtrl(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "http://127.0.0.1/users/v1/me/token", nil)
 		w := httptest.NewRecorder()
 		c := e.NewContext(r, w)
-		sess := &session.Session{}
+		store, _ := session.NewMemoryStore(10)
+		sess := session.New(r, w, &session.Options{
+			Store: store,
+		})
+
 		us := &service.UserSession{
 			Sess: sess,
 		}
