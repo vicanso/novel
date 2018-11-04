@@ -113,12 +113,15 @@ func initBookUpdateChaptersTicker() {
 		status := strconv.Itoa(model.BookStatusPassed)
 		books, err := b.List(&service.BookQueryParams{
 			Status: status,
-			Field:  "id",
+			Field:  "id,category",
 		})
 		if err != nil {
 			return
 		}
 		for _, book := range books {
+			if util.ContainsString(book.Category, "完结") {
+				return
+			}
 			id := int(book.ID)
 			key := fmt.Sprintf("%s-%d", cs.CacheBookUpdateChaptersLock, id)
 			// 保证30分钟内只有实例获得更新
