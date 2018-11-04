@@ -50,7 +50,7 @@ func initSessionHandler() echo.MiddlewareFunc {
 		// the sesion cookie
 		Cookie: config.GetSessionCookie(),
 		// cookie max age (cookie有效期设置长一些)
-		CookieMaxAge: 10 * config.GetDurationDefault("session.cookie.maxAge", defaultDuration),
+		CookieMaxAge: 30 * config.GetDurationDefault("session.cookie.maxAge", defaultDuration),
 		// cookie path
 		CookiePath: config.GetCookiePath(),
 		// cookie signed keys
