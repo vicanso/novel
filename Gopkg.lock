@@ -68,19 +68,19 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:39b76cbb4d531667a4f538f5aa01fb38d62fa4434a1b90aa74355c9ed114a4b4"
+  digest = "1:3cefd2be286c70e8c6088f8ecb437469ba4e2ff5a8e7e7bc4eaf5b0eb1710d4c"
   name = "github.com/gobuffalo/packd"
   packages = ["."]
   pruneopts = "UT"
-  revision = "c8273487026482b912d61bdbffd54705e96d1e8e"
+  revision = "d376b15f8e96be52ab5548297cda58713109e15d"
 
 [[projects]]
-  digest = "1:922fb21e58b0af47ea195f322c119df4e6d40bf934baf82e7e3604dde5cefe03"
+  digest = "1:24430e30c5fe94726058c1cb9c36f8fe891ae67c00ee73ee43da1e01528dad1c"
   name = "github.com/gobuffalo/packr"
   packages = ["."]
   pruneopts = "UT"
-  revision = "816688b5663f5e5b1ca22fe1f14bf568058dbc05"
-  version = "v1.17.0"
+  revision = "cf1833a64494f56baea836890e2ee5e69c2092dc"
+  version = "v1.19.0"
 
 [[projects]]
   branch = "master"
@@ -176,12 +176,12 @@
   version = "v1.1.5"
 
 [[projects]]
-  digest = "1:63801c64679bdeef1b63206f065d5a1f4c3a75ed66a3fbbd909bf98766542980"
+  digest = "1:f992df6c97ba40d3643a5fbdf1d33497d1f43f84aa9567f7beb96c1472d74584"
   name = "github.com/labstack/echo"
   packages = ["."]
   pruneopts = "UT"
-  revision = "1abaa3049251d17932e4313c2d6165073fd07fd8"
-  version = "v3.3.6"
+  revision = "2e9f4ea4e010fa328318107ba074b1b72381c571"
+  version = "v3.3.7"
 
 [[projects]]
   digest = "1:faee5b9f53eb1ae4eb04708c040c8c4dd685ce46509671e57a08520a15c54368"
@@ -389,12 +389,12 @@
   revision = "36edbc91369b8bcf7c1ff7f44c7cca98f71c28a1"
 
 [[projects]]
-  digest = "1:5d97f81e323e355ba44cff8aea0a8f9ac5b2f8fcc2398356322e01a8bbe815f4"
+  digest = "1:1943b4ceb55e33d5c7ff2c51aecfb7feedba349221026d205e9030ec77085877"
   name = "github.com/vicanso/session"
   packages = ["."]
   pruneopts = "UT"
-  revision = "34b589ade468ce45aa509516d8cd4daf74d3c1c2"
-  version = "0.0.7"
+  revision = "b3b61a422c74f949034bcd91f968069f96a4b680"
+  version = "0.0.8"
 
 [[projects]]
   digest = "1:3c1a69cdae3501bf75e76d0d86dc6f2b0a7421bc205c0cb7b96b19eed464a34d"
@@ -451,15 +451,15 @@
     "publicsuffix",
   ]
   pruneopts = "UT"
-  revision = "c10e9556a7bc0e7c942242b606f0acf024ad5d6a"
+  revision = "10aee181995363b41f712a55844a0dd52ea04646"
 
 [[projects]]
   branch = "master"
-  digest = "1:35560529f5721d65f36dc23aa15fbf7306c5091cdc3f29f65881af5031b80cc8"
+  digest = "1:bf563be850c4ba68c4de69cd10e3c8b19a6c42b7be70b6d6416b3cf77d1f0208"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "9b800f95dbbc54abff0acf7ee32d88ba4e328c89"
+  revision = "7155702f2d47d94b134229da97195d0130cab001"
 
 [[projects]]
   digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"

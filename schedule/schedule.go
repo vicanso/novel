@@ -107,27 +107,33 @@ func initBookCategoryTicker() {
 
 // 定时更新章节信息
 func initBookUpdateChaptersTicker() {
-	ticker := time.NewTicker(3600 * time.Second)
+	interval := 1800 * time.Second
+	ticker := time.NewTicker(interval)
 	runTicker(ticker, "update book chapter", func() (err error) {
 		b := service.Book{}
 		status := strconv.Itoa(model.BookStatusPassed)
 		books, err := b.List(&service.BookQueryParams{
 			Status: status,
-			Field:  "id,category",
+			Field:  "id,category,updatedAt",
 		})
 		if err != nil {
 			return
 		}
+		now := time.Now().Unix()
 		for _, book := range books {
 			if util.ContainsString(book.Category, "完结") {
-				return
+				continue
+			}
+			// 如果在上一次定时任务有更新，则此次跳过
+			if now-book.UpdatedAt.Unix() < 2*int64(interval/time.Second) {
+				continue
 			}
 			id := int(book.ID)
 			key := fmt.Sprintf("%s-%d", cs.CacheBookUpdateChaptersLock, id)
-			// 保证30分钟内只有实例获得更新
-			ok, _ := service.Lock(key, 1800*time.Second)
+			// 保证5分钟内只有实例获得更新
+			ok, _ := service.Lock(key, 300*time.Second)
 			if !ok {
-				return
+				continue
 			}
 			b.UpdateChapters(id)
 		}
