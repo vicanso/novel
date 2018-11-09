@@ -81,9 +81,16 @@ type (
 		Cover     string     `json:"cover,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		// 收藏时间
-		CreatedAt      *time.Time     `json:"createdAt,omitempty"`
-		LatestChapter  *model.Chapter `json:"latestChapter,omitempty"`
-		ReadingChapter *model.Chapter `json:"readingChapter,omitempty"`
+		CreatedAt      *time.Time      `json:"createdAt,omitempty"`
+		LatestChapter  *model.Chapter  `json:"latestChapter,omitempty"`
+		ReadingChapter *ReadingChapter `json:"readingChapter,omitempty"`
+	}
+	// ReadingChapter book reading chapter
+	ReadingChapter struct {
+		Title     string     `json:"title"`
+		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
+		Index     int        `json:"index"`
+		No        int        `json:"no"`
 	}
 )
 
@@ -608,7 +615,12 @@ func (b *Book) ListFav(account string) (bookFavs []*BookFavorite, err error) {
 					Index:  foundFav.ReadingChapter,
 				}).First(readingChapter)
 				if readingChapter.Title != "" {
-					bookFav.ReadingChapter = readingChapter
+					bookFav.ReadingChapter = &ReadingChapter{
+						Title:     readingChapter.Title,
+						Index:     readingChapter.Index,
+						UpdatedAt: readingChapter.UpdatedAt,
+						No:        foundFav.ReadingChapterNo,
+					}
 				}
 			}
 			waitChans <- true
@@ -620,7 +632,7 @@ func (b *Book) ListFav(account string) (bookFavs []*BookFavorite, err error) {
 }
 
 // UpdateFav update the fav info
-func (b *Book) UpdateFav(account string, bookID, readingChapter int) (err error) {
+func (b *Book) UpdateFav(account string, bookID, readingChapter, readingChapterNo int) (err error) {
 	err = getClient().
 		Model(&model.Favorite{}).
 		Where(&model.Favorite{
@@ -628,7 +640,8 @@ func (b *Book) UpdateFav(account string, bookID, readingChapter int) (err error)
 			BookID:  uint(bookID),
 		}).
 		Updates(&model.Favorite{
-			ReadingChapter: readingChapter,
+			ReadingChapter:   readingChapter,
+			ReadingChapterNo: readingChapterNo,
 		}).Error
 	return
 }

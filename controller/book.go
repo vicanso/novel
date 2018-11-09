@@ -43,7 +43,8 @@ type (
 	}
 	// BookFavUpdateParams params for book fav update
 	BookFavUpdateParams struct {
-		ReadingChapter int `valid:"xIntRange(1|10000)"`
+		ReadingChapter   int `valid:"xIntRange(1|10000)"`
+		ReadingChapterNo int `valid:"xIntRange(1|10000)"`
 	}
 )
 
@@ -479,6 +480,6 @@ func (bc *BookCtrl) updateFav(c echo.Context) (err error) {
 		return
 	}
 	account := context.GetUserSession(c).GetAccount()
-	err = bookService.UpdateFav(account, id, params.ReadingChapter)
+	err = bookService.UpdateFav(account, id, params.ReadingChapter, params.ReadingChapterNo)
 	return
 }
