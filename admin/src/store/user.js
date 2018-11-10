@@ -41,6 +41,10 @@ const userLogout = async ({ commit }) => {
   });
 };
 
+const userSessionRefresh = async () => {
+  await request.patch(USERS_ME);
+};
+
 const state = {
   user: {
     info: null
@@ -58,6 +62,7 @@ const actions = {
   userGetInfo,
   userRegister,
   userLogin,
+  userSessionRefresh,
   userLogout
 };
 

@@ -25,7 +25,7 @@ export default {
     };
   },
   methods: {
-    ...mapActions(["userGetInfo"])
+    ...mapActions(["userGetInfo", "userSessionRefresh"])
   },
   computed: {
     ...mapState({
@@ -47,6 +47,9 @@ export default {
     const close = this.xLoading();
     try {
       await this.userGetInfo();
+      setTimeout(() => {
+        this.userSessionRefresh();
+      }, 5000);
     } catch (err) {
       this.xError(err);
     } finally {
