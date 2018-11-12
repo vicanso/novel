@@ -35,7 +35,7 @@ type (
 	}
 	// UserActionParams user action params
 	UserActionParams struct {
-		Type string `valid:"in(like|view)"`
+		Type string `valid:"in(like|view|wantToRead)"`
 	}
 	// BookFavToggleParams params for book fav toggle
 	BookFavToggleParams struct {
@@ -346,14 +346,20 @@ func (bc *BookCtrl) userAction(c echo.Context) (err error) {
 	if err != nil {
 		return
 	}
-	parmas := &UserActionParams{}
-	err = validate.Do(parmas, getRequestBody(c))
+	params := &UserActionParams{}
+	err = validate.Do(params, getRequestBody(c))
 	if err != nil {
 		return
 	}
-	if parmas.Type == "view" {
+	switch params.Type {
+	case "view":
 		err = bookService.View(id)
-	} else {
+	case "wantToRead":
+		// TODO 暂时只输出日志
+		context.GetLogger(c).Info("want to read book",
+			zap.Int("id", id),
+		)
+	default:
 		err = bookService.Like(id)
 	}
 	return
