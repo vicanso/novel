@@ -633,6 +633,20 @@ func (b *Book) ListFav(account string) (bookFavs []*BookFavorite, err error) {
 
 // UpdateFav update the fav info
 func (b *Book) UpdateFav(account string, bookID, readingChapter, readingChapterNo int) (err error) {
+	currentFav := &model.Favorite{}
+	err = getClient().
+		Model(&model.Favorite{}).
+		Where(&model.Favorite{
+			Account: account,
+			BookID:  uint(bookID),
+		}).First(currentFav).Error
+	if err != nil {
+		return
+	}
+	// 如果数据库中的阅读记录已一致，则不更新
+	if currentFav.ReadingChapter == readingChapter && currentFav.ReadingChapterNo == readingChapterNo {
+		return
+	}
 	err = getClient().
 		Model(&model.Favorite{}).
 		Where(&model.Favorite{
