@@ -11,7 +11,7 @@ session:
   #   name: jt
   #   maxAge: 24h
   #   path: /
-  expires: 24h
+  expires: 48h
   keys:
     - cuttlefish
     - tree.xie
