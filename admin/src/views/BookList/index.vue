@@ -206,6 +206,7 @@ mixin BookFilter
   bottom: 0
   background-color: $COLOR_WHITE
   z-index: 9
+  overflow: auto
   h5
     margin: 0
     padding: 0
