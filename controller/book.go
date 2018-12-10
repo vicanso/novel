@@ -3,7 +3,6 @@ package controller
 import (
 	"math/rand"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/labstack/echo"
@@ -327,11 +326,6 @@ func (bc *BookCtrl) listChapaters(c echo.Context) (err error) {
 		return
 	}
 	m := make(map[string]interface{})
-	for _, chapter := range chapters {
-		if chapter.Content != "" {
-			chapter.Content = strings.TrimSpace(chapter.Content)
-		}
-	}
 	m["chapters"] = chapters
 	offset := params.Offset
 	if offset == "0" || offset == "" {
